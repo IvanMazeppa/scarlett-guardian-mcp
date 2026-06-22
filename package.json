@@ -1,0 +1,25 @@
+{
+  "name": "scarlett-guardian-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Guardian MCP preflight server for Scarlett & Benjamin narrative memory enforcement.",
+  "scripts": {
+    "dev": "tsx src/guardian/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/guardian/server.js",
+    "test": "tsx tests/preflight.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
