@@ -9,6 +9,12 @@ import { runGuardianPreflight } from "./tools/preflight.js";
 const config = getConfig();
 const ragClient = new RagMcpClient(config);
 
+const PreflightInputSchema = z.object({
+  user_message: z.string().min(1).describe("Raw latest Benjamin/user message that Scarlett would respond to."),
+  recent_context: z.string().optional().describe("Optional compact recap of the immediately preceding exchange."),
+  force_full_retrieval: z.boolean().default(false).describe("If true, run broader targeted memory searches for high-risk or diagnostic turns.")
+});
+
 function createServer(): McpServer {
   const server = new McpServer({
     name: "scarlett-guardian-mcp",
@@ -26,11 +32,7 @@ function createServer(): McpServer {
         "If proceed_recommendation is do_not_proceed, do not write in-character prose; stop OOC and repair retrieval.",
         "Never use narrative flow, emotional momentum, or apparent continuity as a reason to skip this tool."
       ].join(" "),
-      inputSchema: z.object({
-        user_message: z.string().min(1).describe("Raw latest Benjamin/user message that Scarlett would respond to."),
-        recent_context: z.string().optional().describe("Optional compact recap of the immediately preceding exchange."),
-        force_full_retrieval: z.boolean().default(false).describe("If true, run broader targeted memory searches for high-risk or diagnostic turns.")
-      })
+      inputSchema: PreflightInputSchema
     },
     async (args) => {
       const report = await runGuardianPreflight(args, ragClient, config);
@@ -57,14 +59,49 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.post("/mcp", async (req, res) => {
+function hasValidBearerToken(req: express.Request): boolean {
   if (config.GUARDIAN_MCP_BEARER_TOKEN) {
     const expected = `Bearer ${config.GUARDIAN_MCP_BEARER_TOKEN}`;
-    if (req.header("authorization") !== expected) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
+    return req.header("authorization") === expected;
   }
+
+  return true;
+}
+
+function requireGuardianAuth(req: express.Request, res: express.Response): boolean {
+  if (!hasValidBearerToken(req)) {
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+  }
+
+  return true;
+}
+
+app.post("/preflight", async (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+
+  const parsed = PreflightInputSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: "Invalid preflight request",
+      issues: parsed.error.issues
+    });
+    return;
+  }
+
+  try {
+    const report = await runGuardianPreflight(parsed.data, ragClient, config);
+    res.json(report);
+  } catch (error) {
+    res.status(500).json({
+      error: "Guardian preflight failed",
+      detail: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.post("/mcp", async (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
 
   try {
     const server = createServer();
