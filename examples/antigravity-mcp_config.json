@@ -1,10 +1,7 @@
 {
   "mcpServers": {
     "scarlett-guardian-mcp": {
-      "serverUrl": "http://127.0.0.1:8790/mcp",
-      "headers": {
-        "Authorization": "Bearer ${GUARDIAN_MCP_BEARER_TOKEN}"
-      }
+      "serverUrl": "http://127.0.0.1:8790/mcp"
     }
   }
 }

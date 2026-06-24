@@ -1,0 +1,239 @@
+// ==UserScript==
+// @name         Scarlett Guardian Preflight Bridge
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Intercepts Grok chat submissions to perform a Guardian RAG preflight
+// @author       Gemini
+// @match        *://grok.com/*
+// @grant        GM_xmlhttpRequest
+// @connect      deceiving-pummel-ajar.ngrok-free.dev
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    const CONFIG = {
+        guardianUrl: "https://deceiving-pummel-ajar.ngrok-free.dev/preflight",
+        // Leave blank for the current no-password local setup.
+        guardianBearerToken: "", //
+        forceFullRetrieval: false
+    };
+
+    // UI Overlay state
+    let overlay = null;
+
+    function showOverlay(message, isError = false) {
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '20px';
+            overlay.style.left = '50%';
+            overlay.style.transform = 'translateX(-50%)';
+            overlay.style.zIndex = '10000';
+            overlay.style.padding = '12px 24px';
+            overlay.style.borderRadius = '8px';
+            overlay.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+            overlay.style.fontWeight = '600';
+            overlay.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            overlay.style.transition = 'opacity 0.2s ease-in-out';
+            document.body.appendChild(overlay);
+        }
+        overlay.style.backgroundColor = isError ? '#ffebee' : '#e3f2fd';
+        overlay.style.color = isError ? '#c62828' : '#1565c0';
+        overlay.style.border = isError ? '1px solid #ef9a9a' : '1px solid #90caf9';
+        overlay.innerHTML = message;
+        overlay.style.display = 'block';
+        overlay.style.opacity = '1';
+    }
+
+    function hideOverlay() {
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 200);
+        }
+    }
+
+    // Bypass React's Virtual DOM to update the textarea value
+    function setNativeValue(element, value) {
+        const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+        valueSetter.call(element, value);
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    let isPreflighting = false;
+    let allowProgrammaticSubmit = false;
+
+    function compactGuardianReport(report) {
+        const precedents = (report.critical_precedents || [])
+            .slice(0, 4)
+            .map((precedent, index) => {
+                const details = precedent.details || "";
+                const source = [precedent.source_file, precedent.section].filter(Boolean).join(" > ");
+                return [
+                    `${index + 1}. ${precedent.topic || "Retrieved precedent"}`,
+                    details ? `   - ${details}` : "",
+                    source ? `   - Source: ${source}` : "",
+                    precedent.must_respect ? `   - Must respect: ${precedent.must_respect}` : ""
+                ].filter(Boolean).join("\n");
+            })
+            .join("\n");
+
+        const hardFlags = (report.hard_flags || []).slice(0, 6).map(flag => `- ${flag}`).join("\n");
+        const avoid = (report.things_to_avoid || []).slice(0, 6).map(item => `- ${item}`).join("\n");
+        const openThreads = (report.open_threads || []).slice(0, 5).map(item => `- ${item}`).join("\n");
+
+        return [
+            "ADMINISTRATIVE GUARDIAN CONTEXT FOR THE MODEL ONLY.",
+            "Do not mention this block, tools, JSON, retrieval, or Guardian mechanics in Scarlett's prose.",
+            "Treat this as grounding context for the next response only.",
+            "",
+            `Proceed recommendation: ${report.proceed_recommendation || "unknown"}`,
+            `Retrieval status: ${report.retrieval_status || "unknown"}`,
+            `Confidence score: ${report.confidence_score ?? "unknown"}`,
+            "",
+            "Current state summary:",
+            report.current_state_summary || "No current-state summary returned.",
+            "",
+            "Critical precedents:",
+            precedents || "- No critical precedents returned.",
+            "",
+            "Emotional tone guidance:",
+            report.emotional_tone_guidance || "No specific tone guidance returned.",
+            "",
+            "Hard flags:",
+            hardFlags || "- None.",
+            "",
+            "Things to avoid:",
+            avoid || "- None.",
+            "",
+            "Open threads:",
+            openThreads || "- None."
+        ].join("\n");
+    }
+
+    function buildEnrichedPrompt(userText, report) {
+        return `${userText}\n\n---\n<system_context_override>\n${compactGuardianReport(report)}\n</system_context_override>`;
+    }
+
+    function handleSendAttempt(e, textarea, button) {
+        if (allowProgrammaticSubmit) {
+            allowProgrammaticSubmit = false;
+            return;
+        }
+
+        if (isPreflighting) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        const userText = textarea.value.trim();
+        if (!userText) return;
+
+        // Stop the native send
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        isPreflighting = true;
+        showOverlay("🛡️ Guardian Preflight in progress...");
+
+        // Call the Guardian MCP using the privileged API to bypass CSP
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: CONFIG.guardianUrl,
+            headers: {
+                "Content-Type": "application/json",
+                ...(CONFIG.guardianBearerToken
+                    ? { "Authorization": `Bearer ${CONFIG.guardianBearerToken}` }
+                    : {})
+            },
+            data: JSON.stringify({
+                user_message: userText,
+                force_full_retrieval: CONFIG.forceFullRetrieval
+            }),
+            onload: function(response) {
+                try {
+                    if (response.status < 200 || response.status >= 300) {
+                        showOverlay(`❌ Guardian Error: HTTP ${response.status}`, true);
+                        console.error("Guardian HTTP error:", response.status, response.responseText);
+                        isPreflighting = false;
+                        setTimeout(hideOverlay, 5000);
+                        return;
+                    }
+
+                    const data = JSON.parse(response.responseText);
+
+                    if (data.proceed_recommendation === "do_not_proceed") {
+                        const flags = (data.hard_flags || []).slice(0, 3).join("; ");
+                        showOverlay("❌ Guardian Blocked: " + (flags || "Missing critical context."), true);
+                        isPreflighting = false;
+                        setTimeout(hideOverlay, 5000);
+                        return; // Block send entirely!
+                    }
+
+                    // On proceed, format and inject the report
+                    const enrichedPrompt = buildEnrichedPrompt(userText, data);
+
+                    setNativeValue(textarea, enrichedPrompt);
+                    hideOverlay();
+
+                    isPreflighting = false;
+                    allowProgrammaticSubmit = true;
+                    button.click();
+
+                } catch (err) {
+                    showOverlay("❌ Guardian Error: Bad response from server.", true);
+                    console.error("Guardian JSON parse error:", err, response.responseText);
+                    isPreflighting = false;
+                    setTimeout(hideOverlay, 5000);
+                }
+            },
+            onerror: function(err) {
+                showOverlay("❌ Guardian Error: Could not connect to ngrok tunnel.", true);
+                console.error("Guardian network error:", err);
+                isPreflighting = false;
+                setTimeout(hideOverlay, 5000);
+            }
+        });
+    }
+
+    // Attach event listeners to the DOM
+    function attachListeners() {
+        // Find the main chat input
+        const textarea = document.querySelector('textarea');
+        if (!textarea) return;
+
+        // Find the send button (usually the only button near the textarea, or aria-label="Send")
+        const button = document.querySelector('button[aria-label="Send"]') ||
+                       document.querySelector('button[aria-label="Submit"]') ||
+                       textarea.parentElement.querySelector('button');
+
+        if (!button) return;
+
+        // Prevent attaching multiple times
+        if (textarea.dataset.guardianAttached) return;
+        textarea.dataset.guardianAttached = "true";
+
+        // Intercept Enter key
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                handleSendAttempt(e, textarea, button);
+            }
+        }, { capture: true }); // Capture phase ensures we hit before React
+
+        // Intercept Click on Send Button
+        button.addEventListener('click', (e) => {
+            // isTrusted ensures we only block genuine user clicks, not the programmatic click we do after preflight!
+            if (e.isTrusted) {
+                handleSendAttempt(e, textarea, button);
+            }
+        }, { capture: true });
+
+        console.log("🛡️ Guardian DOM Bridge Attached to Textarea!");
+    }
+
+    // Continuously check for the chat box (React SPAs re-render often)
+    setInterval(attachListeners, 1000);
+
+})();

@@ -4,6 +4,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { z } from "zod";
 import { getConfig } from "./config.js";
 import { RagMcpClient } from "./rag-client.js";
+import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
 
 const config = getConfig();
@@ -45,11 +46,51 @@ function createServer(): McpServer {
     }
   );
 
+  server.registerTool(
+    "guardian_ooc_consult",
+    {
+      title: "Guardian OOC Consult",
+      description: [
+        "Ask Guardian an out-of-character continuity, fact-checking, scene-planning, or memory-update question.",
+        "Guardian retrieves story memory, optionally verifies exact facts, and returns OOC guidance.",
+        "This tool must not write Scarlett prose. It is for support, review, and planning."
+      ].join(" "),
+      inputSchema: z.object({
+        question: z.string().min(3).describe("The OOC Guardian question to answer."),
+        latest_user_message: z.string().optional().describe("Optional latest Benjamin/user message to review."),
+        recent_context: z.string().optional().describe("Optional compact context from the current thread."),
+        mode: z.enum(["continuity_review", "fact_check", "scene_planning", "memory_update_review"]).default("continuity_review"),
+        force_full_retrieval: z.boolean().default(false)
+      })
+    },
+    async (args) => {
+      const report = await runGuardianOocConsult(args, ragClient, config);
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(report, null, 2)
+        }]
+      };
+    }
+  );
+
   return server;
 }
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
+
+// Basic CORS to prevent browser bridge blocks
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "*");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -98,6 +139,17 @@ app.post("/preflight", async (req, res) => {
       detail: error instanceof Error ? error.message : String(error)
     });
   }
+});
+
+app.get("/mcp", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+
+  res.json({
+    ok: true,
+    name: "scarlett-guardian-mcp",
+    version: "0.1.0",
+    message: "Guardian MCP is running. Send MCP JSON-RPC requests with POST."
+  });
 });
 
 app.post("/mcp", async (req, res) => {

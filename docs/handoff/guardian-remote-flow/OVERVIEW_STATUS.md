@@ -65,7 +65,7 @@ flowchart LR
 
 - `GUARDIAN_HOST=0.0.0.0`
 - `GUARDIAN_PORT=8790`
-- `GUARDIAN_MCP_BEARER_TOKEN=` must be set before public exposure.
+- `GUARDIAN_MCP_BEARER_TOKEN=` is blank for the current no-password setup.
 - `RAG_MCP_URL=http://127.0.0.1:8787/mcp-v2`
 - `RAG_MCP_BEARER_TOKEN=` only needed if RAG has `MCP_BEARER_TOKEN` set.
 - `RAG_MCP_TIMEOUT_MS=30000`

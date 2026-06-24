@@ -1,0 +1,154 @@
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+Connecting to '<URL>' violates the following Content Security Policy directive: "connect-src 'self' data: <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> ws://localhost:* ws://127.0.0.1:* <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL> <URL>". The action has been blocked.
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+0xez.s926fvtg.js:10 [Guardian DOM Probe] Object
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+0xez.s926fvtg.js:10 [Guardian DOM Probe] Object
+0xez.s926fvtg.js:10 react-i18next:: useTranslation: You will need to pass in an i18next instance by using initReactI18next Object
+(anonymous) @ 0xez.s926fvtg.js:10
+0xez.s926fvtg.js:10 
+█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓
+░                                        ░
+░                                        ░
+░                                 ░▒░    ░
+░                ░░▒▒▒▒▒░░░     ░█░      ░
+░            ░▒████████████▓░ ▒██░       ░
+░          ░████▓░         ░▓███░        ░
+░         ░███▒          ░▓█████░        ░
+░         ███░         ░██▒  ▓███░       ░
+░        ░███░       ▒█▒      ███░       ░
+░         ███░     ▒░░       ▒███░       ░
+░         ▒███░             ░███░        ░
+░         ░███▓░         ░▒████░         ░
+░         ▓█░ ░▒▓████████████░           ░
+░       ▒▒░     ░░▒█████▒░░              ░
+░     ▒░                                 ░
+░                                        ░
+░                                        ░
+█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓
+
+Curious? Join us at https://x.ai/careers
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+0xez.s926fvtg.js:10 [Guardian DOM Probe] Object
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+0xez.s926fvtg.js:10 [Guardian DOM Probe] Object
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+scanDom @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:165
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H1,H2,H3,H5', location: 'docs/grok-guardian-dom-probe.user.js:scanDom', message: 'DOM selector scan', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}
+0xez.s926fvtg.js:6 Fetch API cannot load http://127.0.0.1:7425/ingest/1cc1a0a4-8681-4395-8d17-6b8a4efbeb53. Refused to connect because it violates the document's Content Security Policy.
+(anonymous) @ 0xez.s926fvtg.js:6
+(anonymous) @ 0xez.s926fvtg.js:10
+agentLog @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:35
+handlePotentialSend @ userscript.html?name=Grok-Guardian-DOM-Probe.user.js&id=0b007867-9484-452f-b2bc-d2d1a93327a5:210
+r @ 0xez.s926fvtg.js:7
+0xez.s926fvtg.js:10 [Guardian DOM Probe] {sessionId: '1401cf', runId: 'dom-probe-initial', hypothesisId: 'H3,H4', location: 'docs/grok-guardian-dom-probe.user.js:handlePotentialSend', message: 'Potential send intercepted', …}

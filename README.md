@@ -2,16 +2,19 @@
 
 External Guardian MCP server for the Scarlett & Benjamin narrative memory system.
 
-This server does not replace `rag-memory-mcp`. It wraps the existing RAG MCP with a stricter pre-prose enforcement layer. The Guardian exposes one main tool:
+This server does not replace `rag-memory-mcp`. It wraps the existing RAG MCP with a stricter pre-prose enforcement layer and optional low-cost LLM synthesis. The Guardian exposes:
 
 - `guardian_memory_preflight`
+- `guardian_ooc_consult`
 
 The tool calls the sibling RAG MCP before any in-character Scarlett prose:
 
 1. `index_status` for diagnostics.
 2. `retrieve_story_context` for live-scene preflight.
 3. `search_story_memory` for deep corpus continuity.
-4. Returns a structured Guardian report with confidence, hard flags, precedents, and proceed recommendation.
+4. Optionally calls `expand_context_around_chunk` and `verify_story_fact`.
+5. Optionally calls a mini OpenAI model for structured Guardian synthesis when `GUARDIAN_LLM_ENABLED=true`.
+6. Returns a structured Guardian report with confidence, hard flags, precedents, expansions, fact checks, optional LLM assessment, and proceed recommendation.
 
 ## Why This Exists
 
@@ -43,9 +46,15 @@ RAG_MCP_URL=http://127.0.0.1:8787/mcp-v2
 RAG_MCP_BEARER_TOKEN=
 RAG_MCP_TIMEOUT_MS=30000
 GUARDIAN_CONFIDENCE_THRESHOLD=70
+GUARDIAN_LLM_ENABLED=false
+OPENAI_API_KEY=
+GUARDIAN_MODEL=gpt-5-mini
+GUARDIAN_LLM_MAX_EVIDENCE_CHARS=12000
 ```
 
-Set `GUARDIAN_MCP_BEARER_TOKEN` before exposing Guardian through a tunnel or public host. When set, `POST /mcp` requires `Authorization: Bearer <token>`. `GET /health` stays public but only returns shallow service status.
+For the current no-password setup, leave `GUARDIAN_MCP_BEARER_TOKEN` blank. If it is blank, `POST /mcp` and `POST /preflight` do not require an `Authorization` header. If you later choose to set it, clients must send `Authorization: Bearer <token>`.
+
+Leave `GUARDIAN_LLM_ENABLED=false` to avoid Guardian model calls and extra OpenAI cost. Set it to `true` only when you want the supporting Guardian model to synthesize retrieved evidence into `llm_assessment`.
 
 ## Run
 
@@ -80,19 +89,25 @@ Expected shallow response:
 Expose Guardian, not the sibling RAG MCP:
 
 ```bash
-ngrok http --url=deceiving-pummel-ajar.ngrok-free.dev 8790
+cloudflared tunnel --url http://localhost:8790
+```
+
+Use the generated `https://...trycloudflare.com` URL. The currently verified URL is:
+
+```text
+https://tar-referred-recorded-transition.trycloudflare.com
 ```
 
 Remote health:
 
 ```bash
-curl https://deceiving-pummel-ajar.ngrok-free.dev/health
+curl https://tar-referred-recorded-transition.trycloudflare.com/health
 ```
 
 Remote MCP endpoint:
 
 ```text
-https://deceiving-pummel-ajar.ngrok-free.dev/mcp
+https://tar-referred-recorded-transition.trycloudflare.com/mcp
 ```
 
 Keep the RAG server, Guardian server, and tunnel running while external MCP clients are connected.
@@ -111,7 +126,6 @@ Example:
 
 ```bash
 curl http://127.0.0.1:8790/preflight \
-  -H "Authorization: Bearer $GUARDIAN_MCP_BEARER_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "user_message": "Benjamin latest message here",
@@ -130,10 +144,7 @@ Use `serverUrl` for the Guardian server:
 {
   "mcpServers": {
     "scarlett-guardian-mcp": {
-      "serverUrl": "http://127.0.0.1:8790/mcp",
-      "headers": {
-        "Authorization": "Bearer ${GUARDIAN_MCP_BEARER_TOKEN}"
-      }
+      "serverUrl": "http://127.0.0.1:8790/mcp"
     }
   }
 }
@@ -141,15 +152,15 @@ Use `serverUrl` for the Guardian server:
 
 This repo includes a workspace example at `.agents/mcp_config.json` and a standalone example at `examples/antigravity-mcp_config.json`.
 
-For the ngrok route, change `serverUrl` to `https://deceiving-pummel-ajar.ngrok-free.dev/mcp` and keep the same authorization header.
+For the current public route, change `serverUrl` to `https://tar-referred-recorded-transition.trycloudflare.com/mcp`. Do not add an authorization header while `GUARDIAN_MCP_BEARER_TOKEN` is blank.
 
 ## Smoke Test Expectations
 
 Before using a Guardian report for prose, confirm:
 
-- The client can initialize the Guardian MCP server and list `guardian_memory_preflight`.
-- An unauthenticated `POST /mcp` returns `401` when `GUARDIAN_MCP_BEARER_TOKEN` is set.
-- An authenticated `guardian_memory_preflight` call returns `tool_calls` with successful `index_status`, `retrieve_story_context`, and `search_story_memory` entries.
+- The client can initialize the Guardian MCP server and list `guardian_memory_preflight` plus `guardian_ooc_consult`.
+- A no-password `POST /mcp` or `POST /preflight` works when `GUARDIAN_MCP_BEARER_TOKEN` is blank.
+- A `guardian_memory_preflight` call returns `tool_calls` with successful `index_status`, `retrieve_story_context`, and `search_story_memory` entries. High-risk or exact-fact turns may also include `expand_context_around_chunk` and `verify_story_fact`.
 - `retrieval_status` is `success` or `partial`; `failed` means the caller should stop OOC and repair retrieval.
 
 ## Known Weak Point
@@ -177,6 +188,9 @@ Output (GuardianReport) includes:
 - `proceed_recommendation`: `proceed`, `proceed_with_caution`, or `do_not_proceed`
 - `current_state_summary`
 - `critical_precedents`
+- `expanded_contexts`
+- `fact_checks`
+- `llm_assessment` (present but disabled unless `GUARDIAN_LLM_ENABLED=true`)
 - `emotional_tone_guidance`
 - `things_to_avoid`
 - `open_threads`
@@ -185,8 +199,25 @@ Output (GuardianReport) includes:
 - `retrieval_plan` (includes the exact queries and detected triggers used)
 - `tool_calls` (full trace of calls to the RAG MCP)
 
-## Current Limitations
+## OOC Consult Tool
 
-The current `rag-memory-mcp/src/server.ts` exposes `retrieve_story_context`, `search_story_memory`, `get_live_story_state`, and `index_status`.
+`guardian_ooc_consult` lets Grok ask Guardian a support question without requesting Scarlett prose.
 
-Older planning docs mention `expand_context_around_chunk` and `verify_story_fact`, but those tools are not present in the current RAG source. This Guardian does not call them yet.
+Input:
+
+```json
+{
+  "question": "What continuity risks are present in this proposed turn?",
+  "latest_user_message": "Optional Benjamin message",
+  "recent_context": "Optional compact context",
+  "mode": "continuity_review",
+  "force_full_retrieval": false
+}
+```
+
+Modes:
+
+- `continuity_review`
+- `fact_check`
+- `scene_planning`
+- `memory_update_review`

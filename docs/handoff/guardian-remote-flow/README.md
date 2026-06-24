@@ -45,7 +45,7 @@ RAG_MCP_TIMEOUT_MS=30000
 GUARDIAN_CONFIDENCE_THRESHOLD=70
 ```
 
-Set `GUARDIAN_MCP_BEARER_TOKEN` before exposing Guardian through a tunnel or public host. When set, `POST /mcp` requires `Authorization: Bearer <token>`. `GET /health` stays public but only returns shallow service status.
+For the current no-password setup, leave `GUARDIAN_MCP_BEARER_TOKEN` blank. If it is blank, `POST /mcp` and `POST /preflight` do not require an `Authorization` header. If you later choose to set it, clients must send `Authorization: Bearer <token>`.
 
 ## Run
 
@@ -111,7 +111,6 @@ Example:
 
 ```bash
 curl http://127.0.0.1:8790/preflight \
-  -H "Authorization: Bearer $GUARDIAN_MCP_BEARER_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "user_message": "Benjamin latest message here",
@@ -130,10 +129,7 @@ Use `serverUrl` for the Guardian server:
 {
   "mcpServers": {
     "scarlett-guardian-mcp": {
-      "serverUrl": "http://127.0.0.1:8790/mcp",
-      "headers": {
-        "Authorization": "Bearer ${GUARDIAN_MCP_BEARER_TOKEN}"
-      }
+      "serverUrl": "http://127.0.0.1:8790/mcp"
     }
   }
 }
@@ -148,7 +144,7 @@ For the ngrok route, change `serverUrl` to `https://deceiving-pummel-ajar.ngrok-
 Before using a Guardian report for prose, confirm:
 
 - The client can initialize the Guardian MCP server and list `guardian_memory_preflight`.
-- An unauthenticated `POST /mcp` returns `401` when `GUARDIAN_MCP_BEARER_TOKEN` is set.
+- A no-password `POST /mcp` or `POST /preflight` works when `GUARDIAN_MCP_BEARER_TOKEN` is blank.
 - An authenticated `guardian_memory_preflight` call returns `tool_calls` with successful `index_status`, `retrieve_story_context`, and `search_story_memory` entries.
 - `retrieval_status` is `success` or `partial`; `failed` means the caller should stop OOC and repair retrieval.
 
