@@ -359,7 +359,7 @@ function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPre
   const allResults = memories.flatMap((memory) => memory.results ?? []);
   return allResults.slice(0, 5).map((result) => ({
     topic: result.section ?? result.source_role ?? "Retrieved precedent",
-    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 1500),
+    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 4000),
     must_respect: "Use only this retrieved evidence for continuity. Do not turn it into new canon beyond what the source supports.",
     source_file: result.source_file,
     section: result.section
@@ -369,7 +369,7 @@ function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPre
 function summarizeCurrentState(preflight: RagRetrieveResponse | undefined): string {
   if (!preflight) return "No live-scene preflight was retrieved.";
   const resultText = preflight.results?.[0]?.text;
-  return truncate(preflight.summary || resultText || "Live-scene context retrieved, but no compact summary was provided.", 1000);
+  return truncate(preflight.summary || resultText || "Live-scene context retrieved, but no compact summary was provided.", 4000);
 }
 
 function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories: RagRetrieveResponse[]): string {
@@ -378,7 +378,7 @@ function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories:
     return "Proceed cautiously as retrieval did not provide clear observational context.";
   }
 
-  return truncate(summaries.join(" "), 1200);
+  return truncate(summaries.join("\n\n"), 4000);
 }
 
 function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string): string[] {
@@ -494,8 +494,8 @@ function compactWhitespace(value: string): string {
 }
 
 function truncate(value: string, maxChars: number): string {
-  const compacted = compactWhitespace(value);
-  return compacted.length > maxChars ? `${compacted.slice(0, maxChars - 3)}...` : compacted;
+  const trimmed = value.trim();
+  return trimmed.length > maxChars ? `${trimmed.slice(0, maxChars - 3)}...` : trimmed;
 }
 
 function stringifyError(error: unknown): string {

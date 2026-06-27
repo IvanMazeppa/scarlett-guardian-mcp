@@ -90,7 +90,7 @@ function createServer(): McpServer {
         markdownReport += `**Optional Deep Context:**\n`;
         grokReport.expanded_contexts.slice(0, 1).forEach(ctx => {
           if (ctx.expanded_results && ctx.expanded_results.length > 0) {
-            markdownReport += `- *${ctx.expanded_results[0].section}:* ${ctx.expanded_results[0].text.substring(0, 1000)}\n`;
+            markdownReport += `- *${ctx.expanded_results[0].section}:* ${ctx.expanded_results[0].text?.substring(0, 1000) ?? ""}\n`;
           }
         });
       }
