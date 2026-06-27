@@ -3,24 +3,25 @@
 External Guardian MCP server for the Scarlett & Benjamin narrative memory system.
 
 This server does not replace `rag-memory-mcp`. It wraps the existing RAG MCP with a stricter pre-prose enforcement layer and optional low-cost LLM synthesis. The Guardian exposes:
-
-- `guardian_memory_preflight`
-- `guardian_ooc_consult`
-
-The tool calls the sibling RAG MCP before any in-character Scarlett prose:
-
-1. `index_status` for diagnostics.
-2. `retrieve_story_context` for live-scene preflight.
-3. `search_story_memory` for deep corpus continuity.
-4. Optionally calls `expand_context_around_chunk` and `verify_story_fact`.
-5. Optionally calls a mini OpenAI model for structured Guardian synthesis when `GUARDIAN_LLM_ENABLED=true`.
-6. Returns a structured Guardian report with confidence, hard flags, precedents, expansions, fact checks, optional LLM assessment, and proceed recommendation.
-
-## Why This Exists
-
-Grok 4.3 can skip retrieval when a scene feels emotionally continuous. That preserves short-term narrative flow but breaks long-term character fidelity. The Guardian makes retrieval a separate mechanical gate.
-
-If the Guardian returns `do_not_proceed`, the model should not write Scarlett prose. It should stop OOC and repair retrieval.
+ 
+ - `guardian_memory_preflight`
+ - `guardian_ooc_consult`
+ 
+ The tool calls the sibling RAG MCP before any in-character Scarlett prose:
+ 
+ 1. `index_status` for diagnostics.
+ 2. `retrieve_story_context` for live-scene preflight.
+ 3. `search_story_memory` for deep corpus continuity.
+ 4. Optionally calls `expand_context_around_chunk` and `verify_story_fact`.
+ 5. Optionally calls a mini OpenAI model for structured Guardian synthesis when `GUARDIAN_LLM_ENABLED=true`. The LLM operates as a **silent database auditor** (strictly fact-focused, not prescribing tone or POV, and providing `continuity_facts_for_grok` instead of emotional guidance).
+ 6. **Dynamic Write-Back Integration:** Automatically appends any retrieved `candidate_memory_update` into the RAG repository's `project_source_files/current-state.md` and triggers the RAG local incremental reindexing script in the background.
+ 7. Returns a structured Guardian report with confidence, hard flags, precedents, expansions, fact checks, optional LLM assessment, and proceed recommendation.
+ 
+ ## Why This Exists
+ 
+ Grok 4.3 can skip retrieval when a scene feels emotionally continuous. That preserves short-term narrative flow but breaks long-term character fidelity. The Guardian makes retrieval a separate mechanical gate.
+ 
+ If the Guardian returns `do_not_proceed`, the model should not write Scarlett prose. It should stop OOC and repair retrieval.
 
 ## Requirements
 
@@ -182,22 +183,30 @@ Input:
 ```
 
 Output (GuardianReport) includes:
-
-- `retrieval_status`: `success`, `partial`, or `failed`
-- `confidence_score`: 0-100
-- `proceed_recommendation`: `proceed`, `proceed_with_caution`, or `do_not_proceed`
-- `current_state_summary`
-- `critical_precedents`
-- `expanded_contexts`
-- `fact_checks`
-- `llm_assessment` (present but disabled unless `GUARDIAN_LLM_ENABLED=true`)
-- `emotional_tone_guidance`
-- `things_to_avoid`
-- `open_threads`
-- `hard_flags`
-- `retrieval_notes`
-- `retrieval_plan` (includes the exact queries and detected triggers used)
-- `tool_calls` (full trace of calls to the RAG MCP)
+ 
+ - `retrieval_status`: `success`, `partial`, or `failed`
+ - `confidence_score`: 0-100
+ - `proceed_recommendation`: `proceed`, `proceed_with_caution`, or `do_not_proceed`
+ - `current_state_summary`
+ - `critical_precedents`
+ - `expanded_contexts`
+ - `fact_checks`
+ - `llm_assessment` (present but disabled unless `GUARDIAN_LLM_ENABLED=true`):
+   - `continuity_risk_level`: `low`, `medium`, `high`
+   - `supported_facts`: string[]
+   - `unsupported_or_risky_claims`: string[]
+   - `scene_state_delta`: string
+   - `continuity_facts_for_grok`: string (neutral continuity details)
+   - `needs_more_retrieval`: boolean
+   - `should_block_prose`: boolean
+   - `candidate_memory_update`: string (appended back to current-state.md)
+ - `emotional_tone_guidance` (heuristic fallback)
+ - `things_to_avoid`
+ - `open_threads`
+ - `hard_flags`
+ - `retrieval_notes`
+ - `retrieval_plan` (includes the exact queries and detected triggers used)
+ - `tool_calls` (full trace of calls to the RAG MCP)
 
 ## OOC Consult Tool
 

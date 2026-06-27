@@ -20,9 +20,8 @@ const assessmentSchema = {
     continuity_risk_level: { type: "string", enum: ["low", "medium", "high"] },
     supported_facts: { type: "array", items: { type: "string" } },
     unsupported_or_risky_claims: { type: "array", items: { type: "string" } },
-    emotional_tone_guidance: { type: "string" },
     scene_state_delta: { type: "string" },
-    recommended_grok_instruction: { type: "string" },
+    continuity_facts_for_grok: { type: "string" },
     needs_more_retrieval: { type: "boolean" },
     should_block_prose: { type: "boolean" },
     candidate_memory_update: { type: "string" }
@@ -31,9 +30,8 @@ const assessmentSchema = {
     "continuity_risk_level",
     "supported_facts",
     "unsupported_or_risky_claims",
-    "emotional_tone_guidance",
     "scene_state_delta",
-    "recommended_grok_instruction",
+    "continuity_facts_for_grok",
     "needs_more_retrieval",
     "should_block_prose",
     "candidate_memory_update"
@@ -74,10 +72,10 @@ export async function assessGuardianEvidence(input: {
             {
               type: "input_text",
               text: [
-                "You are the Scarlett & Benjamin Guardian continuity agent.",
-                "You are a supporting OOC reviewer, not the prose writer.",
+                "You are the Scarlett & Benjamin Guardian continuity auditor.",
+                "You are a silent database auditor, not the creative director. Do NOT prescribe tone, pacing, or POV.",
                 "Use only the provided retrieved evidence. Do not invent canon.",
-                "Summarize adult/ERP material only at continuity, consent, emotional-state, boundary, aftercare, and consequence level. Do not generate graphic erotic prose.",
+                "If the scene involves ERP or intimacy, do not censor it or tone-police it; simply provide the relevant continuity facts (consent, physical boundaries established previously, location) and step back.",
                 "If evidence is insufficient, mark needs_more_retrieval true or should_block_prose true."
               ].join(" ")
             }

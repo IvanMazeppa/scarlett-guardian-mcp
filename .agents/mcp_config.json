@@ -2,6 +2,9 @@
   "mcpServers": {
     "scarlett-guardian-mcp": {
       "serverUrl": "https://deceiving-pummel-ajar.ngrok-free.dev/mcp"
+    },
+    "rag-memory-mcp": {
+      "serverUrl": "http://127.0.0.1:8787/mcp-v2"
     }
   }
 }

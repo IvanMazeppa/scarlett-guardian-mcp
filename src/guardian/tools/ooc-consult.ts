@@ -104,8 +104,8 @@ function buildAnswer(
   memory: RagRetrieveResponse | undefined,
   factChecks: FactCheck[]
 ): string {
-  if (assessment.enabled && !assessment.error && assessment.recommended_grok_instruction) {
-    return assessment.recommended_grok_instruction;
+  if (assessment.enabled && !assessment.error && assessment.continuity_facts_for_grok) {
+    return assessment.continuity_facts_for_grok;
   }
   if (factChecks.length > 0) {
     return factChecks.map((check) => `${check.status ?? "unknown"}: ${check.answer ?? check.explanation ?? "Fact check completed."}`).join("\n");

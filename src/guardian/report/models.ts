@@ -93,9 +93,8 @@ export type GuardianLlmAssessment = {
   continuity_risk_level?: "low" | "medium" | "high";
   supported_facts?: string[];
   unsupported_or_risky_claims?: string[];
-  emotional_tone_guidance?: string;
   scene_state_delta?: string;
-  recommended_grok_instruction?: string;
+  continuity_facts_for_grok?: string;
   needs_more_retrieval?: boolean;
   should_block_prose?: boolean;
   candidate_memory_update?: string;

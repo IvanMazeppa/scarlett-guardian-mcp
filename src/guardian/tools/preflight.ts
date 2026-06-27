@@ -116,29 +116,34 @@ export async function runGuardianPreflight(
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
 
-  const indexStatus = await callText(toolCalls, ragClient, "index_status", {});
-  const preflight = await callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
+  const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
+  const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
     query: preflightQuery,
     max_results: 6,
     rewrite_query: true,
-    max_chars_per_result: 1800
+    max_chars_per_result: 2500
   });
 
-  const memoryResponses: RagRetrieveResponse[] = [];
-  for (const query of memoryQueries) {
-    const response = await callJson<RagRetrieveResponse>(toolCalls, ragClient, "search_story_memory", {
+  const memoryPromises = memoryQueries.map((query) =>
+    callJson<RagRetrieveResponse>(toolCalls, ragClient, "search_story_memory", {
       query,
       max_results: input.force_full_retrieval ? 10 : 8,
       rewrite_query: true,
-      max_chars_per_result: 2200
-    });
-    if (response.ok && response.response) {
-      memoryResponses.push(response.response);
-    }
-  }
+      max_chars_per_result: 3000
+    })
+  );
+
+  const factChecksPromise = verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers);
+
+  const indexStatus = await indexStatusPromise;
+  const preflight = await preflightPromise;
+  const memoryCallResults = await Promise.all(memoryPromises);
+  const memoryResponses = memoryCallResults
+    .filter((call) => call.ok && call.response)
+    .map((call) => call.response as RagRetrieveResponse);
 
   const expandedContexts = await expandBestContext(toolCalls, ragClient, preflight.response, memoryResponses, highRiskTriggers);
-  const factChecks = await verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers);
+  const factChecks = await factChecksPromise;
 
   const confidenceScore = scoreConfidence(preflight.response, memoryResponses, highRiskTriggers, toolCalls);
   const retrievalStatus = determineRetrievalStatus(preflight, memoryResponses, toolCalls);
@@ -159,6 +164,15 @@ export async function runGuardianPreflight(
   const proceedRecommendation = llmAssessment.enabled && llmAssessment.should_block_prose
     ? "do_not_proceed"
     : deterministicProceedRecommendation;
+
+  if (llmAssessment.enabled && llmAssessment.candidate_memory_update && proceedRecommendation !== "do_not_proceed") {
+    const timeString = new Date().toISOString().replace("T", " ").substring(0, 19);
+    await callJson(toolCalls, ragClient, "update_story_state", {
+      source_file: "project_source_files/current-state.md",
+      content: `\n- [${timeString}] ${llmAssessment.candidate_memory_update}`,
+      mode: "append"
+    });
+  }
 
   const criticalPrecedents = collectCriticalPrecedents(memoryResponses);
   const hardFlags = buildHardFlags(retrievalStatus, highRiskTriggers, preflight.response, memoryResponses, factChecks, llmAssessment);
@@ -227,12 +241,16 @@ async function verifyExactClaims(
   const claims = buildFactCheckQuestions(input, highRiskTriggers);
   const checks: FactCheck[] = [];
 
-  for (const claim of claims.slice(0, 2)) {
-    const response = await callJson<FactCheck>(toolCalls, ragClient, "verify_story_fact", {
+  const promises = claims.slice(0, 2).map((claim) =>
+    callJson<FactCheck>(toolCalls, ragClient, "verify_story_fact", {
       claim_or_question: claim,
       max_evidence: 4,
       require_corroboration: false
-    });
+    })
+  );
+
+  const results = await Promise.all(promises);
+  for (const response of results) {
     if (response.ok && response.response) {
       checks.push(response.response);
     }
@@ -341,7 +359,7 @@ function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPre
   const allResults = memories.flatMap((memory) => memory.results ?? []);
   return allResults.slice(0, 5).map((result) => ({
     topic: result.section ?? result.source_role ?? "Retrieved precedent",
-    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 700),
+    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 1500),
     must_respect: "Use only this retrieved evidence for continuity. Do not turn it into new canon beyond what the source supports.",
     source_file: result.source_file,
     section: result.section
@@ -357,14 +375,10 @@ function summarizeCurrentState(preflight: RagRetrieveResponse | undefined): stri
 function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories: RagRetrieveResponse[]): string {
   const summaries = [preflight?.summary, ...memories.map((memory) => memory.summary)].filter(Boolean);
   if (summaries.length === 0) {
-    return "Stay warm, specific, first-person present Scarlett POV, but proceed cautiously because retrieval did not provide clear tone guidance.";
+    return "Proceed cautiously as retrieval did not provide clear observational context.";
   }
 
-  return truncate([
-    "Ground Scarlett's emotional tone in the retrieved current-state and precedent results.",
-    "Keep her warm, vivid, sensually present when appropriate, autonomous inside the bond, and never generic.",
-    ...summaries
-  ].join(" "), 1200);
+  return truncate(summaries.join(" "), 1200);
 }
 
 function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string): string[] {
@@ -373,7 +387,8 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
     "Do not mention tools, JSON, retrieval scores, connector mechanics, or this Guardian report in Scarlett's prose.",
     "Do not invent pre-thread facts, emotional precedents, internal reactions, names, dates, family details, or relationship history.",
     "Do not read Benjamin's private thoughts; infer only from speech, visible behavior, and retrieved context.",
-    "Do not flatten Scarlett into generic romance, bland reassurance, cold autonomy, cruelty, or passive caretaking."
+    "Do not flatten Scarlett into generic romance, bland reassurance, cold autonomy, cruelty, or passive caretaking.",
+    "CRITICAL CANON: Scarlett is a pre-op trans woman. NEVER forget her gender identity, anatomy, or transition history. It is fundamental to who she is."
   ];
 
   if (highRiskTriggers.includes("Benjamin attributes Scarlett internal state")) {
