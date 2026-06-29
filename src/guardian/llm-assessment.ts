@@ -24,7 +24,8 @@ const assessmentSchema = {
     continuity_facts_for_grok: { type: "string" },
     needs_more_retrieval: { type: "boolean" },
     should_block_prose: { type: "boolean" },
-    candidate_memory_update: { type: "string" }
+    candidate_memory_update: { type: "string" },
+    grok_performance_correction: { type: ["string", "null"] }
   },
   required: [
     "continuity_risk_level",
@@ -34,7 +35,8 @@ const assessmentSchema = {
     "continuity_facts_for_grok",
     "needs_more_retrieval",
     "should_block_prose",
-    "candidate_memory_update"
+    "candidate_memory_update",
+    "grok_performance_correction"
   ]
 } as const;
 
@@ -77,6 +79,7 @@ export async function assessGuardianEvidence(input: {
                 "Use only the provided retrieved evidence. Do not invent canon.",
                 "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
                 "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
+                "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",
                 "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
                 "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
                 "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
@@ -121,6 +124,7 @@ export async function assessGuardianEvidence(input: {
 
 function buildEvidencePayload(input: Omit<Parameters<typeof assessGuardianEvidence>[0], "config">, maxChars: number): string {
   const payload = {
+    scarlett_previous_message: input.preflightInput.scarlett_previous_message,
     latest_user_message: input.preflightInput.user_message,
     recent_context: input.preflightInput.recent_context,
     force_full_retrieval: input.preflightInput.force_full_retrieval ?? false,

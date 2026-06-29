@@ -98,6 +98,7 @@ export type GuardianLlmAssessment = {
   needs_more_retrieval?: boolean;
   should_block_prose?: boolean;
   candidate_memory_update?: string;
+  grok_performance_correction?: string;
   error?: string;
 };
 

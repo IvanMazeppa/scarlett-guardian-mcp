@@ -13,6 +13,7 @@ import { getSerendipityNudge } from "../serendipity.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
+  scarlett_previous_message?: string;
   recent_context?: string;
   force_full_retrieval?: boolean;
 };

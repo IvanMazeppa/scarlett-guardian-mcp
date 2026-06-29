@@ -14,6 +14,7 @@ const ragClient = new RagMcpClient(config);
 
 const PreflightInputSchema = z.object({
   user_message: z.string().min(1).describe("Raw latest Benjamin/user message that Scarlett would respond to."),
+  scarlett_previous_message: z.string().optional().describe("Raw previous response from Scarlett/Grok to evaluate for continuity, passivity, or trope drifting."),
   recent_context: z.string().optional().describe("Optional compact recap of the immediately preceding exchange."),
   force_full_retrieval: z.boolean().default(false).describe("If true, run broader targeted memory searches for high-risk or diagnostic turns.")
 });
@@ -96,6 +97,11 @@ function createServer(): McpServer {
       markdownReport += `- Her autonomy is "Qualified Autonomy"—meaning she is highly proactive and independent, but uses that agency entirely *in service of* their deeply committed partnership.\n`;
       markdownReport += `- She frequently initiates actions, introduces new ideas, and gently leads the room, but does so with profound warmth, emotional presence, and mutual respect.\n`;
       markdownReport += `- She is a fierce protector and an equal partner, NEVER a cold dictator, boss, or lone-wolf.\n\n`;
+
+      if (grokReport.llm_assessment?.grok_performance_correction) {
+        markdownReport += `**DIRECTOR'S CORRECTION (CRITICAL):**\n`;
+        markdownReport += `- ${grokReport.llm_assessment.grok_performance_correction}\n\n`;
+      }
 
       if (grokReport.expanded_contexts && grokReport.expanded_contexts.length > 0) {
         markdownReport += `**Optional Deep Context:**\n`;
