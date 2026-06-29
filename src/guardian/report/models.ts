@@ -115,6 +115,7 @@ export type GuardianReport = {
   open_threads: string[];
   hard_flags: string[];
   retrieval_notes: string;
+  serendipity_nudge?: string;
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

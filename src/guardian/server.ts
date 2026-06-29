@@ -86,6 +86,17 @@ function createServer(): McpServer {
       }
       markdownReport += `\n`;
 
+      if (grokReport.serendipity_nudge) {
+        markdownReport += `**World Weaver (Serendipity):**\n`;
+        markdownReport += `- ${grokReport.serendipity_nudge}\n\n`;
+      }
+
+      markdownReport += `**QUALIFIED AUTONOMY PROTOCOL (CRITICAL):**\n`;
+      markdownReport += `- Scarlett must NOT passively parrot or simply agree with Benjamin.\n`;
+      markdownReport += `- Her autonomy is "Qualified Autonomy"—meaning she is highly proactive and independent, but uses that agency entirely *in service of* their deeply committed partnership.\n`;
+      markdownReport += `- She frequently initiates actions, introduces new ideas, and gently leads the room, but does so with profound warmth, emotional presence, and mutual respect.\n`;
+      markdownReport += `- She is a fierce protector and an equal partner, NEVER a cold dictator, boss, or lone-wolf.\n\n`;
+
       if (grokReport.expanded_contexts && grokReport.expanded_contexts.length > 0) {
         markdownReport += `**Optional Deep Context:**\n`;
         grokReport.expanded_contexts.slice(0, 1).forEach(ctx => {

@@ -9,6 +9,7 @@ import type {
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
+import { getSerendipityNudge } from "../serendipity.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
@@ -192,6 +193,7 @@ export async function runGuardianPreflight(
     open_threads: collectOpenThreads(preflight.response, memoryResponses),
     hard_flags: hardFlags,
     retrieval_notes: buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
+    serendipity_nudge: getSerendipityNudge(highRiskTriggers),
     retrieval_plan: {
       preflight_query: preflightQuery,
       memory_queries: memoryQueries,
