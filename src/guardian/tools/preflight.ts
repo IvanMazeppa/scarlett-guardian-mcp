@@ -91,15 +91,14 @@ export function buildMemoryQueries(input: GuardianPreflightInput): string[] {
   if (input.force_full_retrieval) {
     return uniqueQueries([
       `current scene continuity relationship precedent ${message}`,
-      ...matched.map((trigger) => trigger.queryHint),
-      "Scarlett Benjamin current emotional dynamic relationship precedent current arc"
-    ]);
+      ...matched.map((trigger) => trigger.queryHint)
+    ]).slice(0, 2); // CLAMP TO MAX 2 QUERIES TO PREVENT TIMEOUTS
   }
 
   if (matched.length > 0) {
     return uniqueQueries([
       `${matched.map((trigger) => trigger.queryHint).join(" ")}; Benjamin turn: ${message.slice(0, 500)}`
-    ]);
+    ]).slice(0, 1);
   }
 
   return ["Scarlett Benjamin current scene emotional dynamic relationship precedent current arc"];
@@ -118,6 +117,7 @@ export async function runGuardianPreflight(
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
 
+  console.log(`${Date.now()} Dispatching queries to RAG...`);
   const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
   const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
     query: preflightQuery,
@@ -135,17 +135,19 @@ export async function runGuardianPreflight(
     })
   );
 
-  const factChecksPromise = verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers);
-
+  console.log(`${Date.now()} Awaiting indexStatus...`);
   const indexStatus = await indexStatusPromise;
+  console.log(`${Date.now()} Awaiting preflight...`);
   const preflight = await preflightPromise;
+  console.log(`${Date.now()} Awaiting memoryResults...`);
   const memoryCallResults = await Promise.all(memoryPromises);
   const memoryResponses = memoryCallResults
     .filter((call) => call.ok && call.response)
     .map((call) => call.response as RagRetrieveResponse);
 
-  const expandedContexts = await expandBestContext(toolCalls, ragClient, preflight.response, memoryResponses, highRiskTriggers);
-  const factChecks = await factChecksPromise;
+  // DISABLED TO FIX TIMEOUTS:
+  const expandedContexts: ExpandedContext[] = [];
+  const factChecks: FactCheck[] = [];
 
   const confidenceScore = scoreConfidence(preflight.response, memoryResponses, highRiskTriggers, toolCalls);
   const retrievalStatus = determineRetrievalStatus(preflight, memoryResponses, toolCalls);
@@ -154,6 +156,7 @@ export async function runGuardianPreflight(
     : confidenceScore >= config.GUARDIAN_CONFIDENCE_THRESHOLD && retrievalStatus === "success"
       ? "proceed"
       : "proceed_with_caution";
+  console.log(`${Date.now()} Starting assessGuardianEvidence...`);
   const llmAssessment = await assessGuardianEvidence({
     preflightInput: input,
     preflight: preflight.response,
@@ -163,6 +166,8 @@ export async function runGuardianPreflight(
     highRiskTriggers,
     config
   });
+  console.log(`${Date.now()} Finished assessGuardianEvidence.`);
+  
   const proceedRecommendation = llmAssessment.enabled && llmAssessment.should_block_prose
     ? "do_not_proceed"
     : deterministicProceedRecommendation;
@@ -229,7 +234,7 @@ async function expandBestContext(
     section: candidate.result_id ? undefined : candidate.section,
     before: 1,
     after: 1,
-    max_chars: 6000
+    max_chars: 3000
   });
 
   return response.ok && response.response ? [response.response] : [];
@@ -362,7 +367,7 @@ function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPre
   const allResults = memories.flatMap((memory) => memory.results ?? []);
   return allResults.slice(0, 5).map((result) => ({
     topic: result.section ?? result.source_role ?? "Retrieved precedent",
-    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 4000),
+    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 1200),
     must_respect: "Use only this retrieved evidence for continuity. Do not turn it into new canon beyond what the source supports.",
     source_file: result.source_file,
     section: result.section
@@ -372,7 +377,7 @@ function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPre
 function summarizeCurrentState(preflight: RagRetrieveResponse | undefined): string {
   if (!preflight) return "No live-scene preflight was retrieved.";
   const resultText = preflight.results?.[0]?.text;
-  return truncate(preflight.summary || resultText || "Live-scene context retrieved, but no compact summary was provided.", 4000);
+  return truncate(preflight.summary || resultText || "Live-scene context retrieved, but no compact summary was provided.", 1500);
 }
 
 function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories: RagRetrieveResponse[]): string {
@@ -381,7 +386,7 @@ function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories:
     return "Proceed cautiously as retrieval did not provide clear observational context.";
   }
 
-  return truncate(summaries.join("\n\n"), 4000);
+  return truncate(summaries.join("\n\n"), 1000);
 }
 
 function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string): string[] {

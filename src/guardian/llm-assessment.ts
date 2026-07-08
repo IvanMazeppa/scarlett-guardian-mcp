@@ -18,10 +18,7 @@ const assessmentSchema = {
   additionalProperties: false,
   properties: {
     continuity_risk_level: { type: "string", enum: ["low", "medium", "high"] },
-    supported_facts: { type: "array", items: { type: "string" } },
     unsupported_or_risky_claims: { type: "array", items: { type: "string" } },
-    scene_state_delta: { type: "string" },
-    continuity_facts_for_grok: { type: "string" },
     needs_more_retrieval: { type: "boolean" },
     should_block_prose: { type: "boolean" },
     candidate_memory_update: { type: "string" },
@@ -29,10 +26,7 @@ const assessmentSchema = {
   },
   required: [
     "continuity_risk_level",
-    "supported_facts",
     "unsupported_or_risky_claims",
-    "scene_state_delta",
-    "continuity_facts_for_grok",
     "needs_more_retrieval",
     "should_block_prose",
     "candidate_memory_update",
