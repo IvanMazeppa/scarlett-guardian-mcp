@@ -31,7 +31,7 @@ All runtime code is located in `src/guardian/`.
   6. Returns the final aggregated `GuardianPreflightReport`.
 
 ### `llm-assessment.ts` (The Continuity Auditor)
-- **Role:** Uses `gpt-5.4-mini` (or similar) with OpenAI's "Strict Structured Outputs" to enforce rules.
+- **Role:** Uses `gpt-5.6-terra` (GPT-5.6 mini-tier equivalent; was `gpt-5.4-mini`) with OpenAI's "Strict Structured Outputs" to enforce rules.
 - **Functions:** 
   - Fed with the user's prompt and the RAG matches.
   - Required to output a strict JSON schema containing `continuity_risk_level`, `supported_facts`, `unsupported_or_risky_claims`, and `candidate_memory_update`.

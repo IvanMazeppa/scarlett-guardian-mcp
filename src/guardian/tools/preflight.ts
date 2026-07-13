@@ -5,10 +5,24 @@ import type {
   CriticalPrecedent,
   ExpandedContext,
   FactCheck,
+  GuardianLlmAssessment,
   GuardianReport,
+  RagContextResult,
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
+import {
+  cleanResultText,
+  compactWhitespace,
+  extractKeywords,
+  firstSentences,
+  isHistoricalThread,
+  isRagMetaText,
+  keywordOverlapScore,
+  sourceRoleBoost,
+  stripRagMeta,
+  truncate
+} from "../report/text-clean.js";
 import { getSerendipityNudge } from "../serendipity.js";
 
 export type GuardianPreflightInput = {
@@ -44,8 +58,8 @@ const HIGH_RISK_TRIGGERS: HighRiskTrigger[] = [
   },
   {
     label: "Intimacy, kink, dominance, consent, or aftercare",
-    pattern: /\b(intimate|bath|skin|sex|kink|dominance|dominant|aftercare|consent|surrender|submit|desire)\b/i,
-    queryHint: "Scarlett Benjamin intimacy dominance aftercare consent precedent"
+    pattern: /\b(intimate|intimacy|erp|bath|skin|sex|sexual|kink|dominance|dominant|aftercare|consent|surrender|submit|desire|kiss|kissing|naked|nude|undress|undressing|strip|peel(?:ing)?\s+(?:her|him|you|me)|shower|locker\s*room|changing\s*room|suited\s*up|race\s*suit|hard\b|aroused|cock|breast|breasts|nipple|moan|orgasm|fuck|fucking|make\s+love)\b/i,
+    queryHint: "Scarlett Benjamin intimacy aftercare privacy dominance body trust current arc"
   },
   {
     label: "Public visibility, jealousy, queer safety, or boundaries",
@@ -54,13 +68,13 @@ const HIGH_RISK_TRIGGERS: HighRiskTrigger[] = [
   },
   {
     label: "Family, transition, trauma, Vaxholm, Mormor, or milestone",
-    pattern: /\b(family|mormor|vaxholm|transition|blockers|oestrogen|surgery|trauma|assault|letter|milestone)\b/i,
+    pattern: /\b(family|mormor|vaxholm|transition|blockers|oestrogen|estrogen|surgery|trauma|assault|letter|milestone)\b/i,
     queryHint: "Scarlett family transition Vaxholm Mormor emotional milestone"
   },
   {
     label: "AMG, Black Panther, Germany, Luxembourg, or Nuerburgring arc",
-    pattern: /\b(amg|black panther|germany|luxembourg|n[uü]rburgring|nuerburgring|track|aero|villa|bistro)\b/i,
-    queryHint: "Germany trip Luxembourg Black Panther AMG Nuerburgring current scene"
+    pattern: /\b(amg|black panther|germany|luxembourg|n[uü]rburgring|nuerburgring|paddock|pit\s*lane|track|aero|villa|bistro|affalterbach|helmet|race\s*suit)\b/i,
+    queryHint: "Germany trip Nuerburgring paddock AMG Black Panther current scene continuity"
   },
   {
     label: "Repeated gesture or explicit memory echo",
@@ -87,17 +101,22 @@ export function detectHighRiskTriggers(userMessage: string): string[] {
 export function buildMemoryQueries(input: GuardianPreflightInput): string[] {
   const message = compactWhitespace(input.user_message);
   const matched = HIGH_RISK_TRIGGERS.filter((trigger) => trigger.pattern.test(message));
+  // Prefer canon hooks over pasting the full user message (better deep-hit relevance).
+  const hintBlock = matched.map((trigger) => trigger.queryHint).join(" ");
+  const messageSnippet = message.slice(0, 220);
 
   if (input.force_full_retrieval) {
     return uniqueQueries([
-      `current scene continuity relationship precedent ${message}`,
+      matched.length > 0
+        ? `${hintBlock}; current scene continuity ${messageSnippet}`
+        : `current scene continuity relationship precedent ${messageSnippet}`,
       ...matched.map((trigger) => trigger.queryHint)
-    ]).slice(0, 2); // CLAMP TO MAX 2 QUERIES TO PREVENT TIMEOUTS
+    ]).slice(0, 2); // Keep query count conservative (depth can rise later)
   }
 
   if (matched.length > 0) {
     return uniqueQueries([
-      `${matched.map((trigger) => trigger.queryHint).join(" ")}; Benjamin turn: ${message.slice(0, 500)}`
+      `${hintBlock}; scene cues: ${messageSnippet}`
     ]).slice(0, 1);
   }
 
@@ -109,7 +128,13 @@ export async function runGuardianPreflight(
   ragClient: RagMcpClient,
   config: Pick<
     GuardianConfig,
-    "GUARDIAN_CONFIDENCE_THRESHOLD" | "GUARDIAN_LLM_ENABLED" | "OPENAI_API_KEY" | "GUARDIAN_MODEL" | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+    | "GUARDIAN_CONFIDENCE_THRESHOLD"
+    | "GUARDIAN_LLM_ENABLED"
+    | "OPENAI_API_KEY"
+    | "GUARDIAN_MODEL"
+    | "GUARDIAN_LLM_REASONING_EFFORT"
+    | "GUARDIAN_LLM_VERBOSITY"
+    | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
   >
 ): Promise<GuardianReport> {
   const preflightQuery = buildPreflightQuery(input);
@@ -181,9 +206,14 @@ export async function runGuardianPreflight(
     });
   }
 
-  const criticalPrecedents = collectCriticalPrecedents(memoryResponses);
+  const allResults = collectAllResults(preflight.response, memoryResponses);
+  const criticalPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 5);
   const hardFlags = buildHardFlags(retrievalStatus, highRiskTriggers, preflight.response, memoryResponses, factChecks, llmAssessment);
-  const currentStateSummary = summarizeCurrentState(preflight.response);
+  const currentStateSummary = summarizeCurrentState(preflight.response, memoryResponses, llmAssessment, input);
+  const emotionalTone = buildToneGuidance(preflight.response, memoryResponses, llmAssessment, input);
+  const openThreads = collectOpenThreads(preflight.response, memoryResponses, llmAssessment);
+  const keyFacts = buildKeyFacts(allResults, llmAssessment, hardFlags, highRiskTriggers, input);
+  const grokPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 2);
 
   return {
     retrieval_status: retrievalStatus,
@@ -194,12 +224,16 @@ export async function runGuardianPreflight(
     expanded_contexts: expandedContexts,
     fact_checks: factChecks,
     llm_assessment: llmAssessment,
-    emotional_tone_guidance: buildToneGuidance(preflight.response, memoryResponses),
+    emotional_tone_guidance: emotionalTone,
     things_to_avoid: buildThingsToAvoid(highRiskTriggers, retrievalStatus),
-    open_threads: collectOpenThreads(preflight.response, memoryResponses),
+    open_threads: openThreads,
     hard_flags: hardFlags,
     retrieval_notes: buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
     serendipity_nudge: getSerendipityNudge(highRiskTriggers),
+    grok_scene_summary: currentStateSummary,
+    grok_key_facts: keyFacts,
+    grok_precedents: grokPrecedents,
+    grok_emotional_context: emotionalTone,
     retrieval_plan: {
       preflight_query: preflightQuery,
       memory_queries: memoryQueries,
@@ -363,36 +397,197 @@ function determineRetrievalStatus(
   return "partial";
 }
 
-function collectCriticalPrecedents(memories: RagRetrieveResponse[]): CriticalPrecedent[] {
-  const allResults = memories.flatMap((memory) => memory.results ?? []);
-  return allResults.slice(0, 5).map((result) => ({
-    topic: result.section ?? result.source_role ?? "Retrieved precedent",
-    details: truncate(result.text ?? result.explanation ?? "Relevant memory result returned.", 1200),
-    must_respect: "Use only this retrieved evidence for continuity. Do not turn it into new canon beyond what the source supports.",
-    source_file: result.source_file,
-    section: result.section
-  }));
+function collectAllResults(
+  preflight: RagRetrieveResponse | undefined,
+  memories: RagRetrieveResponse[]
+): RagContextResult[] {
+  return [
+    ...(preflight?.results ?? []),
+    ...memories.flatMap((memory) => memory.results ?? [])
+  ];
 }
 
-function summarizeCurrentState(preflight: RagRetrieveResponse | undefined): string {
-  if (!preflight) return "No live-scene preflight was retrieved.";
-  const resultText = preflight.results?.[0]?.text;
-  return truncate(preflight.summary || resultText || "Live-scene context retrieved, but no compact summary was provided.", 1500);
-}
+/**
+ * Score and select scene-relevant precedents. Boosts live state / canon;
+ * demotes random historical threads unless family/trauma/history triggers fire.
+ */
+export function selectPrecedents(
+  results: RagContextResult[],
+  highRiskTriggers: string[],
+  userMessage: string,
+  limit = 2
+): CriticalPrecedent[] {
+  const historyAllowed = highRiskTriggers.some((t) =>
+    /Family|transition|trauma|Vaxholm|Mormor|milestone|Repeated gesture|memory echo/i.test(t)
+  );
+  const keywords = extractKeywords(userMessage);
+  const triggerText = highRiskTriggers.join(" ");
 
-function buildToneGuidance(preflight: RagRetrieveResponse | undefined, memories: RagRetrieveResponse[]): string {
-  const summaries = [preflight?.summary, ...memories.map((memory) => memory.summary)].filter(Boolean);
-  if (summaries.length === 0) {
-    return "Proceed cautiously as retrieval did not provide clear observational context.";
+  const scored = results.map((result) => {
+    let score = (result.rank_score ?? result.relevance_score ?? 0) * 40;
+    score += sourceRoleBoost(result.source_file, result.source_role, result.section);
+    score += keywordOverlapScore(
+      `${result.section ?? ""} ${result.text ?? ""}`,
+      keywords
+    );
+    score += keywordOverlapScore(`${result.section ?? ""} ${result.text ?? ""}`, extractKeywords(triggerText, 12));
+
+    if (isHistoricalThread(result.source_file, result.section)) {
+      score += historyAllowed ? 5 : -40;
+    }
+
+    // Prefer sections that look like open-state / current emotional content.
+    const section = (result.section ?? "").toLowerCase();
+    if (/current|open story|pending|emotional state|live/.test(section)) score += 12;
+
+    return { result, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const seen = new Set<string>();
+  const selected: CriticalPrecedent[] = [];
+
+  for (const { result } of scored) {
+    const key = `${result.source_file ?? ""}::${result.section ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const details = cleanResultText(result.text ?? result.explanation ?? "", 400);
+    if (!details) continue;
+
+    const topic = compactWhitespace(
+      (result.section ?? result.source_role ?? "Scene precedent")
+        .replace(/^Source file:.*$/gim, "")
+        .replace(/^project_source_files\//, "")
+    ).slice(0, 100);
+
+    selected.push({
+      topic: topic || "Scene precedent",
+      details,
+      must_respect: "Use only this retrieved evidence for continuity. Do not invent beyond the source.",
+      source_file: result.source_file,
+      section: result.section
+    });
+
+    if (selected.length >= limit) break;
   }
 
-  return truncate(summaries.join("\n\n"), 1000);
+  return selected;
+}
+
+export function summarizeCurrentState(
+  preflight: RagRetrieveResponse | undefined,
+  memories: RagRetrieveResponse[] = [],
+  llmAssessment?: GuardianLlmAssessment,
+  input?: GuardianPreflightInput
+): string {
+  if (llmAssessment?.enabled && !llmAssessment.error) {
+    if (llmAssessment.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
+      return truncate(stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta, 700);
+    }
+    if (llmAssessment.continuity_facts_for_grok && !isRagMetaText(llmAssessment.continuity_facts_for_grok)) {
+      return truncate(
+        stripRagMeta(llmAssessment.continuity_facts_for_grok) || llmAssessment.continuity_facts_for_grok,
+        700
+      );
+    }
+  }
+
+  // Session recap from the client is usually the best "where/when/mood" for the novelist.
+  const recent = input?.recent_context?.trim();
+  if (recent && recent.length > 20 && !isRagMetaText(recent)) {
+    return truncate(compactWhitespace(recent), 700);
+  }
+
+  const results = collectAllResults(preflight, memories);
+  const preferred = pickPreferredSceneResults(results, "scene");
+
+  for (const result of preferred) {
+    const cleaned = cleanResultText(result.text, 700);
+    if (cleaned && cleaned.length > 40) {
+      return cleaned;
+    }
+  }
+
+  // Last resort: strip meta from RAG summary if any prose remains.
+  if (preflight?.summary) {
+    const cleaned = stripRagMeta(preflight.summary);
+    if (cleaned && cleaned.length > 40) return truncate(cleaned, 700);
+  }
+
+  return "Live-scene context was retrieved; ground response in key facts and precedents.";
+}
+
+function pickPreferredSceneResults(
+  results: RagContextResult[],
+  purpose: "scene" | "tone" | "facts" = "scene"
+): RagContextResult[] {
+  const rank = (r: RagContextResult): number => {
+    const hay = `${r.source_file ?? ""} ${r.source_role ?? ""} ${r.section ?? ""}`.toLowerCase();
+    const isOpenThreads = /open story|pending elements|open threads/.test(hay);
+    let score = 0;
+
+    if (/event-log|event_log/.test(hay)) score += purpose === "tone" ? 70 : 95;
+    if (/current-state|current_state/.test(hay)) {
+      score += isOpenThreads ? 40 : 100;
+    }
+    if (/master-context|story-bible/.test(hay)) score += 70;
+    if (/character-bible/.test(hay) && /current emotional|emotional state/.test(hay)) {
+      score += purpose === "tone" ? 110 : 55;
+    }
+    if (/chronological-summary/.test(hay) && /germany|nuerburgring|luxembourg|current/.test(hay)) {
+      score += 50;
+    }
+    if (isOpenThreads && purpose === "scene") score -= 20;
+    if (isHistoricalThread(r.source_file, r.section)) score = Math.min(score, 15);
+    score += (r.rank_score ?? r.relevance_score ?? 0) * 10;
+    return score;
+  };
+  return [...results].sort((a, b) => rank(b) - rank(a));
+}
+
+export function buildToneGuidance(
+  preflight: RagRetrieveResponse | undefined,
+  memories: RagRetrieveResponse[],
+  llmAssessment?: GuardianLlmAssessment,
+  input?: GuardianPreflightInput
+): string {
+  // Session recap often carries the true emotional beat for this turn.
+  if (input?.recent_context?.trim()) {
+    const moodish = input.recent_context.match(
+      /(?:emotionally|emotional|playful|tender|warm|connected|aftercare|mood|tone)[^.!?\n]{0,160}/i
+    );
+    if (moodish) {
+      return truncate(compactWhitespace(moodish[0]), 350);
+    }
+    // Fall through to first sentence of recent_context if it has relational language.
+    const first = firstSentences(input.recent_context, 1, 280);
+    if (first && /emotion|aftercare|connected|tender|warm|playful|trust|relief|close/i.test(first)) {
+      return first;
+    }
+  }
+
+  // Prefer character emotional-state / event-log beats, not open-thread inventories.
+  const preferred = pickPreferredSceneResults(collectAllResults(preflight, memories), "tone");
+  for (const result of preferred.slice(0, 4)) {
+    const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
+    if (/open story|pending elements/.test(hay)) continue;
+    const sentence = firstSentences(result.text ?? "", 2, 350);
+    if (sentence && !isRagMetaText(sentence) && sentence.length > 30) {
+      return sentence;
+    }
+  }
+
+  if (llmAssessment?.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
+    return truncate(stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta, 350);
+  }
+
+  return "Stay present to the established emotional baseline; proactive warmth, not generic romance.";
 }
 
 function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string): string[] {
   const avoid = [
-    "Do not skip tools for narrative flow, emotional momentum, or because the scene feels continuous.",
-    "Do not mention tools, JSON, retrieval scores, connector mechanics, or this Guardian report in Scarlett's prose.",
     "Do not invent pre-thread facts, emotional precedents, internal reactions, names, dates, family details, or relationship history.",
     "Do not read Benjamin's private thoughts; infer only from speech, visible behavior, and retrieved context.",
     "Do not flatten Scarlett into generic romance, bland reassurance, cold autonomy, cruelty, or passive caretaking.",
@@ -403,6 +598,10 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
     avoid.push("If Benjamin attributes an internal state to Scarlett and retrieval does not support it, treat it as Benjamin's perception rather than confirmed truth.");
   }
 
+  if (highRiskTriggers.some((t) => /Intimacy|kink|dominance/i.test(t))) {
+    avoid.push("Keep intimacy scene-specific (privacy, aftercare, body trust); do not pull random historical kink threads unless clearly continuous.");
+  }
+
   if (retrievalStatus !== "success") {
     avoid.push("Do not write in-character prose as if retrieval was complete; either stop OOC or proceed only with explicit caution.");
   }
@@ -410,14 +609,122 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
   return avoid;
 }
 
-function collectOpenThreads(preflight: RagRetrieveResponse | undefined, memories: RagRetrieveResponse[]): string[] {
-  const followups = [
-    ...(preflight?.recommended_follow_up_queries ?? []),
-    ...memories.flatMap((memory) => memory.recommended_follow_up_queries ?? [])
-  ];
+/**
+ * Real story open threads only — never RAG next_action / follow-up tool queries.
+ */
+export function collectOpenThreads(
+  preflight: RagRetrieveResponse | undefined,
+  memories: RagRetrieveResponse[],
+  llmAssessment?: GuardianLlmAssessment
+): string[] {
+  const results = collectAllResults(preflight, memories);
+  const threads: string[] = [];
 
-  const nextActions = [preflight?.next_action, ...memories.map((memory) => memory.next_action)].filter(Boolean) as string[];
-  return uniqueQueries([...followups, ...nextActions]).slice(0, 8);
+  for (const result of results) {
+    const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
+    if (!/current-state|open story|pending elements|open threads/.test(hay)) continue;
+
+    const text = result.text ?? "";
+    // Prefer bullet lines from open-thread sections.
+    const bullets = text
+      .split(/\r?\n/)
+      .map((line) => normalizeBulletLine(line))
+      .filter((line) => line.length > 20 && line.length < 400)
+      .filter((line) => !isRagMetaText(line))
+      .filter((line) => !/^(Source file:|Section:|File:|Filename:)/i.test(line));
+
+    for (const bullet of bullets) {
+      // Skip section headers and authority notes.
+      if (/^#+\s|status:|authority:|historical archive|open story threads/i.test(bullet)) continue;
+      threads.push(truncate(compactWhitespace(bullet), 280));
+      if (threads.length >= 3) break;
+    }
+    if (threads.length >= 3) break;
+  }
+
+  if (threads.length === 0 && llmAssessment?.scene_state_delta) {
+    const delta = stripRagMeta(llmAssessment.scene_state_delta);
+    // Only treat as thread if it looks like unfinished business, not "no durable change".
+    if (delta && /pending|still|open|unresolved|next|waiting|before|after/i.test(delta) && !/no durable/i.test(delta)) {
+      threads.push(truncate(delta, 280));
+    }
+  }
+
+  return uniqueQueries(threads).slice(0, 3);
+}
+
+export function buildKeyFacts(
+  results: RagContextResult[],
+  llmAssessment: GuardianLlmAssessment | undefined,
+  hardFlags: string[],
+  highRiskTriggers: string[],
+  input?: GuardianPreflightInput
+): string[] {
+  const facts: string[] = [];
+
+  if (llmAssessment?.enabled && !llmAssessment.error) {
+    if (llmAssessment.supported_facts?.length) {
+      for (const fact of llmAssessment.supported_facts) {
+        const cleaned = stripRagMeta(fact) || fact.trim();
+        if (cleaned && !isRagMetaText(cleaned)) facts.push(truncate(cleaned, 280));
+      }
+    }
+    if (facts.length === 0 && llmAssessment.continuity_facts_for_grok) {
+      const lines = llmAssessment.continuity_facts_for_grok
+        .split(/\n|•|- /)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      for (const line of lines) {
+        const cleaned = stripRagMeta(line) || line;
+        if (cleaned && !isRagMetaText(cleaned)) facts.push(truncate(cleaned, 280));
+      }
+    }
+  }
+
+  // Prefer discrete bullets from open-thread / current-state inventories as facts.
+  for (const result of results) {
+    const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
+    if (!/current-state|open story|pending/.test(hay)) continue;
+    const bullets = (result.text ?? "")
+      .split(/\r?\n/)
+      .map((line) => normalizeBulletLine(line))
+      .filter((line) => line.length > 25 && line.length < 220)
+      .filter((line) => !isRagMetaText(line))
+      .filter((line) => !/^(Source file:|Section:|File:|Filename:|#+\s|status:|authority:)/i.test(line))
+      .filter((line) => !/^(Active storylines|Open Story Threads|Pending Elements)/i.test(line));
+    for (const bullet of bullets.slice(0, 4)) {
+      facts.push(truncate(compactWhitespace(bullet), 240));
+    }
+    if (facts.length >= 4) break;
+  }
+
+  if (facts.length < 3) {
+    const preferred = pickPreferredSceneResults(results, "facts");
+    for (const result of preferred.slice(0, 4)) {
+      const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
+      if (/open story|pending elements/.test(hay)) continue;
+      const sentence = firstSentences(result.text ?? "", 1, 240);
+      if (sentence && !facts.some((f) => f.slice(0, 40) === sentence.slice(0, 40))) {
+        facts.push(sentence);
+      }
+      if (facts.length >= 5) break;
+    }
+  }
+
+  // Only blocking / material hard flags — never PREFLIGHT_NOT_SUFFICIENT coaching as "key facts".
+  for (const flag of hardFlags) {
+    if (/MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|FACT_CHECK_/i.test(flag)) {
+      facts.unshift(truncate(flag, 200));
+    }
+  }
+
+  // Skip dumping trigger labels into key facts when we already have real continuity bullets.
+  if (highRiskTriggers.length > 0 && facts.length === 0) {
+    facts.push(`Scene triggers noted: ${highRiskTriggers.slice(0, 3).join("; ")}.`);
+  }
+
+  void input; // reserved for future fact extraction from user turn
+  return uniqueQueries(facts).slice(0, 6);
 }
 
 function buildHardFlags(
@@ -497,13 +804,17 @@ function uniqueQueries(queries: string[]): string[] {
     });
 }
 
-function compactWhitespace(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function truncate(value: string, maxChars: number): string {
-  const trimmed = value.trim();
-  return trimmed.length > maxChars ? `${trimmed.slice(0, maxChars - 3)}...` : trimmed;
+/** Strip list markers / bold labels so bullets are clean prose. */
+function normalizeBulletLine(line: string): string {
+  let out = line.trim();
+  // Nested list markers: "- - item" or "  * item"
+  for (let i = 0; i < 3; i++) {
+    const next = out.replace(/^[-*•]\s+/, "").trim();
+    if (next === out) break;
+    out = next;
+  }
+  out = out.replace(/^\*\*[^*]+\*\*:?\s*/, "").replace(/\*\*/g, "").trim();
+  return out;
 }
 
 function stringifyError(error: unknown): string {

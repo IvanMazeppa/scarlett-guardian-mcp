@@ -29,7 +29,12 @@ export type GuardianOocConsultReport = {
 
 type OocConfig = Pick<
   GuardianConfig,
-  "GUARDIAN_LLM_ENABLED" | "OPENAI_API_KEY" | "GUARDIAN_MODEL" | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+  | "GUARDIAN_LLM_ENABLED"
+  | "OPENAI_API_KEY"
+  | "GUARDIAN_MODEL"
+  | "GUARDIAN_LLM_REASONING_EFFORT"
+  | "GUARDIAN_LLM_VERBOSITY"
+  | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
 >;
 
 export async function runGuardianOocConsult(

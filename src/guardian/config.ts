@@ -17,7 +17,13 @@ const EnvSchema = z.object({
     z.boolean().default(false)
   ),
   OPENAI_API_KEY: z.string().optional(),
-  GUARDIAN_MODEL: z.string().default("gpt-5-mini"),
+  // GPT-5.6 mini-tier equivalent (OpenAI: terra ≈ prior mini; luna ≈ nano; sol ≈ flagship)
+  GUARDIAN_MODEL: z.string().default("gpt-5.6-terra"),
+  // Terra list rates > 5.4-mini; start low (5.4-mini often ran effort=none). Override via env if needed.
+  GUARDIAN_LLM_REASONING_EFFORT: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh", "max"])
+    .default("low"),
+  GUARDIAN_LLM_VERBOSITY: z.enum(["low", "medium", "high"]).default("medium"),
   GUARDIAN_LLM_MAX_EVIDENCE_CHARS: z.coerce.number().int().positive().default(12000)
 });
 

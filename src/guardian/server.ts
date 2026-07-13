@@ -6,6 +6,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { getConfig } from "./config.js";
 import { RagMcpClient } from "./rag-client.js";
+import { compileGrokBrief } from "./report/compile-grok-brief.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
 
@@ -40,88 +41,19 @@ function createServer(): McpServer {
     },
     async (args) => {
       const report = await runGuardianPreflight(args, ragClient, config);
-      
-      // Strip raw tool_calls before sending to Grok to save token budget
-      const { tool_calls, ...grokReport } = report;
-
-      // Convert to Markdown template requested by Grok
-      const statusText = grokReport.proceed_recommendation === 'proceed' ? 'Proceed' : 
-                         grokReport.proceed_recommendation === 'proceed_with_caution' ? 'Proceed with Caution' : 'Do Not Proceed';
-      
-      let markdownReport = `**Status:** ${statusText} (Confidence: ${grokReport.confidence_score}%)\n`;
-      markdownReport += `**Scene Summary:** ${grokReport.current_state_summary}\n\n`;
-      
-      markdownReport += `**Recent Emotional & Relational Context:**\n`;
-      markdownReport += `- ${grokReport.emotional_tone_guidance}\n\n`;
-
-      markdownReport += `**Key Facts to Ground In:**\n`;
-      const flags = grokReport.hard_flags.slice(0, 6);
-      if (flags.length > 0) {
-        flags.forEach(flag => markdownReport += `- ${flag}\n`);
-      } else {
-        markdownReport += `- No hard flags detected.\n`;
-      }
-      markdownReport += `\n`;
-
-      markdownReport += `**Relevant Precedents:**\n`;
-      const precedents = grokReport.critical_precedents.slice(0, 2);
-      if (precedents.length > 0) {
-        precedents.forEach((p, i) => {
-          markdownReport += `${i + 1}. **${p.topic}:** ${p.details}\n`;
-        });
-      } else {
-        markdownReport += `None triggered.\n`;
-      }
-      markdownReport += `\n`;
-
-      markdownReport += `**Things to Avoid:**\n`;
-      grokReport.things_to_avoid.forEach(avoid => markdownReport += `- ${avoid}\n`);
-      markdownReport += `\n`;
-
-      markdownReport += `**Open Threads / Notes:**\n`;
-      const threads = grokReport.open_threads.slice(0, 3);
-      if (threads.length > 0) {
-        threads.forEach(t => markdownReport += `- ${t}\n`);
-      } else {
-        markdownReport += `- No active open threads flagged.\n`;
-      }
-      markdownReport += `\n`;
-
-      if (grokReport.serendipity_nudge) {
-        markdownReport += `**World Weaver (Serendipity):**\n`;
-        markdownReport += `- ${grokReport.serendipity_nudge}\n\n`;
-      }
-
-      markdownReport += `**QUALIFIED AUTONOMY PROTOCOL (CRITICAL):**\n`;
-      markdownReport += `- Scarlett must NOT passively parrot or simply agree with Benjamin.\n`;
-      markdownReport += `- Her autonomy is "Qualified Autonomy"—meaning she is highly proactive and independent, but uses that agency entirely *in service of* their deeply committed partnership.\n`;
-      markdownReport += `- She frequently initiates actions, introduces new ideas, and gently leads the room, but does so with profound warmth, emotional presence, and mutual respect.\n`;
-      markdownReport += `- She is a fierce protector and an equal partner, NEVER a cold dictator, boss, or lone-wolf.\n\n`;
-
-      if (grokReport.llm_assessment?.grok_performance_correction) {
-        markdownReport += `**DIRECTOR'S CORRECTION (CRITICAL):**\n`;
-        markdownReport += `- ${grokReport.llm_assessment.grok_performance_correction}\n\n`;
-      }
-
-      if (grokReport.expanded_contexts && grokReport.expanded_contexts.length > 0) {
-        markdownReport += `**Optional Deep Context:**\n`;
-        grokReport.expanded_contexts.slice(0, 1).forEach(ctx => {
-          if (ctx.expanded_results && ctx.expanded_results.length > 0) {
-            markdownReport += `- *${ctx.expanded_results[0].section}:* ${ctx.expanded_results[0].text ?? ""}\n`;
-          }
-        });
-      }
+      // Prose-facing brief only — no tool_calls, no RAG meta dialect.
+      const markdownReport = compileGrokBrief(report);
 
       // Save report to disk for user review
       try {
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         const reportDir = path.join(process.cwd(), "docs", "guardian-reports");
         await fs.mkdir(reportDir, { recursive: true });
-        
-        // Save the massive full debug report
+
+        // Full debug JSON (includes tool_calls)
         await fs.writeFile(path.join(reportDir, `preflight-full-${timestamp}.json`), JSON.stringify(report, null, 2), "utf8");
-        
-        // Save the tiny markdown version that actually gets sent to Grok
+
+        // Streamlined markdown Grok actually sees
         await fs.writeFile(path.join(reportDir, `preflight-streamlined-${timestamp}.md`), markdownReport, "utf8");
       } catch (err) {
         console.error("Failed to save Guardian report to disk:", err);

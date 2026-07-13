@@ -117,6 +117,11 @@ export type GuardianReport = {
   hard_flags: string[];
   retrieval_notes: string;
   serendipity_nudge?: string;
+  /** Clean prose-facing fields for Grok brief (optional; compiler falls back if absent). */
+  grok_scene_summary?: string;
+  grok_key_facts?: string[];
+  grok_precedents?: CriticalPrecedent[];
+  grok_emotional_context?: string;
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

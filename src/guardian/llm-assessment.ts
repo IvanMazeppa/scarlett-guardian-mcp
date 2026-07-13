@@ -10,7 +10,12 @@ import type { GuardianPreflightInput } from "./tools/preflight.js";
 
 type AssessmentConfig = Pick<
   GuardianConfig,
-  "GUARDIAN_LLM_ENABLED" | "OPENAI_API_KEY" | "GUARDIAN_MODEL" | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+  | "GUARDIAN_LLM_ENABLED"
+  | "OPENAI_API_KEY"
+  | "GUARDIAN_MODEL"
+  | "GUARDIAN_LLM_REASONING_EFFORT"
+  | "GUARDIAN_LLM_VERBOSITY"
+  | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
 >;
 
 const assessmentSchema = {
@@ -61,6 +66,10 @@ export async function assessGuardianEvidence(input: {
   try {
     const response = await client.responses.create({
       model: config.GUARDIAN_MODEL,
+      // Explicit — GPT-5.6 defaults to medium if omitted; low keeps terra cost closer to prior ~3k-token mini runs.
+      reasoning: {
+        effort: config.GUARDIAN_LLM_REASONING_EFFORT
+      },
       input: [
         {
           role: "system",
@@ -87,6 +96,8 @@ export async function assessGuardianEvidence(input: {
         }
       ],
       text: {
+        // Match prior 5.4-mini dashboard behavior (medium verbosity + structured JSON).
+        verbosity: config.GUARDIAN_LLM_VERBOSITY,
         format: {
           type: "json_schema",
           name: "guardian_assessment",
