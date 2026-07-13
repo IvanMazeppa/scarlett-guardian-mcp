@@ -4,10 +4,10 @@
  */
 
 import type { CriticalPrecedent, GuardianReport } from "./models.js";
-import { isRagMetaText, stripRagMeta, truncate } from "./text-clean.js";
+import { isRagMetaText, stripRagMeta, truncate, truncateAtSentence } from "./text-clean.js";
 
-/** Soft cap for the streamlined markdown Grok receives (~800–1200 tokens). */
-export const GROK_BRIEF_MAX_CHARS = 4500;
+/** Soft cap for the streamlined markdown Grok receives. Cost is fine to grow for quality. */
+export const GROK_BRIEF_MAX_CHARS = 6500;
 
 const QUALIFIED_AUTONOMY_LINES = [
   "Scarlett must NOT passively parrot or simply agree with Benjamin.",
@@ -95,7 +95,7 @@ function pickPrecedents(report: GuardianReport): CriticalPrecedent[] {
     .map((p) => ({
       ...p,
       topic: truncate(p.topic.replace(/^Source file:.*$/gim, "").trim() || "Precedent", 80),
-      details: truncate(stripRagMeta(p.details) || p.details, 400)
+      details: truncateAtSentence(stripRagMeta(p.details) || p.details, 750)
     }));
 }
 
@@ -124,16 +124,16 @@ export function compileGrokBrief(report: GuardianReport): string {
   const parts: string[] = [];
 
   parts.push(`**Status:** ${statusLabel(report.proceed_recommendation)} (Confidence: ${report.confidence_score}%)`);
-  parts.push(`**Scene Summary:** ${truncate(pickSceneSummary(report), 700)}`);
+  parts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
   parts.push("");
 
   parts.push("**Recent Emotional & Relational Context:**");
-  parts.push(`- ${truncate(pickEmotionalContext(report), 450)}`);
+  parts.push(`- ${truncateAtSentence(pickEmotionalContext(report), 520)}`);
   parts.push("");
 
   parts.push("**Key Facts to Ground In:**");
   for (const fact of pickKeyFacts(report)) {
-    parts.push(`- ${truncate(fact, 320)}`);
+    parts.push(`- ${truncateAtSentence(fact, 360)}`);
   }
   parts.push("");
 
@@ -160,14 +160,14 @@ export function compileGrokBrief(report: GuardianReport): string {
     parts.push("- None flagged.");
   } else {
     for (const t of threads) {
-      parts.push(`- ${truncate(t, 280)}`);
+      parts.push(`- ${truncateAtSentence(t, 420)}`);
     }
   }
   parts.push("");
 
   if (report.serendipity_nudge && !isRagMetaText(report.serendipity_nudge)) {
     parts.push("**World Weaver (Serendipity):**");
-    parts.push(`- ${truncate(report.serendipity_nudge, 280)}`);
+    parts.push(`- ${truncateAtSentence(report.serendipity_nudge, 320)}`);
     parts.push("");
   }
 

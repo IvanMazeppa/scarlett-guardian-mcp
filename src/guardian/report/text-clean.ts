@@ -36,6 +36,57 @@ export function truncate(value: string, maxChars: number): string {
   return `${trimmed.slice(0, Math.max(0, maxChars - 3))}...`;
 }
 
+/**
+ * Truncate at a sentence / clause boundary when possible so briefs don't end mid-word.
+ * Falls back to last space before the cap, then hard cut.
+ */
+export function truncateAtSentence(value: string, maxChars: number): string {
+  const trimmed = compactWhitespace(value);
+  if (trimmed.length <= maxChars) return trimmed;
+
+  const window = trimmed.slice(0, maxChars);
+  // Prefer ending on sentence punctuation within the last 40% of the window.
+  const minKeep = Math.floor(maxChars * 0.55);
+  const sentenceEnd = Math.max(
+    window.lastIndexOf(". "),
+    window.lastIndexOf("! "),
+    window.lastIndexOf("? "),
+    window.lastIndexOf("; ")
+  );
+  if (sentenceEnd >= minKeep) {
+    return window.slice(0, sentenceEnd + 1).trim();
+  }
+
+  const space = window.lastIndexOf(" ");
+  if (space >= minKeep) {
+    return `${window.slice(0, space).trim()}…`;
+  }
+
+  return `${window.slice(0, Math.max(0, maxChars - 1)).trim()}…`;
+}
+
+/** True for useless client recaps that should not override retrieval. */
+export function isPlaceholderContext(value: string | undefined | null): boolean {
+  if (!value?.trim()) return true;
+  const v = compactWhitespace(value).toLowerCase();
+  if (v.length < 12) return true;
+  return /^(none(?:\s+yet)?|n\/?a|null|undefined|tbd|establishing scene|none yet,?\s*establishing scene|no context|unknown)[.!]?$/.test(
+    v
+  );
+}
+
+/** Short topic label from a long "A > B > C" section path. */
+export function shortTopicLabel(section?: string, fallback = "Scene precedent"): string {
+  if (!section?.trim()) return fallback;
+  const cleaned = section
+    .replace(/^project_source_files\//i, "")
+    .replace(/^Source file:.*$/gim, "")
+    .trim();
+  const parts = cleaned.split(/\s*>\s*/).map((p) => p.trim()).filter(Boolean);
+  const leaf = parts[parts.length - 1] || cleaned;
+  return truncateAtSentence(leaf, 72);
+}
+
 /** True if the string is primarily RAG tool-coaching / retrieval meta. */
 export function isRagMetaText(value: string | undefined | null): boolean {
   if (!value?.trim()) return true;
@@ -100,7 +151,7 @@ export function cleanResultText(value: string | undefined | null, maxChars = 600
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/^[-*•]\s+/gm, "")
     .replace(/\s*[-*•]\s+/g, "; ");
-  return truncate(compactWhitespace(candidate), maxChars);
+  return truncateAtSentence(compactWhitespace(candidate), maxChars);
 }
 
 /** First 1–2 sentences of cleaned text as a short bullet. */
@@ -109,7 +160,7 @@ export function firstSentences(value: string, maxSentences = 2, maxChars = 280):
   if (!cleaned) return "";
 
   const parts = cleaned.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [cleaned];
-  return truncate(compactWhitespace(parts.slice(0, maxSentences).join(" ")), maxChars);
+  return truncateAtSentence(compactWhitespace(parts.slice(0, maxSentences).join(" ")), maxChars);
 }
 
 export function sourceRoleBoost(sourceFile?: string, sourceRole?: string, section?: string): number {

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { compileGrokBrief } from "../src/guardian/report/compile-grok-brief.js";
-import { isRagMetaText, stripRagMeta } from "../src/guardian/report/text-clean.js";
+import {
+  isPlaceholderContext,
+  isRagMetaText,
+  stripRagMeta,
+  truncateAtSentence
+} from "../src/guardian/report/text-clean.js";
 import type { GuardianReport } from "../src/guardian/report/models.js";
 import {
   buildMemoryQueries,
@@ -148,9 +153,19 @@ assert.ok(!/Do not draft from this preflight/i.test(brief));
 assert.match(brief, /Nürburgring paddock/);
 assert.match(brief, /Key Facts to Ground In/);
 assert.match(brief, /None flagged|Open Threads/);
-assert.ok(brief.length <= 4500 + 50, `brief too long: ${brief.length}`);
+assert.ok(brief.length <= 6500 + 50, `brief too long: ${brief.length}`);
 // Open threads from RAG coaching should be dropped
 assert.ok(!/Call search_story_memory/i.test(brief));
+
+assert.ok(isPlaceholderContext("None yet, establishing scene"));
+assert.ok(isPlaceholderContext("n/a"));
+assert.ok(!isPlaceholderContext("Friday at the Nürburgring paddock after shower cleanup."));
+
+const mid =
+  "Germany trip: Now in Luxembourg after Paris. Nürburgring track day moved to Friday. Then Affalterbach for AMG HQ presentation as translator.";
+const cut = truncateAtSentence(mid, 90);
+assert.ok(!/translat\.\.\.$/.test(cut), `should not hard-cut mid-word: ${cut}`);
+assert.ok(cut.endsWith(".") || cut.endsWith("…") || cut.length <= 90);
 
 console.log("preflight tests passed");
 console.log("\n--- sample compileGrokBrief output ---\n");

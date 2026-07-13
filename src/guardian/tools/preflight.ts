@@ -17,11 +17,14 @@ import {
   extractKeywords,
   firstSentences,
   isHistoricalThread,
+  isPlaceholderContext,
   isRagMetaText,
   keywordOverlapScore,
+  shortTopicLabel,
   sourceRoleBoost,
   stripRagMeta,
-  truncate
+  truncate,
+  truncateAtSentence
 } from "../report/text-clean.js";
 import { getSerendipityNudge } from "../serendipity.js";
 
@@ -197,11 +200,20 @@ export async function runGuardianPreflight(
     ? "do_not_proceed"
     : deterministicProceedRecommendation;
 
-  if (llmAssessment.enabled && llmAssessment.candidate_memory_update && proceedRecommendation !== "do_not_proceed") {
+  const memoryUpdate =
+    typeof llmAssessment.candidate_memory_update === "string"
+      ? llmAssessment.candidate_memory_update.trim()
+      : "";
+  // Skip null/empty/no-op micro-logs (prep for quieter write-back; also avoids reindex storms).
+  const isNoOpUpdate =
+    !memoryUpdate ||
+    /^(no durable|none|n\/a|null|no change|scene stays aligned)/i.test(memoryUpdate);
+
+  if (llmAssessment.enabled && memoryUpdate && !isNoOpUpdate && proceedRecommendation !== "do_not_proceed") {
     const timeString = new Date().toISOString().replace("T", " ").substring(0, 19);
     await callJson(toolCalls, ragClient, "update_story_state", {
       source_file: "project_source_files/current-state.md",
-      content: `\n- [${timeString}] ${llmAssessment.candidate_memory_update}`,
+      content: `\n- [${timeString}] ${memoryUpdate}`,
       mode: "append"
     });
   }
@@ -453,17 +465,15 @@ export function selectPrecedents(
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const details = cleanResultText(result.text ?? result.explanation ?? "", 400);
+    // Prefer "where we are" / recent events / emotional state over open-thread dumps for precedents.
+    const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
+    if (/open story|pending elements/.test(hay) && selected.length > 0) continue;
+
+    const details = cleanResultText(result.text ?? result.explanation ?? "", 750);
     if (!details) continue;
 
-    const topic = compactWhitespace(
-      (result.section ?? result.source_role ?? "Scene precedent")
-        .replace(/^Source file:.*$/gim, "")
-        .replace(/^project_source_files\//, "")
-    ).slice(0, 100);
-
     selected.push({
-      topic: topic || "Scene precedent",
+      topic: shortTopicLabel(result.section, result.source_role ?? "Scene precedent"),
       details,
       must_respect: "Use only this retrieved evidence for continuity. Do not invent beyond the source.",
       source_file: result.source_file,
@@ -484,36 +494,56 @@ export function summarizeCurrentState(
 ): string {
   if (llmAssessment?.enabled && !llmAssessment.error) {
     if (llmAssessment.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
-      return truncate(stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta, 700);
+      return truncateAtSentence(
+        stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta,
+        900
+      );
     }
     if (llmAssessment.continuity_facts_for_grok && !isRagMetaText(llmAssessment.continuity_facts_for_grok)) {
-      return truncate(
+      return truncateAtSentence(
         stripRagMeta(llmAssessment.continuity_facts_for_grok) || llmAssessment.continuity_facts_for_grok,
-        700
+        900
       );
     }
   }
 
-  // Session recap from the client is usually the best "where/when/mood" for the novelist.
+  // Real session recap only — ignore placeholders like "None yet, establishing scene".
   const recent = input?.recent_context?.trim();
-  if (recent && recent.length > 20 && !isRagMetaText(recent)) {
-    return truncate(compactWhitespace(recent), 700);
+  if (recent && !isPlaceholderContext(recent) && !isRagMetaText(recent)) {
+    return truncateAtSentence(compactWhitespace(recent), 900);
+  }
+
+  // Fresh thread / missing recap: Benjamin's turn often *is* the scene beat (and may be ahead of disk state).
+  const user = input?.user_message?.trim();
+  if (
+    user &&
+    user.length > 40 &&
+    !isPlaceholderContext(user) &&
+    (isPlaceholderContext(recent) || !recent) &&
+    /\b(friday|thursday|nordschleife|n[uü]rburgring|paddock|pit\s*lane|race suit|locker|villa|luxembourg|track)\b/i.test(
+      user
+    )
+  ) {
+    return firstSentences(user, 4, 900);
   }
 
   const results = collectAllResults(preflight, memories);
   const preferred = pickPreferredSceneResults(results, "scene");
 
   for (const result of preferred) {
-    const cleaned = cleanResultText(result.text, 700);
+    const cleaned = cleanResultText(result.text, 900);
     if (cleaned && cleaned.length > 40) {
       return cleaned;
     }
   }
 
-  // Last resort: strip meta from RAG summary if any prose remains.
+  if (user && user.length > 40) {
+    return firstSentences(user, 3, 700);
+  }
+
   if (preflight?.summary) {
     const cleaned = stripRagMeta(preflight.summary);
-    if (cleaned && cleaned.length > 40) return truncate(cleaned, 700);
+    if (cleaned && cleaned.length > 40) return truncateAtSentence(cleaned, 700);
   }
 
   return "Live-scene context was retrieved; ground response in key facts and precedents.";
@@ -526,20 +556,28 @@ function pickPreferredSceneResults(
   const rank = (r: RagContextResult): number => {
     const hay = `${r.source_file ?? ""} ${r.source_role ?? ""} ${r.section ?? ""}`.toLowerCase();
     const isOpenThreads = /open story|pending elements|open threads/.test(hay);
+    const isWhereNow = /where we are|high-level snapshot|notes for next|recent key events/.test(hay);
+    const isLiveEmotional =
+      /current-state|current_state/.test(hay) &&
+      /emotional|relational state|observable state|scarlett|benjamin/.test(hay);
     let score = 0;
 
-    if (/event-log|event_log/.test(hay)) score += purpose === "tone" ? 70 : 95;
+    if (/event-log|event_log/.test(hay)) score += purpose === "tone" ? 55 : 80;
     if (/current-state|current_state/.test(hay)) {
-      score += isOpenThreads ? 40 : 100;
+      if (isWhereNow) score += purpose === "scene" ? 120 : 90;
+      else if (isLiveEmotional) score += purpose === "tone" ? 125 : 95;
+      else if (isOpenThreads) score += purpose === "facts" ? 70 : 35;
+      else score += 85;
     }
-    if (/master-context|story-bible/.test(hay)) score += 70;
+    if (/master-context|story-bible/.test(hay)) score += 60;
+    // Character-bible "current emotional state" is often days/weeks stale vs live RP — demote for tone.
     if (/character-bible/.test(hay) && /current emotional|emotional state/.test(hay)) {
-      score += purpose === "tone" ? 110 : 55;
+      score += purpose === "tone" ? 25 : 40;
     }
     if (/chronological-summary/.test(hay) && /germany|nuerburgring|luxembourg|current/.test(hay)) {
-      score += 50;
+      score += 55;
     }
-    if (isOpenThreads && purpose === "scene") score -= 20;
+    if (isOpenThreads && purpose === "scene") score -= 25;
     if (isHistoricalThread(r.source_file, r.section)) score = Math.min(score, 15);
     score += (r.rank_score ?? r.relevance_score ?? 0) * 10;
     return score;
@@ -554,33 +592,42 @@ export function buildToneGuidance(
   input?: GuardianPreflightInput
 ): string {
   // Session recap often carries the true emotional beat for this turn.
-  if (input?.recent_context?.trim()) {
+  if (input?.recent_context?.trim() && !isPlaceholderContext(input.recent_context)) {
     const moodish = input.recent_context.match(
-      /(?:emotionally|emotional|playful|tender|warm|connected|aftercare|mood|tone)[^.!?\n]{0,160}/i
+      /(?:emotionally|emotional|playful|tender|warm|connected|aftercare|mood|tone|love|embrace|professional|focus)[^.!?\n]{0,180}/i
     );
     if (moodish) {
-      return truncate(compactWhitespace(moodish[0]), 350);
+      return truncateAtSentence(compactWhitespace(moodish[0]), 420);
     }
-    // Fall through to first sentence of recent_context if it has relational language.
-    const first = firstSentences(input.recent_context, 1, 280);
-    if (first && /emotion|aftercare|connected|tender|warm|playful|trust|relief|close/i.test(first)) {
+    const first = firstSentences(input.recent_context, 2, 400);
+    if (first && /emotion|aftercare|connected|tender|warm|playful|trust|relief|close|love|suit|track|pit/i.test(first)) {
+      return first;
+    }
+  } else if (input?.user_message?.trim() && isPlaceholderContext(input.recent_context)) {
+    // Fresh thread: pull a mood cue from Benjamin's scene-setting turn if present.
+    const first = firstSentences(input.user_message, 2, 400);
+    if (first && /intimate|aftercare|love|embrace|kiss|professional|race suit|connected|playful/i.test(first)) {
       return first;
     }
   }
 
-  // Prefer character emotional-state / event-log beats, not open-thread inventories.
+  // Prefer live current-state emotional / event-log beats, not stale character-bible inventories.
   const preferred = pickPreferredSceneResults(collectAllResults(preflight, memories), "tone");
-  for (const result of preferred.slice(0, 4)) {
+  for (const result of preferred.slice(0, 5)) {
     const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
     if (/open story|pending elements/.test(hay)) continue;
-    const sentence = firstSentences(result.text ?? "", 2, 350);
+    if (/character-bible/.test(hay)) continue;
+    const sentence = firstSentences(result.text ?? "", 2, 420);
     if (sentence && !isRagMetaText(sentence) && sentence.length > 30) {
       return sentence;
     }
   }
 
   if (llmAssessment?.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
-    return truncate(stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta, 350);
+    return truncateAtSentence(
+      stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta,
+      420
+    );
   }
 
   return "Stay present to the established emotional baseline; proactive warmth, not generic romance.";
@@ -636,7 +683,7 @@ export function collectOpenThreads(
     for (const bullet of bullets) {
       // Skip section headers and authority notes.
       if (/^#+\s|status:|authority:|historical archive|open story threads/i.test(bullet)) continue;
-      threads.push(truncate(compactWhitespace(bullet), 280));
+      threads.push(truncateAtSentence(compactWhitespace(bullet), 420));
       if (threads.length >= 3) break;
     }
     if (threads.length >= 3) break;
@@ -646,7 +693,7 @@ export function collectOpenThreads(
     const delta = stripRagMeta(llmAssessment.scene_state_delta);
     // Only treat as thread if it looks like unfinished business, not "no durable change".
     if (delta && /pending|still|open|unresolved|next|waiting|before|after/i.test(delta) && !/no durable/i.test(delta)) {
-      threads.push(truncate(delta, 280));
+      threads.push(truncateAtSentence(delta, 420));
     }
   }
 
@@ -681,21 +728,30 @@ export function buildKeyFacts(
     }
   }
 
-  // Prefer discrete bullets from open-thread / current-state inventories as facts.
-  for (const result of results) {
-    const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
-    if (!/current-state|open story|pending/.test(hay)) continue;
+  // Prefer where-we-are / recent events first; open-thread inventory second.
+  const factSources = [
+    ...results.filter((r) => {
+      const hay = `${r.source_file ?? ""} ${r.section ?? ""}`.toLowerCase();
+      return /current-state/.test(hay) && /where we are|recent key|notes for next|emotional|observable/.test(hay);
+    }),
+    ...results.filter((r) => {
+      const hay = `${r.source_file ?? ""} ${r.section ?? ""}`.toLowerCase();
+      return /current-state|open story|pending/.test(hay);
+    })
+  ];
+
+  for (const result of factSources) {
     const bullets = (result.text ?? "")
       .split(/\r?\n/)
       .map((line) => normalizeBulletLine(line))
-      .filter((line) => line.length > 25 && line.length < 220)
+      .filter((line) => line.length > 25 && line.length < 320)
       .filter((line) => !isRagMetaText(line))
       .filter((line) => !/^(Source file:|Section:|File:|Filename:|#+\s|status:|authority:)/i.test(line))
       .filter((line) => !/^(Active storylines|Open Story Threads|Pending Elements)/i.test(line));
     for (const bullet of bullets.slice(0, 4)) {
-      facts.push(truncate(compactWhitespace(bullet), 240));
+      facts.push(truncateAtSentence(compactWhitespace(bullet), 320));
     }
-    if (facts.length >= 4) break;
+    if (facts.length >= 5) break;
   }
 
   if (facts.length < 3) {
@@ -703,7 +759,7 @@ export function buildKeyFacts(
     for (const result of preferred.slice(0, 4)) {
       const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
       if (/open story|pending elements/.test(hay)) continue;
-      const sentence = firstSentences(result.text ?? "", 1, 240);
+      const sentence = firstSentences(result.text ?? "", 1, 320);
       if (sentence && !facts.some((f) => f.slice(0, 40) === sentence.slice(0, 40))) {
         facts.push(sentence);
       }
