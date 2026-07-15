@@ -74,9 +74,10 @@ npm run eval:baseline -- --tag <name>   # snapshot pass/fail for regression diff
 npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --category continuous-scene
 ```
 
-- WP-1.1–1.5 **done** (schema, curate, runner, 15 goldens + smoke, mutants, workflow contract in `AGENTS.md`).
+- WP-1.1–1.7 **done** (eval harness + telemetry emit + backfill + `/dashboard`).
 - Baseline: `evals/baselines/after-wp-1.4.json`. Inventory: `evals/golden/MANIFEST-wp-1.4.md`.
-- Scorecards: `evals/runs/` (gitignored). Next Phase 1 WPs: telemetry 1.6–1.7.
+- Telemetry: `npm run telemetry:backfill -- --force` then open `http://127.0.0.1:8790/dashboard`.
+- Scorecards: `evals/runs/` (gitignored).
 
 ## Run
 

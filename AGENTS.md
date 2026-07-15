@@ -36,9 +36,16 @@ npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --catego
 - **RAG owns:** indexer/reindexer, source-priority, manifest, vector store IDs, staging tools.
 - **Human-gated:** `project_source_files/*` canon unless a WP says heading-only.
 
-### Telemetry (WP-1.6)
+### Telemetry (WP-1.6–1.7)
 
 Live preflights append one NDJSON line under `.guardian/telemetry/events-YYYY-MM-DD.ndjson` (gitignored). Failure to write **must never** fail preflight. Hermetic `eval:fast` disables emit.
+
+```bash
+npm run telemetry:backfill -- --force   # once: index docs/guardian-reports into NDJSON
+# then open http://127.0.0.1:8790/dashboard while Guardian is running
+```
+
+APIs: `GET /telemetry/api/health`, `/telemetry/api/summary?days=7`, `/telemetry/api/recent?limit=20`.
 
 ### Security
 

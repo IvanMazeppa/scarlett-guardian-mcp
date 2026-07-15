@@ -225,9 +225,9 @@ When eval harness lands, add a dashboard panel **"Last eval:fast"** populated by
 |---|------|-------|--------|
 | 1 | `telemetry.ts`: event type, in-memory timers, async NDJSON append | `src/guardian/telemetry.ts` | **done** (WP-1.6) |
 | 2 | Instrument `rag-client.ts` + end of `runGuardianPreflight` | edit | **done** (WP-1.6) |
-| 3 | `backfill-telemetry.ts` from existing `guardian-reports/` | NEW script | **next** (WP-1.7) |
-| 4 | `GET /telemetry/api/summary` + minimal `/dashboard` (latency + duplex + facts cards) | `server.ts`, `public/` | **next** (WP-1.7) |
-| 5 | Document: run backfill once; open dashboard during RP | ops | with 1.7 |
+| 3 | `backfill-telemetry.ts` from existing `guardian-reports/` | `scripts/backfill-telemetry.ts` | **done** (WP-1.7) |
+| 4 | `GET /telemetry/api/summary` + minimal `/dashboard` (latency + duplex + facts cards) | `server.ts`, `public/` | **done** (WP-1.7) |
+| 5 | Document: run backfill once; open dashboard during RP | AGENTS / README | **done** (WP-1.7) |
 
 ### P1 — Full panel set + rollups
 

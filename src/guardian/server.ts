@@ -7,6 +7,11 @@ import * as path from "node:path";
 import { getConfig } from "./config.js";
 import { RagMcpClient } from "./rag-client.js";
 import { compileGrokBrief } from "./report/compile-grok-brief.js";
+import {
+  loadTelemetryEvents,
+  summarizeTelemetryEvents,
+  telemetryHealth
+} from "./telemetry-aggregate.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
 
@@ -148,6 +153,54 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// Static dashboard (WP-1.7) — same auth as other Guardian routes when bearer set
+const publicDir = path.join(process.cwd(), "public");
+app.use(express.static(publicDir, { index: false }));
+
+app.get("/dashboard", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  res.sendFile(path.join(publicDir, "dashboard.html"));
+});
+
+app.get("/telemetry/api/health", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    res.json(telemetryHealth());
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.get("/telemetry/api/summary", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    const days = Math.max(1, Math.min(365, Number(req.query.days ?? 7) || 7));
+    const events = loadTelemetryEvents({ days });
+    res.json(summarizeTelemetryEvents(events, { days }));
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.get("/telemetry/api/recent", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    const days = Math.max(1, Math.min(365, Number(req.query.days ?? 7) || 7));
+    const limit = Math.max(1, Math.min(100, Number(req.query.limit ?? 20) || 20));
+    const events = loadTelemetryEvents({ days, limit });
+    res.json({ days, limit, events });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 function hasValidBearerToken(req: express.Request): boolean {
   if (config.GUARDIAN_MCP_BEARER_TOKEN) {
     const expected = `Bearer ${config.GUARDIAN_MCP_BEARER_TOKEN}`;
@@ -276,5 +329,6 @@ app.post("/mcp-v2", async (req, res) => {
 
 app.listen(config.GUARDIAN_PORT, config.GUARDIAN_HOST, () => {
   console.log(`Scarlett Guardian MCP listening on http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/mcp`);
+  console.log(`Dashboard: http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/dashboard`);
   console.log(`Forwarding retrieval calls to ${config.RAG_MCP_URL}`);
 });

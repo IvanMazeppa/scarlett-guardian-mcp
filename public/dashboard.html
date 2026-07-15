@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guardian Telemetry</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #5b9fd4;
+      --good: #3d9a6a;
+      --warn: #c9a227;
+      --bad: #c45c5c;
+      --border: #2a3548;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+    label { color: var(--muted); font-size: 0.85rem; }
+    select, button {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.9rem;
+    }
+    button { cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+    .card .label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card .value { font-size: 1.55rem; font-weight: 600; margin-top: 0.25rem; }
+    .card .hint { color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    tr:hover td { background: rgba(91, 159, 212, 0.06); }
+    .ok { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    #status { color: var(--muted); font-size: 0.85rem; }
+    #error { color: var(--bad); white-space: pre-wrap; }
+    code { font-size: 0.8rem; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Guardian telemetry</h1>
+  <p class="sub">Local operational view — latency, duplex, facts, write-back. Data from <code>.guardian/telemetry/</code> (live + backfill).</p>
+
+  <div class="row">
+    <label>Days <select id="days">
+      <option value="7" selected>7</option>
+      <option value="14">14</option>
+      <option value="30">30</option>
+      <option value="90">90</option>
+      <option value="365">365</option>
+    </select></label>
+    <button type="button" id="refresh">Refresh</button>
+    <span id="status">Loading…</span>
+  </div>
+  <div id="error"></div>
+  <div class="grid" id="cards"></div>
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <div class="label">Recent events</div>
+    <div style="overflow-x: auto; margin-top: 0.5rem;">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Src</th>
+            <th>Conf</th>
+            <th>Facts</th>
+            <th>Duplex</th>
+            <th>Corr</th>
+            <th>Write</th>
+            <th>ms</th>
+            <th>Id</th>
+          </tr>
+        </thead>
+        <tbody id="recent"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="sub">Run <code>npm run telemetry:backfill -- --force</code> once to index the report archive. Live preflights append automatically (WP-1.6).</p>
+
+  <script src="/dashboard.js"></script>
+</body>
+</html>

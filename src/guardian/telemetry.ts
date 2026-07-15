@@ -23,6 +23,8 @@ export type PreflightTelemetryEvent = {
   ts: string;
   preflight_id?: string;
   report_path?: string;
+  /** live hot-path emit vs reconstructed from saved report (WP-1.7 backfill). */
+  source?: "live" | "backfill";
 
   latency_ms: {
     total: number;
@@ -117,8 +119,12 @@ export type TelemetrySink = {
   record(event: PreflightTelemetryEvent): void;
 };
 
-function defaultTelemetryDir(cwd = process.cwd()): string {
+export function defaultTelemetryDir(cwd = process.cwd()): string {
   return path.join(cwd, ".guardian", "telemetry");
+}
+
+export function defaultReportsDir(cwd = process.cwd()): string {
+  return path.join(cwd, "docs", "guardian-reports");
 }
 
 /**
@@ -147,12 +153,20 @@ export function createNdjsonTelemetrySink(options?: {
   };
 }
 
-async function appendEventLine(dir: string, event: PreflightTelemetryEvent): Promise<void> {
+export async function appendEventLine(dir: string, event: PreflightTelemetryEvent): Promise<void> {
   await fsp.mkdir(dir, { recursive: true });
   const day = (event.ts || new Date().toISOString()).slice(0, 10);
   const file = path.join(dir, `events-${day}.ndjson`);
   const line = `${JSON.stringify(event)}\n`;
   await fsp.appendFile(file, line, "utf8");
+}
+
+/** Synchronous append for bulk backfill (caller owns error handling). */
+export function appendEventLineSync(dir: string, event: PreflightTelemetryEvent): void {
+  fs.mkdirSync(dir, { recursive: true });
+  const day = (event.ts || new Date().toISOString()).slice(0, 10);
+  const file = path.join(dir, `events-${day}.ndjson`);
+  fs.appendFileSync(file, `${JSON.stringify(event)}\n`, "utf8");
 }
 
 /** Synchronous fail-closed existence check for tests. */
@@ -287,6 +301,7 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
     ts: new Date().toISOString(),
     preflight_id: input.preflight_id,
     report_path: input.report_path,
+    source: "live",
     latency_ms: {
       total: collector.totalMs(),
       rag: {
