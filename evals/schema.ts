@@ -21,6 +21,10 @@ export const GOLDEN_CATEGORIES = [
 
 export type GoldenCategory = (typeof GOLDEN_CATEGORIES)[number];
 
+export function isGoldenCategory(value: string): value is GoldenCategory {
+  return (GOLDEN_CATEGORIES as readonly string[]).includes(value);
+}
+
 /**
  * Recorded RAG response body. Production callJsonTool returns parsed objects;
  * callTextTool returns strings (e.g. index_status). Cassettes store either.

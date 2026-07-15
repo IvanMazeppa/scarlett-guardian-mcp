@@ -12,6 +12,15 @@ import type {
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
+
+/** Optional eval/replay hooks (WP-1.3). Production callers omit this. */
+export type GuardianPreflightOptions = {
+  /**
+   * When set, skip the live auditor and use this assessment instead
+   * (`eval:fast --llm-mode frozen`). Zero network.
+   */
+  frozenLlmAssessment?: GuardianLlmAssessment;
+};
 import {
   cleanResultText,
   compactWhitespace,
@@ -145,7 +154,8 @@ export async function runGuardianPreflight(
     | "GUARDIAN_MEMORY_WRITE_MODE"
     | "GUARDIAN_EXPAND_BUDGET_MS"
     | "GUARDIAN_VERIFY_BUDGET_MS"
-  >
+  >,
+  options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
   const preflightQuery = buildPreflightQuery(input);
   const memoryQueries = buildMemoryQueries(input);
@@ -219,16 +229,25 @@ export async function runGuardianPreflight(
       ? "proceed"
       : "proceed_with_caution";
   console.log(`${Date.now()} Starting assessGuardianEvidence...`);
-  const llmAssessment = await assessGuardianEvidence({
-    preflightInput: input,
-    preflight: preflight.response,
-    memories: memoryResponses,
-    expandedContexts,
-    factChecks,
-    highRiskTriggers,
-    config
-  });
-  console.log(`${Date.now()} Finished assessGuardianEvidence.`);
+  const llmAssessment: GuardianLlmAssessment = options?.frozenLlmAssessment
+    ? {
+        ...options.frozenLlmAssessment,
+        // Frozen path is intentionally offline; mark enabled so assembly/write gates use fields.
+        enabled: options.frozenLlmAssessment.enabled ?? true,
+        model: options.frozenLlmAssessment.model ?? "frozen-cassette"
+      }
+    : await assessGuardianEvidence({
+        preflightInput: input,
+        preflight: preflight.response,
+        memories: memoryResponses,
+        expandedContexts,
+        factChecks,
+        highRiskTriggers,
+        config
+      });
+  console.log(
+    `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
+  );
   
   const proceedRecommendation = llmAssessment.enabled && llmAssessment.should_block_prose
     ? "do_not_proceed"

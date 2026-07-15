@@ -1,0 +1,85 @@
+{
+  "id": "gt-000-hermetic-smoke",
+  "category": "other",
+  "description": "Minimal hermetic L1 smoke case for eval:fast (WP-1.3). Synthetic cassette; not a narrative regression trap. Ensures runner + expectation engine stay green with zero network.",
+  "source_report": "(synthetic-fixture)",
+  "input": {
+    "user_message": "A quiet ordinary reply with no named detail.",
+    "recent_context": "Evening at home, soft conversation.",
+    "scarlett_previous_message": "She smiles and sets down her glass.",
+    "force_full_retrieval": false
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_smoke\nRetrieval Mode: vector_search",
+    "retrieve_story_context": {
+      "query": "current scene",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/current-state.md",
+          "section": "Location",
+          "text": "They are home in the evening, soft conversation after dinner. Quiet ordinary night; no track day.",
+          "rank_score": 0.92,
+          "source_role": "current_state",
+          "confidence": "high"
+        }
+      ]
+    },
+    "search_story_memory": {
+      "query": "default",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r2",
+          "source_file": "project_source_files/current-state.md",
+          "section": "Emotional",
+          "text": "Warm, quiet partnership evening at home; soft conversation; no open crisis.",
+          "rank_score": 0.85,
+          "source_role": "current_state",
+          "confidence": "high"
+        }
+      ]
+    }
+  },
+  "expectations": {
+    "brief_must_include": [["home", "evening", "quiet"]],
+    "brief_must_not_include": [
+      "search_story_memory",
+      "retrieve_story_context",
+      "HIGH confidence context found",
+      "vector_store",
+      "project_source_files"
+    ],
+    "flags_expected": [],
+    "flags_forbidden": ["MANDATORY_RETRIEVAL_FAILED"],
+    "precedents_must_not_match": [],
+    "correction_expected": "none",
+    "write_action_expected": "none",
+    "brief_chars": { "min": 200, "max": 8000 }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "frozen-fixture",
+    "continuity_risk_level": "low",
+    "supported_facts": [
+      "Evening at home",
+      "Soft conversation after dinner",
+      "Quiet ordinary night"
+    ],
+    "scene_state_delta": "Quiet evening at home after dinner; soft conversation continues.",
+    "continuity_facts_for_grok": "- Location: home, evening\n- Mood: warm, quiet partnership",
+    "unsupported_or_risky_claims": [],
+    "needs_more_retrieval": false,
+    "should_block_prose": false,
+    "candidate_memory_update": null,
+    "grok_performance_correction": null
+  },
+  "tags": ["smoke", "hermetic", "wp-1.3"]
+}

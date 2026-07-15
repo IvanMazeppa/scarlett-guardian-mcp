@@ -1,0 +1,13 @@
+{
+  "tag": "latest",
+  "created_at": "2026-07-15T10:21:55.861Z",
+  "llm_mode": "off",
+  "cases": [
+    {
+      "id": "gt-000-hermetic-smoke",
+      "passed": true,
+      "assertion_fails": [],
+      "brief_chars": 1839
+    }
+  ]
+}

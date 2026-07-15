@@ -8,6 +8,7 @@
 import path from "node:path";
 import type { GoldenCase, GoldenCassette, GoldenCategory, GoldenInput } from "./schema.js";
 import { GOLDEN_CATEGORIES, parseGoldenCase } from "./schema.js";
+// isGoldenCategory re-exported below from schema
 
 export type ReportToolCall = {
   tool?: string;
@@ -172,9 +173,7 @@ export function suggestGoldenId(
   return `gt-${seq}-${catSlug}-${stamp}`.replace(/-+/g, "-").slice(0, 80);
 }
 
-export function isGoldenCategory(value: string): value is GoldenCategory {
-  return (GOLDEN_CATEGORIES as readonly string[]).includes(value);
-}
+export { isGoldenCategory } from "./schema.js";
 
 export type CurateOptions = {
   category: GoldenCategory;
