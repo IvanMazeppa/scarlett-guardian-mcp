@@ -166,7 +166,11 @@ export async function runL1Case(
         },
         client,
         config,
-        frozen ? { frozenLlmAssessment: frozen } : undefined
+        {
+          ...(frozen ? { frozenLlmAssessment: frozen } : {}),
+          // Hermetic eval stays disk-free; telemetry is exercised in unit tests.
+          disableTelemetry: true
+        }
       )
     );
 

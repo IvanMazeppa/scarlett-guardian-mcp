@@ -1,3 +1,4 @@
+import { performance } from "node:perf_hooks";
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
 import { decideMemoryWrite } from "../memory-writeback.js";
@@ -12,6 +13,14 @@ import type {
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
+import {
+  PreflightTelemetryCollector,
+  buildPreflightTelemetryEvent,
+  getDefaultTelemetrySink,
+  recordPreflightTelemetry,
+  runWithTelemetryCollector,
+  type TelemetrySink
+} from "../telemetry.js";
 
 /** Optional eval/replay hooks (WP-1.3). Production callers omit this. */
 export type GuardianPreflightOptions = {
@@ -20,6 +29,12 @@ export type GuardianPreflightOptions = {
    * (`eval:fast --llm-mode frozen`). Zero network.
    */
   frozenLlmAssessment?: GuardianLlmAssessment;
+  /** Optional telemetry sink (tests). Default: NDJSON under .guardian/telemetry/. */
+  telemetrySink?: TelemetrySink;
+  /** When true, skip telemetry emit entirely (default false). */
+  disableTelemetry?: boolean;
+  preflight_id?: string;
+  report_path?: string;
 };
 import {
   cleanResultText,
@@ -157,6 +172,31 @@ export async function runGuardianPreflight(
   >,
   options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
+  const collector = new PreflightTelemetryCollector();
+  return runWithTelemetryCollector(collector, () =>
+    runGuardianPreflightInner(input, ragClient, config, options, collector)
+  );
+}
+
+async function runGuardianPreflightInner(
+  input: GuardianPreflightInput,
+  ragClient: RagToolCaller,
+  config: Pick<
+    GuardianConfig,
+    | "GUARDIAN_CONFIDENCE_THRESHOLD"
+    | "GUARDIAN_LLM_ENABLED"
+    | "OPENAI_API_KEY"
+    | "GUARDIAN_MODEL"
+    | "GUARDIAN_LLM_REASONING_EFFORT"
+    | "GUARDIAN_LLM_VERBOSITY"
+    | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+    | "GUARDIAN_MEMORY_WRITE_MODE"
+    | "GUARDIAN_EXPAND_BUDGET_MS"
+    | "GUARDIAN_VERIFY_BUDGET_MS"
+  >,
+  options: GuardianPreflightOptions | undefined,
+  collector: PreflightTelemetryCollector
+): Promise<GuardianReport> {
   const preflightQuery = buildPreflightQuery(input);
   const memoryQueries = buildMemoryQueries(input);
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
@@ -174,6 +214,7 @@ export async function runGuardianPreflight(
   }
 
   console.log(`${Date.now()} Dispatching queries to RAG...`);
+  collector.mark("dispatch");
   const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
   const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
     query: preflightQuery,
@@ -200,6 +241,7 @@ export async function runGuardianPreflight(
   const memoryResponses = memoryCallResults
     .filter((call) => call.ok && call.response)
     .map((call) => call.response as RagRetrieveResponse);
+  collector.mark("rag_batch");
 
   // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
   console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
@@ -220,6 +262,7 @@ export async function runGuardianPreflight(
   console.log(
     `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}`
   );
+  collector.mark("expand_verify");
 
   const confidenceScore = scoreConfidence(preflight.response, memoryResponses, highRiskTriggers, toolCalls);
   const retrievalStatus = determineRetrievalStatus(preflight, memoryResponses, toolCalls);
@@ -229,6 +272,7 @@ export async function runGuardianPreflight(
       ? "proceed"
       : "proceed_with_caution";
   console.log(`${Date.now()} Starting assessGuardianEvidence...`);
+  const llmT0 = performance.now();
   const llmAssessment: GuardianLlmAssessment = options?.frozenLlmAssessment
     ? {
         ...options.frozenLlmAssessment,
@@ -245,9 +289,11 @@ export async function runGuardianPreflight(
         highRiskTriggers,
         config
       });
+  const llmAssessmentMs = Math.round(performance.now() - llmT0);
   console.log(
     `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
   );
+  collector.mark("llm_assessment");
   
   const proceedRecommendation = llmAssessment.enabled && llmAssessment.should_block_prose
     ? "do_not_proceed"
@@ -342,7 +388,7 @@ export async function runGuardianPreflight(
       : "Duplex: scarlett_previous_message MISSING."
   ].join(" ");
 
-  return {
+  const report: GuardianReport = {
     retrieval_status: retrievalStatus,
     confidence_score: confidenceScore,
     proceed_recommendation: proceedRecommendation,
@@ -369,6 +415,25 @@ export async function runGuardianPreflight(
     },
     tool_calls: toolCalls
   };
+
+  // Telemetry: fire-and-forget; never throw into preflight.
+  if (!options?.disableTelemetry) {
+    try {
+      const event = buildPreflightTelemetryEvent({
+        collector,
+        report,
+        input,
+        preflight_id: options?.preflight_id,
+        report_path: options?.report_path,
+        llm_assessment_ms: llmAssessmentMs
+      });
+      recordPreflightTelemetry(event, options?.telemetrySink ?? getDefaultTelemetrySink());
+    } catch {
+      /* never fail the turn */
+    }
+  }
+
+  return report;
 }
 
 /**

@@ -4,7 +4,9 @@
  *
  * Spec: docs/fable-5-roadmaps-audits/guardian-eval-harness-design-2026-07.md §1.2, §3 L1
  */
+import { performance } from "node:perf_hooks";
 import type { RagToolCaller } from "../src/guardian/rag-client.js";
+import { getActiveTelemetryCollector } from "../src/guardian/telemetry.js";
 import type { CassetteResponse, CassetteToolEntry, GoldenCassette } from "./schema.js";
 
 export const PLAN_DRIFT = "PLAN_DRIFT" as const;
@@ -141,25 +143,49 @@ export class CassetteRagClient implements RagToolCaller {
   }
 
   async callJsonTool<T>(name: string, args: Record<string, unknown>): Promise<T> {
-    const response = this.resolve(name, args ?? {});
-    if (typeof response === "string") {
+    const t0 = performance.now();
+    let ok = false;
+    try {
+      const response = this.resolve(name, args ?? {});
+      if (typeof response === "string") {
+        try {
+          const parsed = JSON.parse(response) as T;
+          ok = true;
+          return parsed;
+        } catch (error) {
+          throw new Error(
+            `Cassette response for ${name} is not valid JSON text: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
+      }
+      ok = true;
+      return response as T;
+    } finally {
       try {
-        return JSON.parse(response) as T;
-      } catch (error) {
-        throw new Error(
-          `Cassette response for ${name} is not valid JSON text: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
+        getActiveTelemetryCollector()?.recordTool(name, performance.now() - t0, ok);
+      } catch {
+        /* ignore */
       }
     }
-    return response as T;
   }
 
   async callTextTool(name: string, args: Record<string, unknown>): Promise<string> {
-    const response = this.resolve(name, args ?? {});
-    if (typeof response === "string") return response;
-    return JSON.stringify(response);
+    const t0 = performance.now();
+    let ok = false;
+    try {
+      const response = this.resolve(name, args ?? {});
+      ok = true;
+      if (typeof response === "string") return response;
+      return JSON.stringify(response);
+    } finally {
+      try {
+        getActiveTelemetryCollector()?.recordTool(name, performance.now() - t0, ok);
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   private resolve(tool: string, args: Record<string, unknown>): CassetteResponse {

@@ -221,13 +221,13 @@ When eval harness lands, add a dashboard panel **"Last eval:fast"** populated by
 
 ### P0 — Observable without new features (1 session)
 
-| # | Task | Files |
-|---|------|-------|
-| 1 | `telemetry.ts`: event type, in-memory timers, async NDJSON append | NEW `src/guardian/telemetry.ts` |
-| 2 | Instrument `rag-client.ts` + end of `runGuardianPreflight` | edit |
-| 3 | `backfill-telemetry.ts` from existing `guardian-reports/` | NEW script |
-| 4 | `GET /telemetry/api/summary` + minimal `/dashboard` (latency + duplex + facts cards) | `server.ts`, `public/` |
-| 5 | Document: run backfill once; open dashboard during RP | ops |
+| # | Task | Files | Status |
+|---|------|-------|--------|
+| 1 | `telemetry.ts`: event type, in-memory timers, async NDJSON append | `src/guardian/telemetry.ts` | **done** (WP-1.6) |
+| 2 | Instrument `rag-client.ts` + end of `runGuardianPreflight` | edit | **done** (WP-1.6) |
+| 3 | `backfill-telemetry.ts` from existing `guardian-reports/` | NEW script | **next** (WP-1.7) |
+| 4 | `GET /telemetry/api/summary` + minimal `/dashboard` (latency + duplex + facts cards) | `server.ts`, `public/` | **next** (WP-1.7) |
+| 5 | Document: run backfill once; open dashboard during RP | ops | with 1.7 |
 
 ### P1 — Full panel set + rollups
 

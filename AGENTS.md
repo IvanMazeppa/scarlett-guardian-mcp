@@ -36,6 +36,10 @@ npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --catego
 - **RAG owns:** indexer/reindexer, source-priority, manifest, vector store IDs, staging tools.
 - **Human-gated:** `project_source_files/*` canon unless a WP says heading-only.
 
+### Telemetry (WP-1.6)
+
+Live preflights append one NDJSON line under `.guardian/telemetry/events-YYYY-MM-DD.ndjson` (gitignored). Failure to write **must never** fail preflight. Hermetic `eval:fast` disables emit.
+
 ### Security
 
 Keep `.env` local. Never commit API keys, bearer tokens, or tunnel URLs.

@@ -5,3 +5,4 @@ dist/
 *.log
 docs/guardian-reports/
 evals/runs/
+.guardian/telemetry/
