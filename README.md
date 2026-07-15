@@ -63,6 +63,21 @@ For the current no-password setup, leave `GUARDIAN_MCP_BEARER_TOKEN` blank. If i
 
 Leave `GUARDIAN_LLM_ENABLED=false` to avoid Guardian model calls and extra OpenAI cost. Set it to `true` only when you want the supporting Guardian model to synthesize retrieved evidence into `llm_assessment`.
 
+## Eval harness (L1 hermetic)
+
+Phase 1 safety rails — **zero network**, free, seconds. Master roadmap: `docs/fable-5-roadmaps-audits/master-roadmap-2026-07.md`.
+
+```bash
+npm test                 # unit tests including eval schema/cassette/runner
+npm run eval:fast        # L1 goldens under evals/golden/** (must stay green on code changes)
+npm run eval:baseline -- --tag <name>   # snapshot pass/fail for regression diffs
+npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --category continuous-scene
+```
+
+- WP-1.1–1.3 **done** (schema, curate, runner). Smoke case: `evals/golden/other/gt-000-hermetic-smoke.json`.
+- WP-1.4 **next**: seed 15 archive goldens — handoff `docs/fable-5-roadmaps-audits/wp-1.4-golden-seed-handoff-2026-07.md` (Gemini authors expectations; operator reviews).
+- Scorecards: `evals/runs/` (gitignored). Baselines: `evals/baselines/`.
+
 ## Run
 
 Terminal 1, existing RAG:

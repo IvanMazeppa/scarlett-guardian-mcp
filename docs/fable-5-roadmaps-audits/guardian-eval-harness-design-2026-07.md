@@ -199,14 +199,14 @@ This is a documented protocol, not CI automation, for now — single operator, l
 
 ### P0 — Replay harness live (1–2 sessions; catches the majority failure class immediately)
 
-| # | Task | Files |
-|---|------|-------|
-| 1 | Golden case schema (zod) + loader | NEW `evals/schema.ts` |
-| 2 | `CassetteRagClient` (structural stand-in; loud on cassette miss) | NEW `evals/cassette-client.ts` |
-| 3 | `curate-golden.ts` extractor | NEW script |
-| 4 | Runner: L1 execution, expectation engine, scorecard md+json | NEW `evals/runner.ts` |
-| 5 | Seed **15 cases**: 5 good Jul-13-era, 5 from failure eras (meta leaks, empty weave, temporal mud), 5 duplex/write-back | `evals/golden/**` |
-| 6 | `eval:fast`, `eval:baseline` npm scripts + first baseline | `package.json` |
+| # | Task | Files | Status (2026-07-15) |
+|---|------|-------|---------------------|
+| 1 | Golden case schema (zod) + loader | `evals/schema.ts` | **done** (WP-1.1) |
+| 2 | `CassetteRagClient` (structural stand-in; loud on cassette miss) | `evals/cassette-client.ts` | **done** (WP-1.1) |
+| 3 | `curate-golden.ts` extractor | `scripts/curate-golden.ts`, `evals/curate-from-report.ts` | **done** (WP-1.2) |
+| 4 | Runner: L1 execution, expectation engine, scorecard md+json | `evals/runner.ts`, `evals/expectations.ts` | **done** (WP-1.3) |
+| 5 | Seed **15 cases**: 5 good Jul-13-era, 5 from failure eras (meta leaks, empty weave, temporal mud), 5 duplex/write-back | `evals/golden/**` | **next** (WP-1.4) — see `wp-1.4-golden-seed-handoff-2026-07.md` |
+| 6 | `eval:fast`, `eval:baseline` npm scripts + first baseline | `package.json`, `evals/baselines/` | **done** (WP-1.3; smoke-only baseline until 1.4) |
 
 ### P1 — Statistical LLM tier + full coverage
 
