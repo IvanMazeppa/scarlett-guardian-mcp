@@ -98,9 +98,11 @@ Operator reviews before merge; Grok runs eval:fast and re-baselines.
 
 ## Exit criteria (WP-1.4 acceptance)
 
-- [ ] 15 narrative goldens + smoke under `evals/golden/**`
-- [ ] Gemini expectations authored; operator reviewed
-- [ ] `npm run eval:fast` green (hard fails = 0)
+- [x] 15 narrative goldens + smoke under `evals/golden/**` (**Grok 2026-07-15**)
+- [x] Skeletons load; `eval:fast` 16/16 with softened gates + meta seeds (**Grok**)
+- [ ] Gemini expectations authored (remove `pending-gemini-expectations` tags)
+- [ ] Operator reviewed (+ duplex paste on `gt-040` if available)
+- [ ] `npm run eval:fast` green under **real** expectations (hard fails = 0)
 - [ ] Baseline snapshotted (`eval:baseline -- --tag after-wp-1.4` or similar)
 - [ ] Progress ledger §13 updated to **1.4 done**
 
