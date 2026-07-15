@@ -272,7 +272,7 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 1.1 | **done** | `evals/schema.ts` + `evals/cassette-client.ts` + `tests/eval-harness-1.1.test.ts`; `RagToolCaller` interface on preflight/ooc; `npm test` green |
 | 1.2 | **done** | `evals/curate-from-report.ts` + `scripts/curate-golden.ts` + `tests/curate-golden.test.ts`; `npm run curate:golden`; live report smoke green |
 | 1.3 | **done** | `evals/expectations.ts` + `evals/runner.ts`; `eval:fast` / `eval:baseline`; smoke golden `gt-000-hermetic-smoke`; frozen LLM hook on preflight; scorecards under `evals/runs/` (gitignored); first baseline `evals/baselines/guardian-baseline-2026-07-15.json` |
-| 1.4 | **ready** | Handoff: `wp-1.4-golden-seed-handoff-2026-07.md`. Tooling complete; need 15 archive goldens (Grok curate) + Gemini expectations + operator review. **Do not start 1.5/1.6 until 1.4 exits.** No live RP test required for 1.4. |
+| 1.4 | **in progress** | Grok half **done**: 15 skeletons + smoke in `evals/golden/**` (see `evals/golden/MANIFEST-wp-1.4.md`). `eval:fast` 16/16 with softened skeleton gates. **Baton: Gemini** authors expectations → operator review → Grok re-baseline. No live RP for 1.4. Do not start 1.5/1.6 until 1.4 exits. |
 | 1.5–1.7 | pending | |
 | 2.1–2.7 | pending | |
 | 3.1–3.5 | pending | |

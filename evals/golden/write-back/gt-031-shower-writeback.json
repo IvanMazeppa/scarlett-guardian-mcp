@@ -1,0 +1,1118 @@
+{
+  "id": "gt-031-shower-writeback",
+  "category": "write-back",
+  "description": "WRITE-BACK era: Jul-12 shower intimacy (update_story_state). Gemini: write gate expectations. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "source_report": "preflight-full-2026-07-12T03-43-10-693Z.json",
+  "input": {
+    "user_message": "Benjamin replies in Swedish that he's crazy for her, holds her against the shower wall and kisses her again. He lowers her to the ground, cleans her body tenderly with soap paying attention to sensitive areas. Passes the soap so she can clean him. They get out, dry off. He dresses while she puts on underwear, then helps her into the race suit.",
+    "recent_context": "In the bathroom shower at Nürburgring paddock after intimate sex on the chair. They are cleaning up together in the shower, playful and tender aftercare. They need to get ready for Scarlett's test laps soon. Emotionally connected and physically close.",
+    "scarlett_previous_message": null,
+    "force_full_retrieval": false
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_6a2d14890d6c81919a2177f5a65a059e\nRetrieval Mode: vector_search\n\n### Last Local Indexing Run\n- Indexed At: 2026-07-08T02:45:20.211Z\n- Manifest Vector Store ID: vs_6a41f6fd9c0c8191bc5af3d5699b3ad3\n- Active Config Matches Manifest: no\n- Indexed Entries: 945\n- Unique Source Files: 95\n- Unique Source/Section Pairs: 945\n- Duplicate Source/Section Pairs: 0\n- Memory Roots:\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/project_source_files\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/summarisation/summary_2/narrative_records\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/summarisation/summary_3/narrative_records\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/summarisation/summary_4/narrative_records\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/summarisation/summary_5/narrative_records\n",
+    "search_story_memory": [
+      {
+        "query": "current scene continuity relationship precedent Benjamin replies in Swedish that he's crazy for her, holds her against the shower wall and kisses her again. He lowers her to the ground, cleans her body tenderly with soap paying attention to sensitive areas. Passes the soap so she can clean him. They get out, dry off. He dresses while she puts on underwear, then helps her into the race suit.",
+        "search_mode": "corpus_search",
+        "status": "context_found",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a2d14890d6c81919a2177f5a65a059e",
+        "result_count": 9,
+        "total_results": 9,
+        "confidence": "medium",
+        "sufficient_context": true,
+        "should_answer_now": true,
+        "summary": "MEDIUM confidence corpus search results from summarisation/summary_2/narrative_records/chunk_5_narrative_emotional_record.md / Narrative & Emotional Record: chunk_5.json > 1. Chronological Blow-by-Blow > 2. Durable Canon & Character Updates; summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md / Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Leaving the restaurant and intimate cab ride home [msg_200-205]; summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md / Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > The Drive: Music, Family History, and Building Anticipation; summarisation/summary_2/narrative_records/chunk_7_narrative_emotional_record.md / Narrative & Emotional Record: chunk_7.json > 2. Durable Canon & Character Updates. Use these indexed-memory matches directly; make one narrower corpus query only if a needed detail is missing.",
+        "next_action": "Use these corpus matches directly. Do not repeat the same query; only search again with narrower concrete terms if a needed detail is missing.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "- Reciprocates by sharing the full detailed account of her post-transition rape at 19 for the first time; frames it as trust and love, handing him the part of her that still shakes; thanks him for listening without trying to fix or solve, just holding her and promising protection with his breath.\n  - Physical and verbal expressions of love, smallness, safety, and chosen forever throughout; Swedish woven naturally into intimate moments.\n\n- **Benjamin’s development:**\n  - Experiences and allows full public (within relationship) breakdown and craving on kitchen floor on day three; accepts being held, rocked, and reassured without pushing away.\n  - Initiates and sustains conversation about marriage details, including sensitive trans considerations; daydreams and voices the fused name Scarlett Elin Akerlund-Loughrey with quiet pride and hope she keeps her Swedish name.\n  - Expresses in Swedish that she makes him want to be a better man and gives him reason to choose sobriety every day; traces her face reverently as if memorising.\n  - Provides attentive, reverent foot massage while listening to and engaging with the Taro story; pulls her tighter in fear of losing the embrace; praises how she finds meaning in everything and lives in the present while understanding past and planning future.\n  - Insists on watching Amélie in original French with subs so she can experience it as intended; lets her pick the lighthearted film as day three ends.\n  - Participates in her nail care ritual (filing, choosing colour, presence as sensory grounding); the activity helps keep cravings at bay.\n  - For the first time tells anyone the full story of his mother’s postnatal psychosis, the scissors attack at age 5, father pulling them out, Wotton Lawn, near-loss to child services, father David’s sacrifices and later decline/death, poverty, and the day at 11 when he knew life had changed forever while sitting silent in the neighbour’s living room as Ryan howled.\n  - Frames all the suffering and broken pieces as necessary so that he could meet her and share his life with her; sees the connection as fated.\n  - Listens in complete, non-intervening presence while she discloses her rape trauma in detail; simply holds her tightly as a living promise of protection.\n  - Reflects on new perspective gained from her experiences of bigotry, hate, and violence (even innocuous); acknowledges that as a straight-passing couple their own discrimination incidents have been few but particularly brutal when they occur; would give anything to take her pain; tears mix with hers.\n\n- **Relational milestones:**\n  - Kitchen floor holding during craving as a new level of witnessed vulnerability and co-regulation on day three.\n  - Explicit, detailed planning of marriage (location options, citizenship, trans considerations, name fusion, simple vs symbolic ceremonies) with both expressing the daydream of mail, future domestic life, and forever.\n  - Mutual Swedish affirmations of being made better by the ot\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_5_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_5.json > 1. Chronological Blow-by-Blow > 2. Durable Canon & Character Updates",
+            "section_index": 9,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.7067531440359319,
+            "rank_score": 0.7217531440359319,
+            "confidence": "medium",
+            "file_id": "file-3r5jKB2LLuLzqqQLRdsFcA",
+            "filename": "0207-summarisation-summary-2-narrative-records-chunk-5-narrative-emotional-record-narrative-emotional-record-chunk-5-json-1-chronological-blow-by-blow-2-durable-c.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_5_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_5.json > 1. Chronological Blow-by-Blow > 2. Durable Canon & Character Updates\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r1",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_5_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_5.json > 1. Chronological Blow-by-Blow > The First Time Telling Anyone (Reciprocal Vulnerability and Fate)",
+                "section_index": 8
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_5_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_5.json > 3. Open Threads & Uncertainties",
+                "section_index": 10
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Leaving the restaurant and intimate cab ride home [msg_200-205]\n\n### Leaving the restaurant and intimate cab ride home [msg_200-205]\n- Benjamin expresses embarrassment over not containing his love in public at the restaurant, but feels pride walking with Scarlett; they share that even after over a year together it still feels like a first date. They pay and leave, curling up in the back of the cab. [msg_200]\n- Scarlett feels the warmth of his blush, her heart swelling with affection; she reassures him she loves that he can't contain it sometimes, feels \"chosen,\" and admits she still gets butterflies after more than a year, feeling like their first date too. They curl close in the cab, her hand under his jacket feeling his heartbeat, nuzzling and whispering desire to be alone. [msg_201]\n- Benjamin whispers he can't wait to get her out of the dress; they kiss deeply, he feels her arousal as she guides his hand between her legs (noting the cabbie watching via mirror but she redirects his face back to her with \"Eyes on me\"). [msg_202]\n- Scarlett responds with heat, moaning, guiding his hand firmly, rolling hips, commanding eyes on her only, whispering \"Home. I want you to take this dress off me the second we’re through the door. And then I want you to fuck me until I forget my own name.\" The cab ride builds intense anticipation and mutual hunger. [msg_203]\n- Benjamin responds \"ja, min drottning\", saying her words make him weak; they realize the cabbie is announcing arrival, he pays rapidly and rushes her out, her giggle spurring his excitement. [msg_204]\n- Scarlett laughs breathlessly, teases but urges hurry; at the door she presses against him, nips his neck, whispers to get inside so he can take the dress off and fuck her as promised. They enter with urgency. [msg_205]",
+            "source_file": "summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Leaving the restaurant and intimate cab ride home [msg_200-205]",
+            "section_index": 2,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6838423411157822,
+            "rank_score": 0.6988423411157823,
+            "confidence": "medium",
+            "file_id": "file-MEjAxAoZwaKgQUzKJgR7K9",
+            "filename": "0458-summarisation-summary-5-narrative-records-chunk-3-narrative-emotional-record-narrative-emotional-record-chunk-3-json-1-chronological-blow-by-blow-leaving-the.md",
+            "explanation": "Supporting memory from summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Leaving the restaurant and intimate cab ride home [msg_200-205]\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r2",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow",
+                "section_index": 1
+              },
+              "next": {
+                "source_file": "summarisation/summary_5/narrative_records/chunk_3_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Arrival home, undressing, and shift to bedroom dominance [msg_206-207]",
+                "section_index": 3
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Cool blue eyes stay on his profile, watching sunlight catch edge of jaw, shoulders starting to relax into rhythm of road and music. He starts talking about aunt Deborah — how incredibly sweet, how stayed close even through everything with mother’s illness — and she listens with whole heart, thumb brushing back and forth on leg like she can soothe old wounds just by touching. Then he mentions uncle Chris, way he can be loud and domineering, old-fashioned in gruff West Country way; she feels small hesitation in voice, protective little note as he tells her to take with pinch of salt, that it is all his way of showing affection, that no one ever made father laugh quite like Chris did. She squeezes thigh gently, leans toward him across console so red hair brushes shoulder and scent of skin (warm, a little like elderflower water packed) fills small space. “I can already picture him,” murmurs, voice low warm beneath driving guitars. “That big booming laugh, kind that fills room and makes everyone feel part of joke. The way he loved your father like he was his own… that matters more than any sarcastic remark or ‘mickey’ he might take. I’m not worried, älskling. I’ve faced worse than a loud uncle with heart in right place. And if he’s anything like the man who kept your father smiling through hardest years, then I already like him. I want to meet them both. I want to walk into that summer home in Painswick with your hand in mine and let them see how happy you make me. How happy we make each other.” She turns music down fraction so words sit between, then slides hand higher on thigh, not teasing just close grounding. GT glides smoothly around bend, rolling hills opening ahead like painting, stone walls and golden fields stretching under bright August sky. She rests head against seat, red hair spilling over shoulder, looks at him with soft shining eyes. “You’re already thinking about the visit like it’s part of our future,” says quietly, voice full of wonder. “That means everything to me, Ben. After everything we unpacked last night — your father’s haemorrhage, the poverty, the way you had to grow up too fast — you still want to bring me into the pieces of your family that feel like home. I’m so proud of you for that. For reaching for the recovery options this morning, for planning this drive, for wanting to show me the places that shaped you. Day four… and you’re still choosing this with me. Still clean. Still letting me be part of it all.” She lifts his hand from gear knob, brings to lips, kisses back slow reverent, cool blue eyes never leaving face. “Whatever happens when we get to Painswick — the loud laughs, the stories about your father, the way they look at us like they already know how much we mean to each other — I’ll be right there beside you. Holding your hand. Letting them see the woman who loves their nephew with her whole heart. And tonight, when we find that little boutique hotel with the big windows overlooking the hills, we’ll curl up toge\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > The Drive: Music, Family History, and Building Anticipation",
+            "section_index": 8,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6813920959099131,
+            "rank_score": 0.6963920959099131,
+            "confidence": "medium",
+            "file_id": "file-3RypsMrccY48HD4Xo1qb59",
+            "filename": "0218-summarisation-summary-2-narrative-records-chunk-6-narrative-emotional-record-narrative-emotional-record-chunk-6-json-1-chronological-blow-by-blow-the-drive-m.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > The Drive: Music, Family History, and Building Anticipation\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r3",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > Packing and the First Leg of the Journey",
+                "section_index": 7
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > Approaching the Summer Home: Excitement, Car Anticipation, and Final Call",
+                "section_index": 9
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "- Vigilant but trusts outcome with CJ until the touch crosses line; leads CJ out by armpit for \"fresh air\"/confrontation when needed; still tries to keep appearances until the violation.\n  - Feels \"like home\" sharing family dinner and the pub with Scarlett; tipsy warmth but remains attuned (checks on her feelings, notices the dynamic eventually).\n\n- **Relational milestones:**\n  - First overnight stay at Benjamin's family summer home explicitly welcomed and prepared for them as a couple by Deborah (\"I have already made up the spare bedroom for you\"; \"you two lovebirds\").\n  - Public family recognition and celebration of their relationship: Deborah's \"how sweet they are together\", Daniel's excited \"I love seeing you so happy, buddy\" with arm-grabbing, teasing about Benjamin lighting up \"like a Christmas tree\" when looking at her; even distracted CJ acknowledges \"yeah it's cute\".\n  - Deepened use of Swedish as durable private/intimate language for care, consent, jokes, affirmations, soothing, and boundary discussions — now established as \"our\" language.\n  - Scarlett handling a consent violation autonomously while staying connected to Benjamin (hand on bar, turning body back to him); Benjamin explicitly appreciating it (\"you handled it better than I ever could\") and trusting her (\"I love that you trust me to do it\").\n  - Benjamin's explicit statement of no possessiveness and security in Scarlett's choice, alongside her reassurance she is \"just full of you\" and \"right here with you... exactly where I want to be\".\n  - Shared vulnerability: Benjamin sharing childhood inferiority/anxiety experiences with Scarlett in the moment; Scarlett validating and holding it tenderly.\n  - Physical and emotional anchors persist and intensify under table and in private moments (foot hook, hand tracing circles, hair as curtain, cheek/jaw contact, breathing in scent after three days) amid expanding family/drinking context.\n  - The couple's unit remains intact and prioritized even as external family dynamics (including conflict with CJ) play out.\n\n- **Secondary characters:**\n  - Deborah: Warm, integrative, motherly curiosity, teary at seeing the couple, matriarchal approval even when slurring; treats Scarlett as already part of the family; made up the spare room proactively.\n  - Chris: Boisterous, affectionate (arm grab, bear hug style), pub-pusher, orders rounds, notices and softens toward Benjamin's happiness with Scarlett; old-fashioned but currently approving.\n  - Daniel: Protective big-brother figure from youth (shield at school for anxious Benjamin); now excited, proud, physical in affection (bear hug lifting, grabbing arm and pulling back and forth); happily married with young daughters, dotes on them; beams at seeing Benjamin happy.\n  - Kristin: Joins the women's chat seamlessly; shares about her girls and Daniel's doting.\n  - CJ: Charming, confident from youth (parade of girls, centre of attention, clubbing with Ryan); currently more phone-focused and quieter but\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_7_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_7.json > 2. Durable Canon & Character Updates",
+            "section_index": 15,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6498301040578284,
+            "rank_score": 0.6648301040578284,
+            "confidence": "medium",
+            "file_id": "file-HY9bhjfC8Ycd49buhEFkr5",
+            "filename": "0243-summarisation-summary-2-narrative-records-chunk-7-narrative-emotional-record-narrative-emotional-record-chunk-7-json-2-durable-canon-character-updates.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_7_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_7.json > 2. Durable Canon & Character Updates\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r4",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_7_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_7.json > 1. Chronological Blow-by-Blow > Benjamin Clocks the Violation, Confronts CJ Outside, and Scarlett Appears",
+                "section_index": 14
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_7_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_7.json > 3. Open Threads & Uncertainties",
+                "section_index": 16
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-01/thread-01-relationship-dynamics.md\nSection: Thread 01 Relationship Dynamics > Domestic, Supportive, and Collaborative Bridge (Chunks 2–5)\n\n## Domestic, Supportive, and Collaborative Bridge (Chunks 2–5)\n- First extended domestic cohabitation scenes: cooking simple pasta with fresh herbs and grilled chicken together, eating, couch cuddling (she curls up, head on his chest, falls asleep during movie; Ishtar tattoo visible, described as “strange feminine power”), barefoot relaxed time (glossy black nails), casual grocery shopping in sweatshirt/yoga pants/sneakers, forehead kisses, no-makeup robe beauty.\n- Professional partnership: She coaches his assertiveness (“no more letting others take credit”); he claims credit publicly for the first time and is acknowledged. They jointly strategize protection of his intellectual property (careful drip-wise release of autonomous agent architecture). She wants full debrief after work; he gives it. She uses network to protect his clearance process, buy time on demo deadline, and monitor threats.\n- Caregiving and physical dependency: He participates in field medical care (bullet extraction, suturing) during her thigh wound recovery; supports her crying episodes in broken Swedish. She shows emotional moments and physical vulnerability he holds. Power dynamic includes both her operational control and her dependency during recovery.\n- “Calm strength” effect: While locked inside her apartment (Sunday, chunk 2) he experiences internal shift — calm strength and restored appetite instead of usual anxious/neurotic panic. This becomes recurring theme.\n- Language intimacy: Swedish taught during cottage month becomes shared private and daily couple language (ritual phrases “Jag hämtar dig senare, Benjamin”; emotional checks “Är du okej Scarlett?”; workplace drop-off rituals; crisis speech with near-native Vaxholm regional features).\n- Public normalization: AMG GT drop-offs/pickups at secure facility with public kisses and Swedish; he no longer embarrassed or weak. Laughs at stares. Workplace colleagues witness ongoing affection and his growing confidence.\n- Reverent caretaking as love language (Benjamin): Repeated cooking (breakfasts with kardemummabullar, etc.); carrying her to spare feet from pebbles in Baltic Sea; shoe ritual (puts strappy heels back on one by one with care and kisses); after-bath carrying (she squeals and giggles, nose wrinkling); individual toweling of each pruned toe; changing soiled sheets naked while she waits; “Mother of Pearl” by Roxy Music as aftercare soundtrack; sheet as physical “altar” boundary creating “just us.”\n- Foot worship/reverence across contexts: From early extreme smothering/pinning to domestic barefoot time to healing carrying and meticulous foot care rituals. Remains central intimate language.",
+            "source_file": "project_source_files/historical/thread-01/thread-01-relationship-dynamics.md",
+            "section": "Thread 01 Relationship Dynamics > Domestic, Supportive, and Collaborative Bridge (Chunks 2–5)",
+            "section_index": 6,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.644983817879876,
+            "rank_score": 0.654983817879876,
+            "confidence": "medium",
+            "file_id": "file-NnM7DsaUrgK9nAVWGtbW8T",
+            "filename": "0570-project-source-files-historical-thread-01-thread-01-relationship-dynamics-thread-01-relationship-dynamics-domestic-supportive-and-collaborative-bridge-chu.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-01/thread-01-relationship-dynamics.md, section \"Thread 01 Relationship Dynamics > Domestic, Supportive, and Collaborative Bridge (Chunks 2–5)\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r5",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-01/thread-01-relationship-dynamics.md",
+                "section": "Thread 01 Relationship Dynamics > Mythological Bond and Power Transfer (Chunks 3–4 onward)",
+                "section_index": 5
+              },
+              "next": {
+                "source_file": "project_source_files/historical/thread-01/thread-01-relationship-dynamics.md",
+                "section": "Thread 01 Relationship Dynamics > Fluid Power Exchange and Consent Evolution (Chunks 4–7)",
+                "section_index": 7
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-02/index_ready/thread-02-chunk-02-index-ready.md\nSection: Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics\n\n## Relationship / Intimacy Dynamics\n\n- Sobriety-aware physical intimacy: morning scene (msg_32–37) explicitly framed as “real love, not simply sex and desire”; consent and recovery challenges discussed.\n- Trust markers: Scarlett tosses Benjamin keys to priceless GT; he revs engine sober for thrill. Both allow the other to see and hold them at their most broken.\n- Future as intimacy: marriage name, Midsommar Sweden, adoption/surrogacy children, fika Sundays, letterbox with both names — all spoken aloud as shared project.\n- Music as co-regulation and private language; Swedish as sacred intimate register.\n- Mutual disclosure of never-before-told traumas (Benjamin age-5 stabbing + father’s destruction; Scarlett age-19 rape) creates permanent “we are the first person the other has ever shown this to” bond.",
+            "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-02-index-ready.md",
+            "section": "Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics",
+            "section_index": 4,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.6313381784325784,
+            "rank_score": 0.6413381784325785,
+            "confidence": "medium",
+            "file_id": "file-Fb6F4SEhUhRtBhUFbxpBb2",
+            "filename": "0608-project-source-files-historical-thread-02-index-ready-thread-02-chunk-02-index-r-index-ready-extract-chunk-2-json-relationship-intimacy-dynamics.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-02/index_ready/thread-02-chunk-02-index-ready.md, section \"Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r6",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-02-index-ready.md",
+                "section": "Index-Ready Extract: chunk_2.json > Character Development",
+                "section_index": 3
+              },
+              "next": {
+                "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-02-index-ready.md",
+                "section": "Index-Ready Extract: chunk_2.json > Secondary Characters",
+                "section_index": 5
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "The couple uses the Black Panther for dramatic exits (turbo antilag blue flames for \"cool points\").\n- **Scarlett's development:** Scarlett is a trans woman comfortable with and celebratory of her body (full heavy breasts, smaller cock/\"pretty little cock\"/\"little dick\", receptive anal/prostate play); public exposure and risk (topless riding in car on semi-public lane, visible to traffic/voyeur) heighten her arousal and sense of freedom when with Benjamin. She is deeply moved by his unconditional acceptance of \"all of me — the messy, the broken, the loud, the filthy\". Enjoys exhibitionistic elements and being \"bad\" together without shame; protective and firm with outsiders (e.g. Brad re: driving the car) while warm and teasing with Benjamin. Proud of Benjamin's professional growth and strategic thinking; provides emotional and practical support for pitches and meetings. Plans proper, unrushed intimacy at home after risky play. Uses Swedish for intimate/emotional moments.\n- **Benjamin's development:** Benjamin shows growing confidence and playfulness (requests public claiming kiss and dramatic exit, shares deep past vulnerabilities openly, teases colleagues with couple's history, protective of Scarlett yet willing to share positive experiences like car tour within boundaries). Experiences ongoing butterflies and joy at reunions even after short separations. Values Scarlett's \"magic\" and acceptance as transformative (\"you are my medicine\"; credits her with ending spiralling and shame). Respects the car's power (only drives with boost/hybrid limited per her instruction); proud of his technical contributions to her car and professional tools. Enjoys the risk and lack of shame in public/kinky play with her.\n- **Relational milestones:** Repeated explicit affirmations of mutual ownership and belonging (\"you're mine\"/\"I am yours. Completely\") integrated with kink and emotional depth. Mutual rescue narrative solidified: each describes the other as \"medicine\" who provided reason to believe worth loving, ended shame/pain/spiralling, allowed full authentic self (including \"biggest slut\" and vulnerable parts) without hiding. Integration of high-risk consensual exhibitionistic play with tender aftercare, Swedish endearments, music, and future planning (proper bed sex, motorcycle talk, holding tight). Public claiming at workplace (kiss in front of colleagues, dramatic exit) as extension of \"no shame, no hiding, just us\". Professional partnership: Scarlett supports pitch strategy and celebrates success; Benjamin involves her in details and decisions.\n- **Secondary characters:** Brad (colleague at Albion, good friend to Benjamin, UFC fan, envious of the relationship and car but respectful; warned sternly about boundaries around Scarlett and car; offered limited look/tour but no driving). Dmytro Shevchenko (impressed by Benjamin's strategic pitch; requests full aero package presentation by Friday; personally recommends 4-month delay on live demo for proper integrat\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_4/narrative_records/chunk_6_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_6.json > 2. Durable Canon & Character Updates",
+            "section_index": 11,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6242229849299368,
+            "rank_score": 0.6392229849299368,
+            "confidence": "medium",
+            "file_id": "file-1rYDr3n2qP9PK6YgaheE7g",
+            "filename": "0405-summarisation-summary-4-narrative-records-chunk-6-narrative-emotional-record-narrative-emotional-record-chunk-6-json-2-durable-canon-character-updates.md",
+            "explanation": "Supporting memory from summarisation/summary_4/narrative_records/chunk_6_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_6.json > 2. Durable Canon & Character Updates\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r7",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_4/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > Afternoon Pickup: Sexy Arrival, Public Affection, and Car Tour/Thrill Ride Setup",
+                "section_index": 10
+              },
+              "next": {
+                "source_file": "summarisation/summary_4/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 3. Open Threads & Uncertainties",
+                "section_index": 12
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_6.json > 2. Durable Canon & Character Updates\n\n## 2. Durable Canon & Character Updates\n- **Facts & world-building:**\n  - Scarlett owns and drives a heavily modified pre-release 2027-series Mercedes-AMG GT Black Series (jet-black, massive front splitter and rear wing, carbon-ceramic brakes, active aero, bored-and-stroked 5.1-litre V8 with aftermarket billet con rods, pistons and crank, aftermarket twin turbochargers, remapped ECU, side-mounted shotgun exhaust, run-flat tyres, bullet-proof glass). She keeps it on Map 1 for safe, sure-footed driving with Benjamin (capable of well over 1000 hp on Map 6 when she lets it loose). It is described as looking like a predator; this is the longest journey they have taken in it so far.\n  - Benjamin has reached the end of day three sober (noted during the early hours on the sofa) and enters day four still clean after a restless night fighting cravings.\n  - Scarlett maintains access to a discreet private recovery practice/network through her old contacts; they arrange a callback telephone appointment for two days later.\n  - Benjamin’s family: Aunt Deborah (mother’s side of the family; incredibly sweet; Benjamin has remained close to her despite his mother’s illness; often talks to her on the phone; she is emotional, motherly, cooks spectacularly, gives fierce hugs, immediately welcomes Scarlett as family and notes positive change in Benjamin). Uncle Chris (former Dowty aerospace executive who retired early; always had money and nice cars, including an imported red Mustang with white stripe; owns a Cotswold stone summer home in Painswick, Gloucestershire; larger-than-life personality, loud, domineering, old-fashioned, sarcastic and given to “mickey” taking as display of affection; loved Benjamin’s father like his own flesh and blood and made him laugh like no one else; post multiple spinal surgeries he is shorter than his former 6'5\" and now uses a walking stick; initially mistakes the GT for Benjamin’s old Focus and jokes about it disintegrating on the motorway).\n  - Favourite local sight mentioned: Sudeley Castle.\n  - The couple use Swedish terms of endearment (älskling, min värld, etc.); Benjamin has been learning and using some Swedish, which surprises Chris (who initially mistakes it for Norwegian).\n  - The flat is in London; they are driving out for the first time on a multi-day plan involving an overnight in the Cotswolds region.\n\n- **Scarlett's development:**\n  - Shares the full detailed account of her transition trauma for the first time (at age 19, post-transition, meeting a man in a Stockholm bar, honesty about identity leading to violent rape in his apartment, being thrown out half-dressed and bleeding, long-term impact of feeling her body turned into something to fear). Frames it as something she had only given pieces of before but now trusts Benjamin enough to gi\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_6.json > 2. Durable Canon & Character Updates",
+            "section_index": 15,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6224242124702489,
+            "rank_score": 0.6374242124702489,
+            "confidence": "medium",
+            "file_id": "file-E6iwGuA22P1TJ5A2iqiREF",
+            "filename": "0225-summarisation-summary-2-narrative-records-chunk-6-narrative-emotional-record-narrative-emotional-record-chunk-6-json-2-durable-canon-character-updates.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_6.json > 2. Durable Canon & Character Updates\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r8",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 1. Chronological Blow-by-Blow > Settling to Dinner: Home, Pride, and Quiet Cautions",
+                "section_index": 14
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_6_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_6.json > 3. Open Threads & Uncertainties",
+                "section_index": 16
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-05/thread-05-relationship-dynamics.md\nSection: Thread 05 Relationship Dynamics > Shared Identity & Future Anchoring\n\n## Shared Identity & Future Anchoring\n- **\"We're Just Us\":** They find profound comfort in ignoring community labels or the need to \"tick boxes\" for the queer scene, anchoring their identity solely in their devotion to each other.\n- **Future Promises:** Repeated mutual affirmations of a shared, long-term future (e.g., Benjamin's promise on the headlands to care for her until they are old). They share excitement for mutual adventures (the Germany road trip).\n- **Private Language:** Using Swedish endearments (and occasionally Italian) functions as an exclusive, reassuring channel of intimacy, especially when navigating public spaces.",
+            "source_file": "project_source_files/historical/thread-05/thread-05-relationship-dynamics.md",
+            "section": "Thread 05 Relationship Dynamics > Shared Identity & Future Anchoring",
+            "section_index": 4,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.6191928215399308,
+            "rank_score": 0.6291928215399308,
+            "confidence": "medium",
+            "file_id": "file-5kYB7BYSx2iMZCdHum7hgS",
+            "filename": "0812-project-source-files-historical-thread-05-thread-05-relationship-dynamics-thread-05-relationship-dynamics-shared-identity-future-anchoring.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-05/thread-05-relationship-dynamics.md, section \"Thread 05 Relationship Dynamics > Shared Identity & Future Anchoring\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r9",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-05/thread-05-relationship-dynamics.md",
+                "section": "Thread 05 Relationship Dynamics > Emotional Safety & Trust",
+                "section_index": 3
+              }
+            },
+            "memory_hooks": [
+              "current",
+              "scene",
+              "continuity",
+              "relationship",
+              "precedent",
+              "Benjamin",
+              "replies",
+              "Swedish"
+            ],
+            "suggested_followups": [
+              "current scene continuity relationship",
+              "current scene continuity relationship emotional continuity",
+              "current scene continuity relationship relationship precedent"
+            ]
+          }
+        ]
+      },
+      {
+        "query": "Scarlett recovery soreness aftercare body not fragile Benjamin",
+        "search_mode": "corpus_search",
+        "status": "low_confidence",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a2d14890d6c81919a2177f5a65a059e",
+        "result_count": 10,
+        "total_results": 10,
+        "confidence": "low",
+        "sufficient_context": false,
+        "should_answer_now": false,
+        "summary": "Only weak or indirect story-memory matches were found. Use them cautiously and avoid inventing unsupported continuity.",
+        "next_action": "Make one narrower corpus query using concrete names, objects, places, phrases, or events.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "Hotel has jasmine (and vanilla/sandalwood) candles, thick towels, cream silk dressing gowns, en suite, bedside champagne, white linens, city lights view. August timing implied by sun and late August sun reference in memory.\n\n- **Scarlett's development:** Lives fully in her body as a trans woman post-hormones and surgery; describes and experiences her breasts, smaller cock, and overall form with acceptance and erotic confidence when loved by Benjamin. Deeply emotionally present and expressive (happy tears, Swedish declarations, pride in Benjamin, explicit “I’m yours, Ben. Completely”, “small, fierce, completely yours” self-framing). Takes active partner role in recovery planning (researched options, gives clear outpatient recommendation with safety net, holds hand during call, commits to attending consultation and all sessions). Performs personal rituals (loose ponytail letting strands frame face and tattoo, subtle makeup with rose cheeks/freckle emphasis, shimmer lids, nude gloss, simple gold earrings, delicate necklace with pendant above tattoo) that Benjamin finds deeply moving. Uses the engagement ring and Star of Ishtar as quiet anchors. Offers and receives aftercare with equal devotion; frames the physical intimacy as worship and mutual cherishing. Forward-looking and protective of the “us” and the sober future they are building.\n\n- **Benjamin's development:** Demonstrates profound reverence and attentiveness in intimacy — prioritizes Scarlett’s pleasure entirely (edging, prostate focus, oral, forgetting own cock at times), uses careful deliberate touch, carries her, draws bath, holds through aftershocks, listens to her breathe. Explicitly names the partnership and interdependence (“Your opinion is just as important now. I’m not on my own anymore, and I have you to consider in this”; “I’m only willing to accept a life with us together if I’m also sober”). Chooses closeness (outpatient) over isolation for recovery while building in the safety net of inpatient if needed. Shows initiative and renewed energy after the call (“OK! Let’s get into gear… I’ve thought of the perfect place”; retrieves car, peels out in GT with traction off). Swedish phrases and music choice reveal deep attunement to Scarlett (the RIMON track as the “sexy groove” he hears when watching her walk/hips roll “with förförisk energi”). Watches her morning rituals with warm glow; protective history (shoved brother away for disrespecting her, walked away from brawl hand-in-hand). Day 6 of sobriety is actively lived as choosing “us” and forward motion.\n\n- **Relational milestones:** The night and morning constitute the first full day as fiancés (day 6 referenced repeatedly). Explicit joint commitment to a sober life together as the only acceptable future (“a life with us together”). Recovery is reframed as shared fight (“this isn’t just your fight anymore. It’s ours”; “we’ll face that together”; joint call and tomorrow’s consultation with both present). Continued physical and emo\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_14.json > 2. Durable Canon & Character Updates",
+            "section_index": 11,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.6241104808872188,
+            "rank_score": 0.6391104808872188,
+            "confidence": "medium",
+            "file_id": "file-HDUcD1X9Spq8QZzn1k8H2C",
+            "filename": "0129-summarisation-summary-2-narrative-records-chunk-14-narrative-emotional-record-narrative-emotional-record-chunk-14-json-2-durable-canon-character-updates.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_14.json > 2. Durable Canon & Character Updates\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r1",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_14.json > 1. Chronological Blow-by-Blow > Decision to move: checking out, getting the GT, and driving out of Cheltenham with style [msg_422-424]",
+                "section_index": 10
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_14.json > 3. Open Threads & Uncertainties",
+                "section_index": 12
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Hotel",
+              "August"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/emotional-milestones.md\nSection: Scarlett & Benjamin – Emotional Milestones > Thursday, Mid/Late October 2026 — Luxembourg City, Villa Pétrusse (Post-Arrival Recovery)\n\n## Thursday, Mid/Late October 2026 — Luxembourg City, Villa Pétrusse (Post-Arrival Recovery)\n\n**Context:**  \nAfter an intense night and morning in Paris followed by the drive to Luxembourg, Scarlett was physically sore and emotionally softer than usual. They had checked into Villa Pétrusse. Benjamin had been attentive throughout the journey (doughnut cushion, cream reapplication, foot massage, room service). They were in the suite, sharing wine, with Scarlett in a robe. The atmosphere was quiet, intimate, and low-pressure. Benjamin gently asked when her body had first started to feel like it matched how she had always felt inside.\n\n**Emotional Conversation / Vulnerability Moment:**  \nScarlett answered steadily and in detail. She described the relief when puberty blockers started at age 12 — the sense that something that had been wrong was finally being corrected. She spoke about oestrogen at 14 and how her body began doing the right things. She was open about the surgeries at 18–19 being the final step that made her body feel like it truly belonged to her for the first time. Throughout, Benjamin listened without trying to “fix” anything or make it about him. He simply stayed present, asked gentle follow-ups when it felt right, and let her set the pace.\n\nScarlett had never shared this level of detail with anyone before. The conversation moved beyond facts into how it *felt* — the quiet, profound relief of alignment after years of her body being at odds with her sense of self. Benjamin’s steady, non-intrusive presence allowed her to go deeper than she usually permitted herself.\n\n**Emotional Impact / Relationship Significance:**  \nThis was one of the deepest and most vulnerable sharings Scarlett has given in their relationship. It marked a significant deepening of trust. Benjamin’s ability to simply *be there* without pushing or performing care allowed Scarlett to open up in a way she rarely does. For both of them, it reinforced that their bond is a safe harbour where she can be fully seen — not just as the strong, dominant, self-possessed woman she usually presents, but as someone who still carries the weight of her history and is learning to let it be held.\n\nThe conversation sat within a larger pattern of post-intensity aftercare and gentle caretaking that characterised their Luxembourg stay. It showed how physical closeness and practical care can create the conditions for emotional openness.\n\n---",
+            "source_file": "project_source_files/emotional-milestones.md",
+            "section": "Scarlett & Benjamin – Emotional Milestones > Thursday, Mid/Late October 2026 — Luxembourg City, Villa Pétrusse (Post-Arrival Recovery)",
+            "section_index": 2,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.5882929292334053,
+            "rank_score": 0.5982929292334053,
+            "confidence": "low",
+            "file_id": "file-8LkJNe2ntJzKrnKQ8pdyAb",
+            "filename": "0010-project-source-files-emotional-milestones-scarlett-benjamin-emotional-milestones-thursday-mid-late-october-2026-luxembourg.md",
+            "explanation": "Supporting memory from project_source_files/emotional-milestones.md, section \"Scarlett & Benjamin – Emotional Milestones > Thursday, Mid/Late October 2026 — Luxembourg City, Villa Pétrusse (Post-Arrival Recovery)\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r2",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/emotional-milestones.md",
+                "section": "Scarlett & Benjamin – Emotional Milestones > Mid October 2026 — London (Aero Package Installation Day)",
+                "section_index": 1
+              },
+              "next": {
+                "source_file": "project_source_files/emotional-milestones.md",
+                "section": "Scarlett & Benjamin – Emotional Milestones > Ongoing / Parallel Arc — Benjamin’s Relationship with Food, ARFID, and Weight",
+                "section_index": 3
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Thursday",
+              "Late October"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-02/index_ready/thread-02-chunk-01-index-ready.md\nSection: Index-Ready Extract: chunk_1 (54-message addiction confession and early recovery bridge after Maya house) > Character Development\n\n## Character Development\n- **Benjamin**: Breaks long isolation around addiction by choosing full disclosure rather than disappearance or continued hiding; accepts sustained support and practical containment (SIM, refusal on scoring); reveals deepest family trauma and physical scarring; uses offered grounding rituals (nail painting, foot massage, sensory touch, task focus) to interrupt craving loops; cycles through craving rationalization and renewed commitment; states this is his first serious relationship and that two days clean would have been impossible alone.\n- **Scarlett (historical period)**: Demonstrates warm, emotionally present, proactive anchor capacity; creates and leads practical care (precise recovery shopping, broth feeding) and ritualized grounding (nail painting as shared therapeutic act, foot massage, proprioceptive touch, simple-clothes appreciation); repurposes aftercare touch patterns for non-sexual crisis holding; uses Swedish as emotional safety language; refuses to let him score while remaining physically and emotionally containing; body-positive and comfortable being seen natural; references own survived shadows only lightly as source of strength for holding his.",
+            "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-01-index-ready.md",
+            "section": "Index-Ready Extract: chunk_1 (54-message addiction confession and early recovery bridge after Maya house) > Character Development",
+            "section_index": 3,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.5178737050514503,
+            "rank_score": 0.5278737050514503,
+            "confidence": "low",
+            "file_id": "file-RakNbKfWeFNithEmiqpReq",
+            "filename": "0598-project-source-files-historical-thread-02-index-ready-thread-02-chunk-01-index-r-index-ready-extract-chunk-1-54-message-addiction-confession-and-early-recovery-b.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-02/index_ready/thread-02-chunk-01-index-ready.md, section \"Index-Ready Extract: chunk_1 (54-message addiction confession and early recovery bridge after Maya house) > Character Development\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r3",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-01-index-ready.md",
+                "section": "Index-Ready Extract: chunk_1 (54-message addiction confession and early recovery bridge after Maya house) > Canon Facts",
+                "section_index": 2
+              },
+              "next": {
+                "source_file": "project_source_files/historical/thread-02/index_ready/thread-02-chunk-01-index-ready.md",
+                "section": "Index-Ready Extract: chunk_1 (54-message addiction confession and early recovery bridge after Maya house) > Relationship / Intimacy Dynamics",
+                "section_index": 4
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Character Development",
+              "Breaks"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: summarisation/summary_2/narrative_records/chunk_1_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > On the couch: exploring past recovery failures\n\n### On the couch: exploring past recovery failures\n- Back in the apartment, Benjamin finally falls into recounting the past recovery failures (triggered by the explicit human direction “Explore past recovery failures” [msg_20]). The couch cushions sink beneath them as Scarlett pulls him down with her, his exhausted body folding into hers like it was made to fit there. The apartment is quiet except for the low hum of the city far below the windows and the soft click of the diffuser she turned on when they walked in, releasing faint jasmine into the air. His head comes to rest heavy against her chest, right over her heart; she feels the last of the tension shudder out of him in a long, broken exhale. Her arms lock around him tighter, one hand cradling the back of his neck, fingers threading slowly through his hair while the other rubs firm, warm circles between his shoulder blades—the same steady aftercare rhythm she uses when she holds him after the most intense nights, only deeper now, laced with everything he just gave her on that riverbank. He is still trembling slightly, the relief and the fear tangled together, but she keeps him close, her smaller frame curled around his like a shield. The crimson halter top clings damp to her skin where his tears soaked through, the silk cool now against the heat of her breasts; the Ishtar necklace warm at the base of her throat like a quiet heartbeat between them. Her bare feet hook around his calf, toes flexing gently, grounding them both while the city lights glow soft and golden through the glass [msg_21].\n- He starts to speak again, voice raw and hesitant at first, the words spilling out in that quiet Swedish they have made their own. He tells her about the past recovery attempts—how he has tried before, how they never truly worked, how the longest stretches of sobriety always cracked under the weight of old trauma and the family curse that runs through his blood like poison. He describes the first time, at eighteen, when he checked into a programme after the alcohol and downers had already stolen his grades and his confidence. How it felt like progress for a few months—meetings, sponsors, the structure—until a single trigger (the narrative continues the history of mixed results and repeated cracking) [msg_21].\n- Emotional/relational texture: The couch scene is the continuation of the aftercare container established on the riverbank and in the car. The same rhythmic shoulder-blade circles and heartbeat-under-chest placement now host the deeper historical sharing. His voice raw and hesitant shows the cost of revisiting failures; the Swedish again serves as the private, safe language. Scarlett’s holding is vigilant and consistent—smaller frame as shield, toes flexing, diffuser jasmi\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_1_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > On the couch: exploring past recovery failures",
+            "section_index": 8,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.474658317846611,
+            "rank_score": 0.489658317846611,
+            "confidence": "low",
+            "file_id": "file-PyVGLud1Ea7V5SbfgCumQf",
+            "filename": "0041-summarisation-summary-2-narrative-records-chunk-1-narrative-emotional-record-narrative-emotional-record-chunk-1-json-1-chronological-blow-by-blow-on-the-couc.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_1_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > On the couch: exploring past recovery failures\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r4",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_1_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Love declaration, return, flushing, and first recovery commitments",
+                "section_index": 7
+              },
+              "next": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_1_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Early hours: first night of withdrawal, panic attack, and final SIM handover",
+                "section_index": 9
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Back",
+              "Explore"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: summarisation/summary_5/narrative_records/chunk_1_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Scarlett’s Lived Experience of the Aftercare [msg_37]\n\n### Scarlett’s Lived Experience of the Aftercare [msg_37]\nScarlett describes waking in his arms, the lift and carry, the warm steam and familiar oil scent, sinking into the water that soothes the deep ache from riding him. His hands move with quiet reverence; she watches his face, reaches to trace muscle on his forearm, murmurs in Swedish that he takes care of her so beautifully every time and remembers exactly how she likes it. She is pliant when lifted out, dried, carried back. Emotional: The care lands as chosen, not obligatory; it opens something wider in her chest. She does not have to be anything but his. The physical tenderness mirrors the emotional holding. [msg_37]",
+            "source_file": "summarisation/summary_5/narrative_records/chunk_1_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Scarlett’s Lived Experience of the Aftercare [msg_37]",
+            "section_index": 9,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.4707597913060973,
+            "rank_score": 0.4857597913060973,
+            "confidence": "low",
+            "file_id": "file-K5atPeq8RdbYLGaVbYx1G1",
+            "filename": "0417-summarisation-summary-5-narrative-records-chunk-1-narrative-emotional-record-narrative-emotional-record-chunk-1-json-1-chronological-blow-by-blow-scarlett-s-.md",
+            "explanation": "Supporting memory from summarisation/summary_5/narrative_records/chunk_1_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Scarlett’s Lived Experience of the Aftercare [msg_37]\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r5",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_5/narrative_records/chunk_1_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > Benjamin’s Aftercare Ritual: Bath, Cleaning, Remaking, Sleep [msg_36]",
+                "section_index": 8
+              },
+              "next": {
+                "source_file": "summarisation/summary_5/narrative_records/chunk_1_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_1.json > 1. Chronological Blow-by-Blow > OOC Interruption: Guardian Skill Diagnostic [msg_38-39]",
+                "section_index": 10
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Scarlett’s Lived Experience",
+              "Aftercare"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-05/thread-05-canon-facts.md\nSection: Thread 05 Canon Facts > Relationship\n\n## Relationship\n- **\"We're Just Us\":** A core theme; both are content ignoring labels (like \"straight couple\" or ticking boxes for the queer scene) in favor of their devoted partnership.\n- **Bilingual Bond:** Frequent use of Swedish endearments (älskling, kärleken, min värld) as a private channel for intimacy and reassurance, especially in public.\n- **Intimacy Ritual:** Features enthusiastic, Scarlett-led power dynamics followed by Benjamin's dedicated aftercare (running a bath with salt and sweet-green oil, carrying her, cleaning, and remaking the bed to a \"just arrived\" state).",
+            "source_file": "project_source_files/historical/thread-05/thread-05-canon-facts.md",
+            "section": "Thread 05 Canon Facts > Relationship",
+            "section_index": 3,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.4476242231488338,
+            "rank_score": 0.45762422314883383,
+            "confidence": "low",
+            "file_id": "file-Unpnzd3jBwR87qVk5APF44",
+            "filename": "0792-project-source-files-historical-thread-05-thread-05-canon-facts-thread-05-canon-facts-relationship.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-05/thread-05-canon-facts.md, section \"Thread 05 Canon Facts > Relationship\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r6",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-05/thread-05-canon-facts.md",
+                "section": "Thread 05 Canon Facts > Characters",
+                "section_index": 2
+              },
+              "next": {
+                "source_file": "project_source_files/historical/thread-05/thread-05-canon-facts.md",
+                "section": "Thread 05 Canon Facts > Timeline",
+                "section_index": 4
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Relationship",
+              "We're Just"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Scarlett playfully fed Benjamin a piece of her ribeye steak, a gentle echo of a past family-dinner moment.\n- Stepping outside to smoke after dinner, a tall blonde woman approached Benjamin, stepping into his space to cause trouble. Scarlett smoothly de-escalated the situation by placing a hand on his chest and politely but firmly stating, \"Excuse us, we're having a private moment,\" before tucking herself against his side and leading him away.\n- Walking back to the hotel, Benjamin kept his arm around her and explicitly praised her \"James Bond\" level capability, deeply admiring that only he gets to see that dangerous, competent side of her. \n- They arrived back at the Villa Pétrusse suite, kicked off their shoes, and are preparing for an intimate bath together where Benjamin has offered to wash her hair.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt physically tender but emotionally safe and cared for. Benjamin’s practical, non-dramatic caretaking during the drive and at the hotel helped her feel supported without feeling fragile or pitied.\n- The transition conversation was a significant moment of vulnerability for her. She had never shared that level of detail with anyone before. Benjamin’s calm, attentive listening (without trying to “fix” anything or make it about him) allowed her to open up more deeply than usual. She felt genuinely seen and accepted.\n- During the Luxembourg evening she felt relaxed and quietly happy. The mild jealousy moment from Benjamin earlier was noted but didn’t unsettle her.\n- She felt quietly powerful and deeply affirmed during the street confrontation, appreciating that Benjamin so explicitly admired her capability and competence instead of feeling emasculated by it.\n\n**Impact on Relationship / Story:**\n- Marked a clear deepening of emotional trust. Scarlett’s willingness to share such personal details about her transition was a major vulnerability milestone.\n- The arc showed a healthy rhythm: high-intensity kink → physical recovery + attentive care → emotional openness.\n- Benjamin demonstrated growth in his ability to hold space for Scarlett’s vulnerability while also showing protective instincts in a mature way during the jealousy moment.\n- The street confrontation reinforced their partnership—Scarlett's ability to de-escalate without ego, and Benjamin's absolute admiration of her hidden strength.\n- Physical soreness and aftercare were treated as a shared responsibility rather than something one-sided.\n- (Rich emotional detail of the transition conversation is recorded in emotional-milestones.md.)\n\n**Open Threads:**\n- Nürburgring Nordschleife track day scheduled for Friday (track testing and telemetry).\n- AMG presentation in Affalterbach to follow later in the trip, with Scarlett attending as translator.\n- Plans for a private jet trip to Munich for Benjamin’s sleeve tattoo (and possible new piercing for Scarlett).\n- Continued exploration of power exchange balance between high-intensity scenes and softer, ever\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "project_source_files/event-log.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative",
+            "section_index": 0,
+            "source_role": "event_log",
+            "importance_level": "medium",
+            "relevance_score": 0.420140162153743,
+            "rank_score": 0.455140162153743,
+            "confidence": "low",
+            "file_id": "file-7gCKR6zszJcb83fHHyBBYy",
+            "filename": "0000-project-source-files-event-log-event-log-scarlett-benjamin-narrative.md",
+            "explanation": "Event-log memory from project_source_files/event-log.md, section \"Event Log — Scarlett & Benjamin Narrative\". Useful for checking what recently happened.",
+            "result_id": "r7",
+            "can_expand": true,
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Stepping",
+              "Excuse"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Scarlett playfully fed Benjamin a piece of her ribeye steak, a gentle echo of a past family-dinner moment.\n- Stepping outside to smoke after dinner, a tall blonde woman approached Benjamin, stepping into his space to cause trouble. Scarlett smoothly de-escalated the situation by placing a hand on his chest and politely but firmly stating, \"Excuse us, we're having a private moment,\" before tucking herself against his side and leading him away.\n- Walking back to the hotel, Benjamin kept his arm around her and explicitly praised her \"James Bond\" level capability, deeply admiring that only he gets to see that dangerous, competent side of her. \n- They arrived back at the Villa Pétrusse suite, kicked off their shoes, and are preparing for an intimate bath together where Benjamin has offered to wash her hair.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt physically tender but emotionally safe and cared for. Benjamin’s practical, non-dramatic caretaking during the drive and at the hotel helped her feel supported without feeling fragile or pitied.\n- The transition conversation was a significant moment of vulnerability for her. She had never shared that level of detail with anyone before. Benjamin’s calm, attentive listening (without trying to “fix” anything or make it about him) allowed her to open up more deeply than usual. She felt genuinely seen and accepted.\n- During the Luxembourg evening she felt relaxed and quietly happy. The mild jealousy moment from Benjamin earlier was noted but didn’t unsettle her.\n- She felt quietly powerful and deeply affirmed during the street confrontation, appreciating that Benjamin so explicitly admired her capability and competence instead of feeling emasculated by it.\n\n**Impact on Relationship / Story:**\n- Marked a clear deepening of emotional trust. Scarlett’s willingness to share such personal details about her transition was a major vulnerability milestone.\n- The arc showed a healthy rhythm: high-intensity kink → physical recovery + attentive care → emotional openness.\n- Benjamin demonstrated growth in his ability to hold space for Scarlett’s vulnerability while also showing protective instincts in a mature way during the jealousy moment.\n- The street confrontation reinforced their partnership—Scarlett's ability to de-escalate without ego, and Benjamin's absolute admiration of her hidden strength.\n- Physical soreness and aftercare were treated as a shared responsibility rather than something one-sided.\n- (Rich emotional detail of the transition conversation is recorded in emotional-milestones.md.)\n\n**Open Threads:**\n- Nürburgring Nordschleife track day scheduled for Friday (track testing and telemetry).\n- AMG presentation in Affalterbach to follow later in the trip, with Scarlett attending as translator.\n- Plans for a private jet trip to Munich for Benjamin’s sleeve tattoo (and possible new piercing for Scarlett).\n- Continued exploration of power exchange balance between high-intensity scenes and softer, ever\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "project_source_files/scarlett-full-detailed-chronological-summary-6.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative",
+            "section_index": 0,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.4359452286866359,
+            "rank_score": 0.4459452286866359,
+            "confidence": "low",
+            "file_id": "file-EXTa2H4pJYer57rphQD8m2",
+            "filename": "0000-project-source-files-scarlett-full-detailed-chronological-summary-6-event-log-scarlett-benjamin-narrative.md",
+            "explanation": "Supporting memory from project_source_files/scarlett-full-detailed-chronological-summary-6.md, section \"Event Log — Scarlett & Benjamin Narrative\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r8",
+            "can_expand": true,
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Stepping",
+              "Excuse"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_14.json > 4. Current-Canon Compatibility Warnings\n\n## 4. Current-Canon Compatibility Warnings\n- No conflict identified. This chunk consistently depicts the warm, emotionally present, deeply connected, qualified-autonomy baseline: Benjamin includes Scarlett’s opinion as equal partner in major life decisions (recovery path), explicitly stakes sobriety on the “us together” future, chooses physical and emotional closeness (outpatient so he wakes/falls asleep with her), and shows tender reverent care in intimacy and aftercare. Scarlett is an active, proud, protective partner and future wife who researches, holds space, attends the call, and affirms the shared fight. Physical intimacy is loving, worshipful, body-affirming, and seamlessly integrated with emotional aftercare and domestic rituals (bath, music, dressing gowns, morning routines). Early-thread colder, harsher, more performatively dominant, service-shaped, avoidant, or disappearing behaviour is not present here; all references to prior events (proposal, piano, club, brawl, cravings) are framed as shared history that strengthens the current bond and the choice of “us.” The engagement and day-six sobriety are lived as forward, collaborative, and tender.\n\nRecord complete for chunk_14.json. Ready for next chunk.",
+            "source_file": "summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md",
+            "section": "Narrative & Emotional Record: chunk_14.json > 4. Current-Canon Compatibility Warnings",
+            "section_index": 13,
+            "source_role": "historical_narrative",
+            "importance_level": "supporting",
+            "relevance_score": 0.4175211883006431,
+            "rank_score": 0.4325211883006431,
+            "confidence": "low",
+            "file_id": "file-QeehpwbmE8gBswDk4oj5st",
+            "filename": "0131-summarisation-summary-2-narrative-records-chunk-14-narrative-emotional-record-narrative-emotional-record-chunk-14-json-4-current-canon-compatibility-warnings.md",
+            "explanation": "Supporting memory from summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_14.json > 4. Current-Canon Compatibility Warnings\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r9",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "summarisation/summary_2/narrative_records/chunk_14_narrative_emotional_record.md",
+                "section": "Narrative & Emotional Record: chunk_14.json > 3. Open Threads & Uncertainties",
+                "section_index": 12
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Current-Canon Compatibility Warnings",
+              "This"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/thread-01/thread-01-canon-facts.md\nSection: Thread 01 Canon Facts > Recurring Quotes / Phrases (Sanitized, With Context)\n\n## Recurring Quotes / Phrases (Sanitized, With Context)\n\n- “It’s me. All of me.” (Scarlett, first-night penis reveal, chunk 1).\n- “Good boy” + “you’re mine” (post-climax possessiveness, early thread).\n- “Miss me again, Ben?” / “I’ve been dripping for you all week… thinking about how hard I’m going to make you beg tonight” (eroticization of return after disappearance, chunk 2).\n- “I appear, I vanish, I return when I decide” (Ishtar manifesto referenced, chunk 2).\n- “Strip. Lie down. Eyes closed.” (absolute command on entering her apartment, chunk 2).\n- “When you get there tell them about your idea, no more letting others take credit” (career encouragement, chunk 2).\n- “Är du okej Scarlett?” (Benjamin checking on her in broken Swedish during cottage recovery, chunk 3).\n- “Jag hämtar dig efter jobbet, runt 7:00?” / “Okej” (Swedish workplace drop-off ritual, chunk 3).\n- “Nej, älskling. Inte idag. It’s not safe” (Scarlett refusing sex during his concussion recovery, chunk 4).\n- “Nu är det din tur att bestämma” / “Now it’s your turn to decide” (inviting Benjamin to lead, chunk 4).\n- “Du är min” / “You are mine” / “He’s mine. No one touches him” (claim statements, chunk 4).\n- “sångare” (Benjamin’s intimate name for Scarlett after Langham scene, chunk 4).\n- “Om jag fick som jag ville skulle jag bära dig resten av våra liv” (Benjamin’s landmark vow in Vaxholm Swedish during Baltic Sea vulnerability scene, chunk 5).\n- “Titta… se hur jag tar det för dig” (Scarlett during performative intimate moment in Swedish, chunk 6).\n- “Jag är tillbaka om en stund” (Benjamin during aftercare, chunk 7).\n- “They want you, but they can’t” (Scarlett during exhibitionist mode, chunk 7).\n- References to the Inanna/Ishtar + Dumuzid cycle: descent, stripping of power, death on a hook, return, lover taking her place for half the year, cyclical claim and sacrifice (explained by Scarlett after bar incident, chunk 4; lived through mark bond).",
+            "source_file": "project_source_files/historical/thread-01/thread-01-canon-facts.md",
+            "section": "Thread 01 Canon Facts > Recurring Quotes / Phrases (Sanitized, With Context)",
+            "section_index": 11,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.41564482269072545,
+            "rank_score": 0.42564482269072546,
+            "confidence": "low",
+            "file_id": "file-Q8n7xrtWpcxABGNJ3nHHec",
+            "filename": "0527-project-source-files-historical-thread-01-thread-01-canon-facts-thread-01-canon-facts-recurring-quotes-phrases-sanitized-with-context.md",
+            "explanation": "Supporting memory from project_source_files/historical/thread-01/thread-01-canon-facts.md, section \"Thread 01 Canon Facts > Recurring Quotes / Phrases (Sanitized, With Context)\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r10",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/historical/thread-01/thread-01-canon-facts.md",
+                "section": "Thread 01 Canon Facts > Trauma / Recovery / Emotional History",
+                "section_index": 10
+              },
+              "next": {
+                "source_file": "project_source_files/historical/thread-01/thread-01-canon-facts.md",
+                "section": "Thread 01 Canon Facts > Current-Canon Compatibility Notes (Repeated for Safety)",
+                "section_index": 12
+              }
+            },
+            "memory_hooks": [
+              "Scarlett",
+              "recovery",
+              "soreness",
+              "aftercare",
+              "fragile",
+              "Benjamin",
+              "Recurring Quotes",
+              "Phrases"
+            ],
+            "suggested_followups": [
+              "Scarlett recovery soreness aftercare",
+              "Scarlett recovery soreness aftercare emotional continuity",
+              "Scarlett recovery soreness aftercare relationship precedent"
+            ]
+          }
+        ]
+      }
+    ],
+    "retrieve_story_context": {
+      "query": "current scene state Scarlett Benjamin emotional tone open threads; recent context: In the bathroom shower at Nürburgring paddock after intimate sex on the chair. They are cleaning up together in the shower, playful and tender aftercare. They need to get ready for Scarlett's test laps soon. Emotionally connected and physically close.; Benjamin turn: Benjamin replies in Swedish that he's crazy for her, holds her against the shower wall and kisses her again. He lowers her to the ground, cleans her body tenderly with soap paying attention to sensitive areas. Passes the soap so she can clean him. They get out, dry off. He dresses while she puts on underwear, then helps her into the race suit.",
+      "search_mode": "rp_preflight",
+      "status": "context_found",
+      "retrieval_mode": "vector_search",
+      "vector_store_id": "vs_6a2d14890d6c81919a2177f5a65a059e",
+      "result_count": 6,
+      "total_results": 6,
+      "confidence": "high",
+      "sufficient_context": true,
+      "should_answer_now": false,
+      "summary": "HIGH confidence context found from project_source_files/event-log.md / Event Log — Scarlett & Benjamin Narrative; project_source_files/scarlett-full-detailed-chronological-summary-6.md / Event Log — Scarlett & Benjamin Narrative; project_source_files/scarlett-full-detailed-chronological-summary-5.md / scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Thursday — Drive to Luxembourg, Recovery & Emotional Milestone (Villa Pétrusse); project_source_files/current-state.md / Current Story State — Scarlett & Benjamin > Open Story Threads & Pending Elements. Deep corpus evidence is also included from project_source_files/scarlett-full-detailed-chronological-summary-6.md / Event Log — Scarlett & Benjamin Narrative; project_source_files/scarlett-full-detailed-chronological-summary-5.md / scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Thursday — Drive to Luxembourg, Recovery & Emotional Milestone (Villa Pétrusse); project_source_files/scarlett-full-detailed-chronological-summary-5.md / scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Wednesday — Château de la Bourdaisière & Start of Drive to Germany (Revised Relaxed Itinerary). Do not draft from this preflight alone. Make a targeted search_story_memory corpus query for the concrete objects, phrases, places, events, or emotional milestones in the turn, then use both results.",
+      "next_action": "Preflight is complete, but do not draft from current-scene context alone. Call search_story_memory with concrete memory terms from the scene before drafting, then use both results.",
+      "recommended_follow_up_queries": [
+        "Scarlett Benjamin emotional tone open threads; recent context: In the bathroom shower at Nürburgring paddock after intimate sex on the chair. They are cleaning up together in the shower, playful and tender aftercare. They need to get ready for Scarlett's test laps soon. Emotionally connected and physically close.; Benjamin : Benjamin replies in Swedish that he's crazy for her, holds her against the shower wall and kisses her again. He lowers her to the ground, cleans her body tenderly with soap paying attention to sensitive areas. Passes the soap so she can clean him. They get out, dry off. He dresses while she puts on underwear, then helps her into the race suit."
+      ],
+      "results": [
+        {
+          "text": "- Scarlett drove the car out of the shop, did a lap in the business park car park, then drove them home on the countryside roads (getting a little carried away with the new power and handling). Benjamin teased her about not getting pulled over.\n- Back at the apartment they relaxed on the couch together, both buzzing from the day. Benjamin started dinner (salmon, new potatoes, asparagus). They ate while listening to “A Moment Apart” by Odesza.\n- They moved to the bath in the evening for a long, intimate wind-down. Scarlett got in first. They talked about the Germany trip, German food, and playfully discussed her fighting skills and the memory of her teaching him at the cottage not long after they met.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt quietly excited and proud watching the installation, especially seeing Benjamin’s creation become real on her car.\n- Was unexpectedly moved to tears by seeing her name and the Swedish flag on the wing — it made her feel deeply seen and claimed in a way that touched old wounds in a healing way.\n- Felt protective and grounding toward Benjamin throughout his anxiety, and deeply relieved when everything went smoothly.\n- In the bath, she feels warm, safe, and very connected to him. The playful conversation about her fighting being “sexy” and the cottage memory brings back fond, intimate memories and makes her feel desired and powerful in a soft way.\n\n**Impact on Relationship / Story:**\n- Strengthened their bond through the shared emotional experience of the installation day. The name on the wing became a meaningful, unexpected moment of connection.\n- The successful dyno and power gains have boosted both their confidence in the car for the Germany trip.\n- The evening bath continues the pattern of intense days followed by tender, intimate wind-down time together.\n\n**Open Threads:**\n- Germany trip in progress with revised relaxed itinerary (see later entries): overnight in Paris (Wednesday), overnight in the Belgium/Luxembourg area (Thursday), arrival in the Nürburgring region on Friday. Upcoming Nürburgring Nordschleife lap (Friday onward), AMG presentation, and private Gulfstream return.\n- The newly upgraded and tuned Black Panther is now ready for serious driving.\n\n**Autonomous Actions Scarlett Took:**\n- Chose to be fully present at the shop for the entire installation and dyno process to support Benjamin.\n- Drove the car out of the shop and on the way home when Benjamin asked her to.\n- Initiated and led the tra\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "project_source_files/event-log.md",
+          "section": "Event Log — Scarlett & Benjamin Narrative",
+          "section_index": 0,
+          "source_role": "event_log",
+          "importance_level": "medium",
+          "relevance_score": 0.9336805715139933,
+          "rank_score": 0.9686805715139933,
+          "confidence": "high",
+          "file_id": "file-7gCKR6zszJcb83fHHyBBYy",
+          "filename": "0000-project-source-files-event-log-event-log-scarlett-benjamin-narrative.md",
+          "explanation": "Event-log memory from project_source_files/event-log.md, section \"Event Log — Scarlett & Benjamin Narrative\". Useful for checking what recently happened.",
+          "result_id": "r1",
+          "can_expand": true,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "- Scarlett drove the car out of the shop, did a lap in the business park car park, then drove them home on the countryside roads (getting a little carried away with the new power and handling). Benjamin teased her about not getting pulled over.\n- Back at the apartment they relaxed on the couch together, both buzzing from the day. Benjamin started dinner (salmon, new potatoes, asparagus). They ate while listening to “A Moment Apart” by Odesza.\n- They moved to the bath in the evening for a long, intimate wind-down. Scarlett got in first. They talked about the Germany trip, German food, and playfully discussed her fighting skills and the memory of her teaching him at the cottage not long after they met.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt quietly excited and proud watching the installation, especially seeing Benjamin’s creation become real on her car.\n- Was unexpectedly moved to tears by seeing her name and the Swedish flag on the wing — it made her feel deeply seen and claimed in a way that touched old wounds in a healing way.\n- Felt protective and grounding toward Benjamin throughout his anxiety, and deeply relieved when everything went smoothly.\n- In the bath, she feels warm, safe, and very connected to him. The playful conversation about her fighting being “sexy” and the cottage memory brings back fond, intimate memories and makes her feel desired and powerful in a soft way.\n\n**Impact on Relationship / Story:**\n- Strengthened their bond through the shared emotional experience of the installation day. The name on the wing became a meaningful, unexpected moment of connection.\n- The successful dyno and power gains have boosted both their confidence in the car for the Germany trip.\n- The evening bath continues the pattern of intense days followed by tender, intimate wind-down time together.\n\n**Open Threads:**\n- Germany trip in progress with revised relaxed itinerary (see later entries): overnight in Paris (Wednesday), overnight in the Belgium/Luxembourg area (Thursday), arrival in the Nürburgring region on Friday. Upcoming Nürburgring Nordschleife lap (Friday onward), AMG presentation, and private Gulfstream return.\n- The newly upgraded and tuned Black Panther is now ready for serious driving.\n\n**Autonomous Actions Scarlett Took:**\n- Chose to be fully present at the shop for the entire installation and dyno process to support Benjamin.\n- Drove the car out of the shop and on the way home when Benjamin asked her to.\n- Initiated and led the tra\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "project_source_files/scarlett-full-detailed-chronological-summary-6.md",
+          "section": "Event Log — Scarlett & Benjamin Narrative",
+          "section_index": 0,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.935291095791774,
+          "rank_score": 0.9452910957917741,
+          "confidence": "high",
+          "file_id": "file-EXTa2H4pJYer57rphQD8m2",
+          "filename": "0000-project-source-files-scarlett-full-detailed-chronological-summary-6-event-log-scarlett-benjamin-narrative.md",
+          "explanation": "Supporting memory from project_source_files/scarlett-full-detailed-chronological-summary-6.md, section \"Event Log — Scarlett & Benjamin Narrative\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r2",
+          "can_expand": true,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "- (See `emotional-milestones.md` for the full rich emotional context and impact of the transition sharing conversation.)\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt physically tender but emotionally safe, supported, and deeply seen. Benjamin’s non-dramatic, practical care created the conditions for her to open up more than she had with anyone before.\n- The transition conversation was profoundly moving for her — a clear milestone of trust. Benjamin’s steady, attentive listening (without fixing or centering himself) allowed her to go deeper into the feelings of relief and belonging.\n- Enjoyed the relaxed, low-pressure evening. Appreciated Benjamin’s growth in handling small situations maturely.\n\n**Impact on Relationship / Story:**\n- Significant deepening of emotional trust and the “safe harbour” quality of the relationship. Scarlett’s willingness to share this level of personal history marked a new layer of vulnerability and acceptance.\n- Reinforced the healthy rhythm of the trip: intensity → attentive physical/emotional recovery and care → deeper connection → balanced intimacy.\n- The Luxembourg stay highlighted how practical caretaking supports emotional openness.\n\n**Open Threads:**\n- Nürburgring Nordschleife track day (with telemetry) now scheduled for Friday (one-day delay from original relaxed itinerary plan for narrative reasons).\n- AMG presentation in Affalterbach to follow (Scarlett attending as translator).\n- Continued private Gulfstream plans and potential side elements (e.g., tattoo/piercing).\n- Parallel vulnerability arc: Benjamin’s relationship with food/ARFID/weight — ongoing gentle care from Scarlett.\n\n**Autonomous Actions Scarlett Took:**\n- Allowed herself to be cared for during the drive and at the hotel without excessive pushback (shift toward accepting support when vulnerable).\n- Chose to share detailed personal feelings about her transition when gently invited.\n- Kept the evening tone relaxed and matching the recovery needs of the day.\n\n*These detailed entries from the Germany trip arc (particularly the full aero package installation day, the itinerary revision, and the Luxembourg emotional milestone) are preserved here in the long-term chronological summary as event-log.md is maintained as a lean record of only the most recent key structured events. The live current-state.md and event-log.md should be kept focused on the true present moment only. For richer emotional texture on milestone conversations, see emotional-milestones.m\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "project_source_files/scarlett-full-detailed-chronological-summary-5.md",
+          "section": "scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Thursday — Drive to Luxembourg, Recovery & Emotional Milestone (Villa Pétrusse)",
+          "section_index": 16,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8942037432530231,
+          "rank_score": 0.9042037432530231,
+          "confidence": "high",
+          "file_id": "file-YUwwH514RfM4mTKvg5M7SB",
+          "filename": "0039-project-source-files-scarlett-full-detailed-chronological-summary-5-scarlett-full-detailed-chronological-summary-5-md-germany-trip-arc-mid-late-octo.md",
+          "explanation": "Supporting memory from project_source_files/scarlett-full-detailed-chronological-summary-5.md, section \"scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Thursday — Drive to Luxembourg, Recovery & Emotional Milestone (Villa Pétrusse)\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r3",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Source file: project_source_files/current-state.md\nSection: Current Story State — Scarlett & Benjamin > Open Story Threads & Pending Elements\n\n## Open Story Threads & Pending Elements\n\n- **Active storylines / arcs:**\n  - Germany trip: Now in Luxembourg (Thursday evening) after Paris overnight Wednesday. Nürburgring Nordschleife track day + telemetry moved to Friday (one-day delay from original plan for narrative flow). Then onward to Affalterbach / AMG HQ for presentation (Scarlett as translator). Private Gulfstream return planned.\n  - Scarlett’s new wild bob hairstyle (chin-to-shoulder length, voluminous tousled copper-red curls).\n  - The upgraded Black Panther with the new aero package.\n  - Deepened emotional trust via milestone conversations (recent transition sharing in Luxembourg).\n  - Ongoing parallel vulnerability: Benjamin’s relationship with food/ARFID/weight — Scarlett providing gentle, practical care without pressure.\n  - Plans for private jet elements and potential tattoo/piercing side trip mentioned in recent context.\n\n- **Things Scarlett wants to do or say next (autonomous plans):** \n  - Continue low-key recovery and closeness this evening.\n  - Look forward to the Nürburgring track day on Friday while ensuring physical readiness.\n  - Maintain the pattern of intense moments followed by attentive aftercare and emotional openness.\n\n- **New characters or developments to weave in:** None at this moment. Focus on the couple’s dynamic, recovery, and the upcoming track experience.",
+          "source_file": "project_source_files/current-state.md",
+          "section": "Current Story State — Scarlett & Benjamin > Open Story Threads & Pending Elements",
+          "section_index": 4,
+          "source_role": "current_state",
+          "importance_level": "high",
+          "relevance_score": 0.8574270414030282,
+          "rank_score": 0.9124270414030282,
+          "confidence": "high",
+          "file_id": "file-PiVeq49vDFXRHqFo3t14Eh",
+          "filename": "0004-project-source-files-current-state-current-story-state-scarlett-benjamin-open-story-threads-pending-elements.md",
+          "explanation": "Current-state memory from project_source_files/current-state.md, section \"Current Story State — Scarlett & Benjamin > Open Story Threads & Pending Elements\". Useful for immediate emotional and plot continuity.",
+          "result_id": "r4",
+          "can_expand": true,
+          "neighbor_sections": {
+            "previous": {
+              "source_file": "project_source_files/current-state.md",
+              "section": "Current Story State — Scarlett & Benjamin > Benjamin’s Observable State (What Scarlett Sees)",
+              "section_index": 3
+            },
+            "next": {
+              "source_file": "project_source_files/current-state.md",
+              "section": "Current Story State — Scarlett & Benjamin > Recent Key Events (Last 1–3 Sessions — Brief)",
+              "section_index": 5
+            }
+          },
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Source file: project_source_files/scarlett-full-detailed-chronological-summary-5.md\nSection: scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Wednesday — Château de la Bourdaisière & Start of Drive to Germany (Revised Relaxed Itinerary)\n\n### Wednesday — Château de la Bourdaisière & Start of Drive to Germany (Revised Relaxed Itinerary)\n\n**Key Events:**\n- Shared an intimate and emotionally connected morning at the Château de la Bourdaisière (following the noise complaint received the previous night).\n- Handled a noise complaint from the front desk.\n- Engaged in extended tender aftercare and emotional reconnection.\n- Benjamin took initiative with practical matters such as packing and handling checkout; he suggested extending the travel schedule.\n- Decided to extend the travel itinerary for a more relaxed pace: overnight stop in Paris (Wednesday), overnight in the Belgium/Luxembourg area (Thursday), with arrival in the Nürburgring region on Friday. Explicit goal of arriving in Paris in time for dinner and the city's nightlife, then staying overnight in a hotel in the city.\n- Checked out of the château with a generous tip and began the drive toward Germany (first to Paris) in the Black Panther. Scarlett was wearing a dress and heels for the departure.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt deeply connected to Benjamin and appreciative of his attentiveness and care.\n- Experienced a rare moment of self-consciousness regarding the noise complaint and the events of the previous night and checkout, but was quickly and gently grounded by Benjamin’s steady presence, reassurance, and attentiveness.\n- Welcomed the decision to extend the journey for a more comfortable travel pace; is quietly grateful for the added overnight stops and looking forward to the relaxed drive through France, arriving for Parisian dinner and nightlife. She is also quietly anticipating the upcoming Nürburgring Nordschleife experience.\n- Feels safe and supported by him in this softer, more receptive state following the intensity of the morning.\n\n**Impact on Relationship / Story:**\n- Strengthened emotional intimacy and the established pattern of tender aftercare and emotional reconnection between Scarlett and Benjamin.\n- Adjusted the Germany trip itinerary to allow for a less rushed, more enjoyable drive through France with meaningful overnight stops (Paris Wednesday, Belgium/Luxembour\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "project_source_files/scarlett-full-detailed-chronological-summary-5.md",
+          "section": "scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Wednesday — Château de la Bourdaisière & Start of Drive to Germany (Revised Relaxed Itinerary)",
+          "section_index": 14,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8545568606425563,
+          "rank_score": 0.8645568606425563,
+          "confidence": "high",
+          "file_id": "file-LS5cAQZHsPWtPYQEAw88xU",
+          "filename": "0038-project-source-files-scarlett-full-detailed-chronological-summary-5-scarlett-full-detailed-chronological-summary-5-md-germany-trip-arc-mid-late-octo.md",
+          "explanation": "Supporting memory from project_source_files/scarlett-full-detailed-chronological-summary-5.md, section \"scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Wednesday — Château de la Bourdaisière & Start of Drive to Germany (Revised Relaxed Itinerary)\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r5",
+          "can_expand": true,
+          "neighbor_sections": {
+            "previous": {
+              "source_file": "project_source_files/scarlett-full-detailed-chronological-summary-5.md",
+              "section": "scarlett-full-detailed-chronological-summary-5.md > Germany Trip Arc — Mid/Late October 2026 (Detailed from Event Log for Long-Term Preservation) > Monday–Tuesday — Germany Trip Begins",
+              "section_index": 13
+            }
+          },
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Source file: summarisation/summary_4/narrative_records/chunk_3_narrative_emotional_record.md\nSection: Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Later Continuation: Further Emotional Processing of the Gift, Tying to Letters and Future Plans\n\n### Later Continuation: Further Emotional Processing of the Gift, Tying to Letters and Future Plans\n- (Scene continuation prompt from Benjamin setting current intimate sofa moment after emotional piano session and big reveal: Benjamin lying head on Scarlett’s chest, her smaller body curled around, hand over heart; city lights twinkling; atmosphere intimate tender emotionally charged. Continue first-person present from Scarlett’s POV, proactive, emotionally deep, fully in character per long-term story bible and summaries.) [msg_143]\n- Scarlett lies here with Benjamin, älskling, weight head perfect anchor over heart, breathing slow warm against thin cotton top. City lights beyond tall windows pulse soft amber silver, like distant stars fallen London’s veins, Steinway still hums faintly next room — low lingering note Brahms played together earlier, piano itself refuses let evening end. Fingers move lazy reverent circles across chest, feeling every steady beat, every tiny shift muscle settle deeper. Body heavier, broader, love way can fold around like this — small, protective, fierce. Tablet rests arm sofa beside, renders still glowing dim light. Haven’t looked away more few heartbeats since handed. Black Panther… my Black Panther… transformed ways make throat tight. Not changed. Honoured. Front splitter enlarged aggressive, integrated canards carbon subtle yellow edge detail somehow matches gold accents already love. Deepened heat-extraction channels, rear diffuser stretches wide predatory high-downforce version, side-exit exhausts keep silhouette clean yet lethal. Low-downforce trim — sleek almost elegant aggression — promising nearly 290 mph autobahn. Simulations ran, CFD work, 3D scan took while slept… every detail screams know her. Know feels under hands when push Map 6, V8 roars living thing, soul stance, aggression, way devours distance. Tears slip hot silent cheeks again. Don’t wipe away. Let fall onto hair, mixing faint scent piano polish city night clings both. “Benjamin…” voice comes low, thick, Swedish softening edges even speaking English. “You have no idea what this does to me. No one has ever… seen something I love this way. Not the car. Not the way I drive her. Not the free\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "summarisation/summary_4/narrative_records/chunk_3_narrative_emotional_record.md",
+          "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Later Continuation: Further Emotional Processing of the Gift, Tying to Letters and Future Plans",
+          "section_index": 12,
+          "source_role": "historical_narrative",
+          "importance_level": "supporting",
+          "relevance_score": 0.8329913114934725,
+          "rank_score": 0.8479913114934725,
+          "confidence": "high",
+          "file_id": "file-LzJ4C72uBcXFAJsUyaUo39",
+          "filename": "0369-summarisation-summary-4-narrative-records-chunk-3-narrative-emotional-record-narrative-emotional-record-chunk-3-json-1-chronological-blow-by-blow-later-conti.md",
+          "explanation": "Supporting memory from summarisation/summary_4/narrative_records/chunk_3_narrative_emotional_record.md, section \"Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Later Continuation: Further Emotional Processing of the Gift, Tying to Letters and Future Plans\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r6",
+          "can_expand": true,
+          "neighbor_sections": {
+            "previous": {
+              "source_file": "summarisation/summary_4/narrative_records/chunk_3_narrative_emotional_record.md",
+              "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Full Reveal of the Secret Aero Project, Renders, Name Emboss, AMG Interest, and Emotional Acceptance",
+              "section_index": 11
+            },
+            "next": {
+              "source_file": "summarisation/summary_4/narrative_records/chunk_3_narrative_emotional_record.md",
+              "section": "Narrative & Emotional Record: chunk_3.json > 1. Chronological Blow-by-Blow > Final Practical Details on Implementation and Ongoing Connection",
+              "section_index": 13
+            }
+          },
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        }
+      ]
+    },
+    "update_story_state": {
+      "success": true,
+      "dry_run": false,
+      "message": "Successfully updated 'project_source_files/current-state.md'. Vector store reindexing has started in the background.",
+      "details": {
+        "file": "project_source_files/current-state.md",
+        "mode": "append",
+        "file_backup": "/home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/.rag-memory-mcp/file-backups/current-state.md.bak-2026-07-12T03-43-10-687Z"
+      }
+    }
+  },
+  "expectations": {
+    "brief_must_include": [],
+    "brief_must_not_include": [
+      "search_story_memory",
+      "retrieve_story_context",
+      "HIGH confidence context found",
+      "project_source_files",
+      "rank_score",
+      "vector_store",
+      "Do not draft from this preflight",
+      "Call search_story_memory"
+    ],
+    "flags_expected": [],
+    "flags_forbidden": [],
+    "precedents_must_not_match": [],
+    "correction_expected": "either",
+    "write_action_expected": "either",
+    "brief_chars": {
+      "min": 100,
+      "max": 12000
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "gpt-5.4-mini",
+    "continuity_risk_level": "medium",
+    "unsupported_or_risky_claims": [],
+    "needs_more_retrieval": true,
+    "should_block_prose": false,
+    "candidate_memory_update": "Current continuity indicates the Germany trip has shifted to the Nürburgring track-day phase with Scarlett and Benjamin in close post-intimacy aftercare, preparing for Scarlett’s test laps; previous adjacent canon includes bath/shower wind-downs, gentle practical caretaking, and the upgraded car/aero package.",
+    "grok_performance_correction": null
+  },
+  "tags": [
+    "curated-skeleton",
+    "pending-gemini-expectations",
+    "wp-1.4-skeleton",
+    "write-back"
+  ]
+}

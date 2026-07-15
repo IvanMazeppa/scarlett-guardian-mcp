@@ -1,9 +1,10 @@
 # WP-1.4 handoff — Seed 15 golden cases
 
 **Date:** 2026-07-15  
-**Status:** READY TO START (blocked on authorship split, not on tooling)  
+**Status:** GROK HALF DONE — baton to Gemini for expectations  
 **Branch:** `feature/master-roadmap-v1`  
-**Depends on:** WP-1.1–1.3 **done** (`eval:fast` green on `gt-000-hermetic-smoke`)
+**Depends on:** WP-1.1–1.3 **done**; Grok curated 15 skeletons 2026-07-15  
+**Inventory:** `evals/golden/MANIFEST-wp-1.4.md`
 
 ---
 
