@@ -1,7 +1,7 @@
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
 import { decideMemoryWrite } from "../memory-writeback.js";
-import type { RagMcpClient } from "../rag-client.js";
+import type { RagToolCaller } from "../rag-client.js";
 import type {
   CriticalPrecedent,
   ExpandedContext,
@@ -132,7 +132,7 @@ export function buildMemoryQueries(input: GuardianPreflightInput): string[] {
 
 export async function runGuardianPreflight(
   input: GuardianPreflightInput,
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   config: Pick<
     GuardianConfig,
     | "GUARDIAN_CONFIDENCE_THRESHOLD"
@@ -380,7 +380,7 @@ async function raceBudget<T>(
 
 async function expandBestContext(
   toolCalls: RagToolCall[],
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   preflight: RagRetrieveResponse | undefined,
   memories: RagRetrieveResponse[],
   highRiskTriggers: string[]
@@ -428,7 +428,7 @@ async function expandBestContext(
 
 async function verifyExactClaims(
   toolCalls: RagToolCall[],
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   input: GuardianPreflightInput,
   highRiskTriggers: string[]
 ): Promise<FactCheck[]> {
@@ -480,7 +480,7 @@ function buildFactCheckQuestions(input: GuardianPreflightInput, highRiskTriggers
 
 async function callJson<T>(
   toolCalls: RagToolCall[],
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   tool: string,
   args: Record<string, unknown>
 ): Promise<RagToolCall<T>> {
@@ -498,7 +498,7 @@ async function callJson<T>(
 
 async function callText(
   toolCalls: RagToolCall[],
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   tool: string,
   args: Record<string, unknown>
 ): Promise<RagToolCall<string>> {

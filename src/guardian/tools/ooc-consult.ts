@@ -1,6 +1,6 @@
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
-import type { RagMcpClient } from "../rag-client.js";
+import type { RagToolCaller } from "../rag-client.js";
 import type {
   FactCheck,
   GuardianLlmAssessment,
@@ -39,7 +39,7 @@ type OocConfig = Pick<
 
 export async function runGuardianOocConsult(
   input: GuardianOocConsultInput,
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   config: OocConfig
 ): Promise<GuardianOocConsultReport> {
   const mode = input.mode ?? "continuity_review";
@@ -146,7 +146,7 @@ function buildRecommendedActions(
 
 async function callJson<T>(
   toolCalls: RagToolCall[],
-  ragClient: RagMcpClient,
+  ragClient: RagToolCaller,
   tool: string,
   args: Record<string, unknown>
 ): Promise<RagToolCall<T>> {

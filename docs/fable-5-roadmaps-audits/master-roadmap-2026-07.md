@@ -269,7 +269,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | WP | Status | Evidence (commit / report / scorecard) |
 |----|--------|----------------------------------------|
 | 0.1–0.4 | **done** | Guardian `3203109` docs archive; RAG `d23b6f2` compression pointer; tag `guardian-baseline-2026-07-15`; branch `feature/master-roadmap-v1` |
-| 1.1–1.7 | pending | |
+| 1.1 | **done** | `evals/schema.ts` + `evals/cassette-client.ts` + `tests/eval-harness-1.1.test.ts`; `RagToolCaller` interface on preflight/ooc; `npm test` green |
+| 1.2–1.7 | pending | |
 | 2.1–2.7 | pending | |
 | 3.1–3.5 | pending | |
 | 4.1–4.8 | pending | |

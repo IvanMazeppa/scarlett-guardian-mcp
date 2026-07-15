@@ -11,7 +11,17 @@ type ToolResult = {
   content?: Array<TextContent | Record<string, unknown>>;
 };
 
-export class RagMcpClient {
+/**
+ * Structural RAG surface used by preflight/ooc and by CassetteRagClient in evals.
+ * Extracted so hermetic replay does not need the live HTTP client (private fields
+ * would otherwise make class substitution fail under TypeScript).
+ */
+export interface RagToolCaller {
+  callJsonTool<T>(name: string, args: Record<string, unknown>): Promise<T>;
+  callTextTool(name: string, args: Record<string, unknown>): Promise<string>;
+}
+
+export class RagMcpClient implements RagToolCaller {
   constructor(private readonly config: Pick<GuardianConfig, "RAG_MCP_URL" | "RAG_MCP_BEARER_TOKEN" | "RAG_MCP_TIMEOUT_MS">) {}
 
   async callJsonTool<T>(name: string, args: Record<string, unknown>): Promise<T> {
