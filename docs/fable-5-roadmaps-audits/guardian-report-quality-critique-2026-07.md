@@ -216,7 +216,7 @@ For a typical IC turn, Grok should receive something that:
 10. scripts: report scorecard over guardian-reports/
 ```
 
-**Companion quantitative audit:** `docs/guardian-report-quality-audit-2026-07.md` (Fable — 142-report measurements). Prefer that file for numbers; this file for qualitative failure modes and framing.
+**Companion quantitative audit:** `docs/fable-5-roadmaps-audits/guardian-report-quality-audit-2026-07.md` (Fable — 142-report measurements). Prefer that file for numbers; this file for qualitative failure modes and framing.
 
 ---
 
