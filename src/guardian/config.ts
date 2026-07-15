@@ -24,7 +24,19 @@ const EnvSchema = z.object({
     .enum(["none", "minimal", "low", "medium", "high", "xhigh", "max"])
     .default("low"),
   GUARDIAN_LLM_VERBOSITY: z.enum(["low", "medium", "high"]).default("medium"),
-  GUARDIAN_LLM_MAX_EVIDENCE_CHARS: z.coerce.number().int().positive().default(12000)
+  // Auditor should see most retrieved evidence (~2 searches × results); 12k starved weave (Fable audit).
+  GUARDIAN_LLM_MAX_EVIDENCE_CHARS: z.coerce.number().int().positive().default(32000),
+  /** Soft budget for optional expand_context_around_chunk (ms). */
+  GUARDIAN_EXPAND_BUDGET_MS: z.coerce.number().int().positive().default(10000),
+  /** Soft budget for optional verify_story_fact batch (ms). */
+  GUARDIAN_VERIFY_BUDGET_MS: z.coerce.number().int().positive().default(10000),
+  /**
+   * How autonomous LLM memory proposals are applied after preflight:
+   * - stage (default): stage_story_update only — no live canon write
+   * - live: append to current-state.md via update_story_state (legacy; prefer stage)
+   * - off: never write or stage from preflight
+   */
+  GUARDIAN_MEMORY_WRITE_MODE: z.enum(["stage", "live", "off"]).default("stage")
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;

@@ -14,10 +14,30 @@ const config = getConfig();
 const ragClient = new RagMcpClient(config);
 
 const PreflightInputSchema = z.object({
+  // Duplex field listed first so models attend to it when building tool args.
+  scarlett_previous_message: z
+    .string()
+    .optional()
+    .describe(
+      [
+        "CRITICAL MANDATORY FIELD for full-duplex Guardian audit (except the very first Scarlett turn of a brand-new thread).",
+        "You MUST copy your EXACT previous in-character Scarlett reply (the full prior Scarlett message you wrote) and paste it here as plain text.",
+        "Do not summarize, truncate to one sentence, or invent a stand-in.",
+        "If you skip this field, Director's Correction cannot run and continuity quality drops.",
+        "Only omit when Scarlett has never spoken yet in this thread."
+      ].join(" ")
+    ),
   user_message: z.string().min(1).describe("Raw latest Benjamin/user message that Scarlett would respond to."),
-  scarlett_previous_message: z.string().optional().describe("Raw previous response from Scarlett/Grok to evaluate for continuity, passivity, or trope drifting."),
-  recent_context: z.string().optional().describe("Optional compact recap of the immediately preceding exchange."),
-  force_full_retrieval: z.boolean().default(false).describe("If true, run broader targeted memory searches for high-risk or diagnostic turns.")
+  recent_context: z
+    .string()
+    .optional()
+    .describe(
+      "Compact recap of the live scene (where/when/who/mood). Prefer real continuity language; never pass placeholders like 'None yet, establishing scene'."
+    ),
+  force_full_retrieval: z
+    .boolean()
+    .default(false)
+    .describe("If true, run broader targeted memory searches (up to 3) for high-risk or diagnostic turns.")
 });
 
 function createServer(): McpServer {
@@ -32,10 +52,15 @@ function createServer(): McpServer {
       title: "Guardian Memory Preflight",
       description: [
         "Mandatory external Guardian preflight for Scarlett & Benjamin RP.",
-        "Call this before any in-character Scarlett prose.",
-        "The Guardian enforces retrieve_story_context first plus search_story_memory before prose, detects high-risk continuity triggers, and returns a structured report.",
-        "If proceed_recommendation is do_not_proceed, do not write in-character prose; stop OOC and repair retrieval.",
-        "Never use narrative flow, emotional momentum, or apparent continuity as a reason to skip this tool."
+        "Call this BEFORE any in-character Scarlett prose every turn.",
+        "ARGUMENT CHECKLIST (fill all that apply):",
+        "(1) scarlett_previous_message = CRITICAL: paste your EXACT previous Scarlett IC reply in full (mandatory after Scarlett has spoken once).",
+        "(2) user_message = Benjamin's latest raw turn (required).",
+        "(3) recent_context = short live where/when/who/mood recap (recommended).",
+        "(4) force_full_retrieval = true only for arc-critical/diagnostic turns.",
+        "Guardian retrieves story memory, may expand/verify, and returns one prose-facing continuity brief.",
+        "If proceed_recommendation is do_not_proceed, do not write IC prose.",
+        "Never skip this tool for narrative flow or momentum."
       ].join(" "),
       inputSchema: PreflightInputSchema
     },

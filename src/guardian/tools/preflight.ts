@@ -1,5 +1,6 @@
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
+import { decideMemoryWrite } from "../memory-writeback.js";
 import type { RagMcpClient } from "../rag-client.js";
 import type {
   CriticalPrecedent,
@@ -76,8 +77,8 @@ const HIGH_RISK_TRIGGERS: HighRiskTrigger[] = [
   },
   {
     label: "AMG, Black Panther, Germany, Luxembourg, or Nuerburgring arc",
-    pattern: /\b(amg|black panther|germany|luxembourg|n[uü]rburgring|nuerburgring|paddock|pit\s*lane|track|aero|villa|bistro|affalterbach|helmet|race\s*suit)\b/i,
-    queryHint: "Germany trip Nuerburgring paddock AMG Black Panther current scene continuity"
+    pattern: /\b(amg|black panther|germany|luxembourg|n[uü]rburgring|nuerburgring|nordschleife|green hell|paddock|pit\s*(lane|wall)|on\s*track|out\s*lap|shakedown|telemetry|aero|villa|bistro|affalterbach|helmet|race\s*suit|radio)\b/i,
+    queryHint: "Germany trip Nuerburgring paddock AMG Black Panther track day current scene continuity"
   },
   {
     label: "Repeated gesture or explicit memory echo",
@@ -109,18 +110,21 @@ export function buildMemoryQueries(input: GuardianPreflightInput): string[] {
   const messageSnippet = message.slice(0, 220);
 
   if (input.force_full_retrieval) {
+    // Arc-critical / diagnostic: up to 3 targeted corpus queries (depth restored post-timeout era).
     return uniqueQueries([
       matched.length > 0
         ? `${hintBlock}; current scene continuity ${messageSnippet}`
         : `current scene continuity relationship precedent ${messageSnippet}`,
       ...matched.map((trigger) => trigger.queryHint)
-    ]).slice(0, 2); // Keep query count conservative (depth can rise later)
+    ]).slice(0, 3);
   }
 
   if (matched.length > 0) {
+    // Triggered turns: primary combined query + first trigger hint (max 2).
     return uniqueQueries([
-      `${hintBlock}; scene cues: ${messageSnippet}`
-    ]).slice(0, 1);
+      `${hintBlock}; scene cues: ${messageSnippet}`,
+      matched[0].queryHint
+    ]).slice(0, 2);
   }
 
   return ["Scarlett Benjamin current scene emotional dynamic relationship precedent current arc"];
@@ -138,12 +142,26 @@ export async function runGuardianPreflight(
     | "GUARDIAN_LLM_REASONING_EFFORT"
     | "GUARDIAN_LLM_VERBOSITY"
     | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+    | "GUARDIAN_MEMORY_WRITE_MODE"
+    | "GUARDIAN_EXPAND_BUDGET_MS"
+    | "GUARDIAN_VERIFY_BUDGET_MS"
   >
 ): Promise<GuardianReport> {
   const preflightQuery = buildPreflightQuery(input);
   const memoryQueries = buildMemoryQueries(input);
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
+
+  // Full-duplex: auditor needs Scarlett's previous turn for Director's Correction.
+  if (!input.scarlett_previous_message?.trim()) {
+    console.warn(
+      `${Date.now()} Duplex input missing: scarlett_previous_message not provided — grok_performance_correction cannot fire this turn.`
+    );
+  } else {
+    console.log(
+      `${Date.now()} Duplex input present: scarlett_previous_message (${input.scarlett_previous_message.trim().length} chars).`
+    );
+  }
 
   console.log(`${Date.now()} Dispatching queries to RAG...`);
   const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
@@ -173,9 +191,25 @@ export async function runGuardianPreflight(
     .filter((call) => call.ok && call.response)
     .map((call) => call.response as RagRetrieveResponse);
 
-  // DISABLED TO FIX TIMEOUTS:
-  const expandedContexts: ExpandedContext[] = [];
-  const factChecks: FactCheck[] = [];
+  // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
+  console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
+  const expandedContexts =
+    (await raceBudget(
+      expandBestContext(toolCalls, ragClient, preflight.response, memoryResponses, highRiskTriggers),
+      config.GUARDIAN_EXPAND_BUDGET_MS,
+      [] as ExpandedContext[],
+      "expand_context_around_chunk"
+    )) ?? [];
+  const factChecks =
+    (await raceBudget(
+      verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers),
+      config.GUARDIAN_VERIFY_BUDGET_MS,
+      [] as FactCheck[],
+      "verify_story_fact"
+    )) ?? [];
+  console.log(
+    `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}`
+  );
 
   const confidenceScore = scoreConfidence(preflight.response, memoryResponses, highRiskTriggers, toolCalls);
   const retrievalStatus = determineRetrievalStatus(preflight, memoryResponses, toolCalls);
@@ -200,32 +234,94 @@ export async function runGuardianPreflight(
     ? "do_not_proceed"
     : deterministicProceedRecommendation;
 
-  const memoryUpdate =
-    typeof llmAssessment.candidate_memory_update === "string"
-      ? llmAssessment.candidate_memory_update.trim()
-      : "";
-  // Skip null/empty/no-op micro-logs (prep for quieter write-back; also avoids reindex storms).
-  const isNoOpUpdate =
-    !memoryUpdate ||
-    /^(no durable|none|n\/a|null|no change|scene stays aligned)/i.test(memoryUpdate);
+  // P1: material gate + prefer stage_story_update over live append spam.
+  let memoryWrite: GuardianReport["memory_write"] = {
+    action: "none",
+    reason: "not evaluated"
+  };
+  const writeDecision = decideMemoryWrite({
+    candidateUpdate: llmAssessment.candidate_memory_update,
+    assessment: llmAssessment,
+    highRiskTriggers,
+    proceedRecommendation,
+    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE
+  });
 
-  if (llmAssessment.enabled && memoryUpdate && !isNoOpUpdate && proceedRecommendation !== "do_not_proceed") {
-    const timeString = new Date().toISOString().replace("T", " ").substring(0, 19);
-    await callJson(toolCalls, ragClient, "update_story_state", {
+  if (writeDecision.action === "none") {
+    memoryWrite = { action: "none", reason: writeDecision.reason };
+    console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
+  } else if (writeDecision.action === "stage") {
+    const stageResult = await callJson<{
+      success?: boolean;
+      staged_update?: { id?: string };
+    }>(toolCalls, ragClient, "stage_story_update", {
+      target_source_file: "project_source_files/current-state.md",
+      proposed_content: writeDecision.content,
+      mode: "append",
+      rationale: writeDecision.rationale,
+      citations: [
+        `preflight_query:${preflightQuery.slice(0, 200)}`,
+        ...highRiskTriggers.map((t) => `trigger:${t}`)
+      ]
+    });
+    if (stageResult.ok && stageResult.response?.staged_update?.id) {
+      memoryWrite = {
+        action: "staged",
+        reason: writeDecision.reason,
+        staged_update_id: stageResult.response.staged_update.id
+      };
+      console.log(
+        `${Date.now()} Memory update staged: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
+      );
+    } else {
+      memoryWrite = {
+        action: "failed",
+        reason: writeDecision.reason,
+        error: stageResult.error ?? "stage_story_update returned no staged_update id"
+      };
+      console.warn(`${Date.now()} Memory stage failed: ${memoryWrite.error}`);
+    }
+  } else if (writeDecision.action === "live_append") {
+    const liveResult = await callJson(toolCalls, ragClient, "update_story_state", {
       source_file: "project_source_files/current-state.md",
-      content: `\n- [${timeString}] ${memoryUpdate}`,
+      content: writeDecision.content,
       mode: "append"
     });
+    memoryWrite = liveResult.ok
+      ? { action: "live_append", reason: writeDecision.reason }
+      : {
+          action: "failed",
+          reason: writeDecision.reason,
+          error: liveResult.error ?? "update_story_state failed"
+        };
+    console.log(`${Date.now()} Memory live append: ${memoryWrite.action} (${writeDecision.reason})`);
+  }
+
+  if (llmAssessment.enabled) {
+    llmAssessment.memory_write = memoryWrite;
   }
 
   const allResults = collectAllResults(preflight.response, memoryResponses);
   const criticalPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 5);
   const hardFlags = buildHardFlags(retrievalStatus, highRiskTriggers, preflight.response, memoryResponses, factChecks, llmAssessment);
+  if (!input.scarlett_previous_message?.trim()) {
+    hardFlags.push(
+      "DUPLEX_INPUT_MISSING: Pass scarlett_previous_message (Scarlett's last IC reply) so Guardian can apply Director's Correction when needed."
+    );
+  }
   const currentStateSummary = summarizeCurrentState(preflight.response, memoryResponses, llmAssessment, input);
   const emotionalTone = buildToneGuidance(preflight.response, memoryResponses, llmAssessment, input);
   const openThreads = collectOpenThreads(preflight.response, memoryResponses, llmAssessment);
   const keyFacts = buildKeyFacts(allResults, llmAssessment, hardFlags, highRiskTriggers, input);
   const grokPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 2);
+
+  const retrievalNotes = [
+    buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
+    `Expand results: ${expandedContexts.length}; fact checks: ${factChecks.length}.`,
+    input.scarlett_previous_message?.trim()
+      ? "Duplex: scarlett_previous_message provided."
+      : "Duplex: scarlett_previous_message MISSING."
+  ].join(" ");
 
   return {
     retrieval_status: retrievalStatus,
@@ -240,8 +336,9 @@ export async function runGuardianPreflight(
     things_to_avoid: buildThingsToAvoid(highRiskTriggers, retrievalStatus),
     open_threads: openThreads,
     hard_flags: hardFlags,
-    retrieval_notes: buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
+    retrieval_notes: retrievalNotes,
     serendipity_nudge: getSerendipityNudge(highRiskTriggers),
+    memory_write: memoryWrite,
     grok_scene_summary: currentStateSummary,
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,
@@ -255,6 +352,32 @@ export async function runGuardianPreflight(
   };
 }
 
+/**
+ * Soft time budget for optional depth tools. On timeout returns fallback and lets the
+ * underlying RAG call finish in the background (still recorded in tool_calls if it completes).
+ */
+async function raceBudget<T>(
+  work: Promise<T>,
+  budgetMs: number,
+  fallback: T,
+  label: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => {
+          console.warn(`${Date.now()} ${label} exceeded ${budgetMs}ms budget — continuing without it`);
+          resolve(fallback);
+        }, budgetMs);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 async function expandBestContext(
   toolCalls: RagToolCall[],
   ragClient: RagMcpClient,
@@ -262,17 +385,34 @@ async function expandBestContext(
   memories: RagRetrieveResponse[],
   highRiskTriggers: string[]
 ): Promise<ExpandedContext[]> {
-  const candidate = [
-    ...memories.flatMap((memory) => memory.results ?? []),
-    ...(preflight?.results ?? [])
-  ].find((result) => result.can_expand !== false && (result.result_id || (result.source_file && result.section)));
+  const shouldExpand =
+    highRiskTriggers.length > 0 ||
+    preflight?.should_answer_now === false ||
+    preflight?.confidence !== "high" ||
+    memories.some((memory) => memory.confidence !== "high");
+  if (!shouldExpand) {
+    console.log(`${Date.now()} expand skipped: high confidence + no high-risk triggers`);
+    return [];
+  }
 
+  // Prefer live-state / event-log expand targets over historical dumps.
+  const pool = [
+    ...(preflight?.results ?? []),
+    ...memories.flatMap((memory) => memory.results ?? [])
+  ].filter((result) => result.can_expand !== false && (result.result_id || (result.source_file && result.section)));
+
+  const scoreCandidate = (result: (typeof pool)[number]): number => {
+    const hay = `${result.source_file ?? ""} ${result.section ?? ""} ${result.source_role ?? ""}`.toLowerCase();
+    let score = (result.rank_score ?? result.relevance_score ?? 0) * 20;
+    if (/current-state|current_state/.test(hay)) score += 50;
+    if (/event-log|event_log/.test(hay)) score += 40;
+    if (/where we are|recent key|notes for next|emotional/.test(hay)) score += 20;
+    if (/historical\/thread|index_ready|index-ready/.test(hay)) score -= 30;
+    return score;
+  };
+
+  const candidate = [...pool].sort((a, b) => scoreCandidate(b) - scoreCandidate(a))[0];
   if (!candidate) return [];
-
-  const shouldExpand = highRiskTriggers.length > 0
-    || preflight?.should_answer_now === false
-    || memories.some((memory) => memory.confidence !== "high");
-  if (!shouldExpand) return [];
 
   const response = await callJson<ExpandedContext>(toolCalls, ragClient, "expand_context_around_chunk", {
     result_id: candidate.result_id,
@@ -293,9 +433,13 @@ async function verifyExactClaims(
   highRiskTriggers: string[]
 ): Promise<FactCheck[]> {
   const claims = buildFactCheckQuestions(input, highRiskTriggers);
-  const checks: FactCheck[] = [];
+  if (claims.length === 0) {
+    console.log(`${Date.now()} verify skipped: no exact-claim patterns / high-risk fact families`);
+    return [];
+  }
 
-  const promises = claims.slice(0, 2).map((claim) =>
+  // One claim under budget pressure; two max when force patterns fire.
+  const promises = claims.slice(0, 1).map((claim) =>
     callJson<FactCheck>(toolCalls, ragClient, "verify_story_fact", {
       claim_or_question: claim,
       max_evidence: 4,
@@ -304,6 +448,7 @@ async function verifyExactClaims(
   );
 
   const results = await Promise.all(promises);
+  const checks: FactCheck[] = [];
   for (const response of results) {
     if (response.ok && response.response) {
       checks.push(response.response);
@@ -669,7 +814,8 @@ export function collectOpenThreads(
 
   for (const result of results) {
     const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
-    if (!/current-state|open story|pending elements|open threads/.test(hay)) continue;
+    // Only true open-thread sections — not any current-state emotional dump.
+    if (!/open story|pending elements|open threads/.test(hay)) continue;
 
     const text = result.text ?? "";
     // Prefer bullet lines from open-thread sections.
@@ -767,7 +913,7 @@ export function buildKeyFacts(
     }
   }
 
-  // Only blocking / material hard flags — never PREFLIGHT_NOT_SUFFICIENT coaching as "key facts".
+  // Only blocking / material hard flags — never duplex housekeeping or RAG coaching as "key facts".
   for (const flag of hardFlags) {
     if (/MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|FACT_CHECK_/i.test(flag)) {
       facts.unshift(truncate(flag, 200));

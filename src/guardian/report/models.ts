@@ -97,9 +97,16 @@ export type GuardianLlmAssessment = {
   continuity_facts_for_grok?: string;
   needs_more_retrieval?: boolean;
   should_block_prose?: boolean;
-  candidate_memory_update?: string;
-  grok_performance_correction?: string;
+  candidate_memory_update?: string | null;
+  grok_performance_correction?: string | null;
   error?: string;
+  /** P1: what Guardian did with candidate_memory_update (stage/live/skip). */
+  memory_write?: {
+    action: "none" | "staged" | "live_append" | "failed";
+    reason: string;
+    staged_update_id?: string;
+    error?: string;
+  };
 };
 
 export type GuardianReport = {
@@ -122,6 +129,13 @@ export type GuardianReport = {
   grok_key_facts?: string[];
   grok_precedents?: CriticalPrecedent[];
   grok_emotional_context?: string;
+  /** P1 write-back decision surface (also mirrored under llm_assessment.memory_write). */
+  memory_write?: {
+    action: "none" | "staged" | "live_append" | "failed";
+    reason: string;
+    staged_update_id?: string;
+    error?: string;
+  };
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

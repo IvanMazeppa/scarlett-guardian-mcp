@@ -73,7 +73,7 @@ function pickKeyFacts(report: GuardianReport): string[] {
       .slice(0, 6);
   }
 
-  // Surface only blocking / high-signal hard flags — not RAG coaching flags.
+  // Surface only blocking / high-signal hard flags — not RAG coaching or duplex-input housekeeping.
   const blocking = (report.hard_flags ?? []).filter((flag) =>
     /MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|NO_DEEP_MEMORY|FACT_CHECK_|PARTIAL_RETRIEVAL/i.test(flag)
   );
