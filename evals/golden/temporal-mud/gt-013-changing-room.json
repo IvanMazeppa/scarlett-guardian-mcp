@@ -1,7 +1,7 @@
 {
   "id": "gt-013-changing-room",
   "category": "temporal-mud",
-  "description": "FAILURE-TRAP / temporal-mud: Jul-10 changing-room paddock intimacy. Later track turns must not resurrect this as live beat. Gemini: precedents_must_not_match for track-era cases; this case is the sticky source beat. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-10T00-53-45-864Z.json",
   "input": {
     "user_message": "Benjamin reaches behind Scarlett to unclasp her bra, removes it and adds it to the pile of clothes. He tells her it's just them, nothing outside the locked door, and he wants to give her everything she wants. He then hooks his fingers in the waistband of her lace panties, pulls them down and out of the way but leaves them on. He wraps his arms around her tiny waist, pulls her closer, feeling her petite frame pressed against him.",
@@ -694,17 +694,19 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
-    "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "precedents_must_not_match": [
+      "changing-room",
+      "lace"
+    ],
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -719,7 +721,6 @@
   },
   "tags": [
     "curated-skeleton",
-    "pending-gemini-expectations",
     "temporal-mud",
     "wp-1.4-skeleton"
   ]

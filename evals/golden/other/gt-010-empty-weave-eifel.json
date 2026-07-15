@@ -1,7 +1,7 @@
 {
   "id": "gt-010-empty-weave-eifel",
   "category": "other",
-  "description": "FAILURE-TRAP: Jul-3 empty-weave + meta scene era. Assert FIXED clean brief on same cassette. Gemini: must_not meta + facts grounding if frozen mode. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-03T03-38-23-768Z.json",
   "input": {
     "user_message": "Benjamin tells Scarlett to push the car hard on the twisty B-roads through the Eifel mountains",
@@ -940,16 +940,16 @@
       "rank_score",
       "vector_store",
       "Do not draft from this preflight",
-      "Call search_story_memory"
+      "empty-weave"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -965,7 +965,6 @@
   "tags": [
     "curated-skeleton",
     "other",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

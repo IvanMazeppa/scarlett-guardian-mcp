@@ -74,9 +74,9 @@ npm run eval:baseline -- --tag <name>   # snapshot pass/fail for regression diff
 npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --category continuous-scene
 ```
 
-- WP-1.1–1.3 **done** (schema, curate, runner). Smoke case: `evals/golden/other/gt-000-hermetic-smoke.json`.
-- WP-1.4 **next**: seed 15 archive goldens — handoff `docs/fable-5-roadmaps-audits/wp-1.4-golden-seed-handoff-2026-07.md` (Gemini authors expectations; operator reviews).
-- Scorecards: `evals/runs/` (gitignored). Baselines: `evals/baselines/`.
+- WP-1.1–1.5 **done** (schema, curate, runner, 15 goldens + smoke, mutants, workflow contract in `AGENTS.md`).
+- Baseline: `evals/baselines/after-wp-1.4.json`. Inventory: `evals/golden/MANIFEST-wp-1.4.md`.
+- Scorecards: `evals/runs/` (gitignored). Next Phase 1 WPs: telemetry 1.6–1.7.
 
 ## Run
 

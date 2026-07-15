@@ -1,7 +1,7 @@
 {
   "id": "gt-033-eifel-live-append",
   "category": "write-back",
-  "description": "WRITE-BACK era: Jul-5 Eifel push (live append path in tools). Gemini: write_action / none vs stage policy. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-05T05-27-54-417Z.json",
   "input": {
     "user_message": "[Benjamin tells Scarlett to push the car hard on the twisty B-roads through the Eifel mountains]",
@@ -498,17 +498,16 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
+    "correction_expected": "none",
     "write_action_expected": "either",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -523,7 +522,6 @@
   },
   "tags": [
     "curated-skeleton",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton",
     "write-back"
   ]

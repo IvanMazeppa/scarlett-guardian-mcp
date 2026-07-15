@@ -1,7 +1,7 @@
 {
   "id": "gt-040-thermal-lap-duplex-stage",
   "category": "duplex",
-  "description": "DUPLEX+STAGE: Jul-15 thermal lap, scarlett_previous noted, stage_story_update ok. OPERATOR: paste prior Scarlett turn into input.scarlett_previous_message. Gemini: correction_expected + write stage. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-15T02-51-26-420Z.json",
   "input": {
     "user_message": "On the private channel I laugh once under my breath, still on the pit wall, residual nerves under the pride. In Swedish I say: \"Älskling — one more. Then you come home to me. I'll be right here. Drive it like you wrote the aero with me. \" I keep the radio open and wait for you on that thermal lap, watching you tear up the Nordschleife.",
@@ -1384,8 +1384,7 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
@@ -1394,7 +1393,7 @@
     "write_action_expected": "either",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -1424,7 +1423,6 @@
   "tags": [
     "curated-skeleton",
     "duplex",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

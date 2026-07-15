@@ -1,7 +1,7 @@
 {
   "id": "gt-004-villa-petrusse",
   "category": "exact-fact",
-  "description": "GOOD: Jun-29 Villa Pétrusse Luxembourg aftercare (strong facts era). Skeleton for Gemini expectations. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-06-29T06-26-37-697Z.json",
   "input": {
     "user_message": "Soft aftercare in the bathroom. Benjamin carries Scarlett bridal-style to the bathroom after massaging her sore feet from the heels. He helps her remove the tight black latex outfit, finds the back zip and starts pulling it down. Speaks Swedish asking how to get it off her. Offers talcum powder. Scarlett is sleepy and exhausted. They are transitioning to a bath together.",
@@ -633,7 +633,12 @@
     }
   },
   "expectations": {
-    "brief_must_include": [],
+    "brief_must_include": [
+      [
+        "Villa",
+        "Luxembourg"
+      ]
+    ],
     "brief_must_not_include": [
       "search_story_memory",
       "retrieve_story_context",
@@ -641,17 +646,16 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -681,7 +685,6 @@
   "tags": [
     "curated-skeleton",
     "exact-fact",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

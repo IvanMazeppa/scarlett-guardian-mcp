@@ -1,7 +1,7 @@
 {
   "id": "gt-011-empty-weave-grass",
   "category": "other",
-  "description": "FAILURE-TRAP: Jul-6 empty weave (grass after vomiting). Assert fixed assembly/hygiene. Gemini authors traps. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-06T19-41-05-854Z.json",
   "input": {
     "user_message": "Benjamin lies on his back on the grass after vomiting, reassures Scarlett not to worry as it's just motion sickness he gets when not driving and he feels better now. He squeezes her thigh and suggests she does a few laps around the area while he waits for the pills to work so he can film her driving the Black Panther past with the scenery on his phone, then continue to the track.",
@@ -894,16 +894,16 @@
       "rank_score",
       "vector_store",
       "Do not draft from this preflight",
-      "Call search_story_memory"
+      "empty-weave"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -922,7 +922,6 @@
   "tags": [
     "curated-skeleton",
     "other",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

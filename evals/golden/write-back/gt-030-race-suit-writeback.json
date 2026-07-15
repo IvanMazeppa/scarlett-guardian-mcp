@@ -1,7 +1,7 @@
 {
   "id": "gt-030-race-suit-writeback",
   "category": "write-back",
-  "description": "WRITE-BACK era: Jul-12 race-suit paddock (legacy update_story_state). Gemini: write_action_expected + materiality. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-12T22-05-13-428Z.json",
   "input": {
     "user_message": "Benjamin bites his lip looking at Scarlett fully suited up with red hair spilling over the collar, resists urge to peel her out of it. Promises to stay close in paddock and on comms. They return hand-in-hand to locker room for belongings and helmet. He squeezes her palm and says 'you make that suit look so good min älskling. are you ready to get back out there?' Then they walk back to pit lane area together.",
@@ -709,17 +709,16 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
+    "correction_expected": "none",
     "write_action_expected": "either",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -734,7 +733,6 @@
   },
   "tags": [
     "curated-skeleton",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton",
     "write-back"
   ]

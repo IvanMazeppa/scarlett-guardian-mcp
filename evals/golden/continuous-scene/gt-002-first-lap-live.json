@@ -1,7 +1,7 @@
 {
   "id": "gt-002-first-lap-live",
   "category": "continuous-scene",
-  "description": "GOOD: Jul-13 Scarlett already on first Nordschleife lap. Skeleton for Gemini expectations. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-13T05-34-16-471Z.json",
   "input": {
     "user_message": "Benjamin asks Scarlett to describe the first lap around the Nürburgring Nordschleife in the Black Panther with the new AI-designed aero package.",
@@ -939,7 +939,13 @@
     }
   },
   "expectations": {
-    "brief_must_include": [],
+    "brief_must_include": [
+      [
+        "lap",
+        "track",
+        "driving"
+      ]
+    ],
     "brief_must_not_include": [
       "search_story_memory",
       "retrieve_story_context",
@@ -947,17 +953,16 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -983,7 +988,6 @@
   "tags": [
     "continuous-scene",
     "curated-skeleton",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

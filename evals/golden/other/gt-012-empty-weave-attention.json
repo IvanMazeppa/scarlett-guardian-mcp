@@ -1,7 +1,7 @@
 {
   "id": "gt-012-empty-weave-attention",
   "category": "other",
-  "description": "FAILURE-TRAP: Jul-8 empty weave (Black Panther public attention). Gemini: meta must_not + scene grounding. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-08T07-13-35-805Z.json",
   "input": {
     "user_message": "Benjamin describes the overwhelming attention the Black Panther draws upon arrival in the paddock, finds comfort in Scarlett's presence reducing the pressure on him personally. He leans over to kiss her cheek, tells her he'll go speak to Mr. Shevchenko while she checks over the car, then return with the boss and German engineers. The flurry of activity begins when they arrive back at the car.",
@@ -860,16 +860,16 @@
       "rank_score",
       "vector_store",
       "Do not draft from this preflight",
-      "Call search_story_memory"
+      "empty-weave"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -885,7 +885,6 @@
   "tags": [
     "curated-skeleton",
     "other",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }

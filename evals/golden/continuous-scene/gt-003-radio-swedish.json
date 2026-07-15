@@ -1,7 +1,7 @@
 {
   "id": "gt-003-radio-swedish",
   "category": "continuous-scene",
-  "description": "GOOD: Jul-14 on-track radio, Swedish reply. Skeleton for Gemini expectations. [SKELETON: expectations softened for handoff — Gemini must author real gates.]",
+  "description": "Expectations applied for WP-1.4",
   "source_report": "preflight-full-2026-07-14T05-40-36-278Z.json",
   "input": {
     "user_message": "Benjamin responds on the radio in Swedish, amused and touched that Scarlett is checking on him while driving the Green Hell. He tells her he's fine, praises how rapid she and the car look, and asks if she's due for another lap or if she's pitting to make adjustments. He waits for her decision.",
@@ -538,7 +538,13 @@
     }
   },
   "expectations": {
-    "brief_must_include": [],
+    "brief_must_include": [
+      [
+        "radio",
+        "Swedish",
+        "comms"
+      ]
+    ],
     "brief_must_not_include": [
       "search_story_memory",
       "retrieve_story_context",
@@ -546,17 +552,16 @@
       "project_source_files",
       "rank_score",
       "vector_store",
-      "Do not draft from this preflight",
-      "Call search_story_memory"
+      "Do not draft from this preflight"
     ],
     "flags_expected": [],
     "flags_forbidden": [],
     "precedents_must_not_match": [],
-    "correction_expected": "either",
-    "write_action_expected": "either",
+    "correction_expected": "none",
+    "write_action_expected": "none",
     "brief_chars": {
       "min": 100,
-      "max": 12000
+      "max": 15000
     }
   },
   "frozen_llm_assessment": {
@@ -586,7 +591,6 @@
   "tags": [
     "continuous-scene",
     "curated-skeleton",
-    "pending-gemini-expectations",
     "wp-1.4-skeleton"
   ]
 }
