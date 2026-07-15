@@ -253,9 +253,22 @@ Three staged proposals, one operator sitting (D8 §5.1). Everything here reuses 
 
 Operator/executor: mark WPs here as they land (this table is the cross-session memory).
 
+### Phase 0 baseline (shared tag on both repos)
+
+| Field | Value |
+|-------|--------|
+| Tag | `guardian-baseline-2026-07-15` |
+| Integration branch | `feature/master-roadmap-v1` (cut from tag; prior work on `mega-roadmap-odyssey`) |
+| Guardian SHA | `32031095df92be067aef8eab7f55f4b19f35720d` |
+| RAG SHA | `d23b6f27b6cfb5480f289a90ebc38b1ff335580c` |
+| Green | Guardian `npm test && npm run build` green; RAG `npm run build` green |
+| Reference preflight | `docs/guardian-reports/preflight-full-2026-07-15T02-51-26-420Z.json` (gitignored reports dir; local artifact) |
+| Fable open Qs | `fable-5-followup-from-grok-build-2026-07.md` Q1–Q11; **executing under Defaults if silent** until Fable ACK |
+| Secrets | `.env` gitignored both repos; never committed |
+
 | WP | Status | Evidence (commit / report / scorecard) |
 |----|--------|----------------------------------------|
-| 0.1–0.4 | pending | |
+| 0.1–0.4 | **done** | Guardian `3203109` docs archive; RAG `d23b6f2` compression pointer; tag `guardian-baseline-2026-07-15`; branch `feature/master-roadmap-v1` |
 | 1.1–1.7 | pending | |
 | 2.1–2.7 | pending | |
 | 3.1–3.5 | pending | |
