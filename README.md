@@ -197,9 +197,7 @@ Before using a Guardian report for prose, confirm:
 
 ## Known Weak Point
 
-The current MVP assumes the external MCP client/model passes Benjamin's latest message into `guardian_memory_preflight`. That is enough to validate the remote Guardian path, but it still relies on the generating model following the tool-use rule.
-
-A future hardening step should capture the latest user-authored browser message outside the model loop. One practical option is a Tampermonkey/browser script adapted from the existing thread-export workflow: intercept or detect the last user-written message, call `POST /preflight`, then either inject the Guardian report into the outgoing prompt or block the send on `do_not_proceed`. A watched-folder bridge is another viable variant if direct browser-to-Guardian calls are awkward.
+Preflight still needs Benjamin’s latest `user_message` from the MCP client. Scarlett’s previous reply can be supplied by the model **or** by the shadow bridge (`POST /duplex-cache`) so duplex no longer depends on manual OOC paste (WP-3.1–3.2). Full live rate proof is WP-3.4.
 
 ## Tool Contract
 
