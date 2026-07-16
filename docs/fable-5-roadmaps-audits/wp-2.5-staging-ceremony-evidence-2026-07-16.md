@@ -84,6 +84,6 @@ Reject UX for discarding without apply is **WP-2.6**.
 
 ## Follow-ups
 
-1. **WP-2.6** — `reject_staged_story_update` + `list_staged_story_updates include_content`
+1. ~~**WP-2.6** — `reject_staged_story_update` + `list_staged_story_updates include_content`~~ **done** (see `wp-2.6-reject-list-content-evidence-2026-07-16.md`)
 2. Optional: remove ceremony bullet from `event-log.md` later (harmless if left)
-3. Optional: review/approve/reject the three `current-state.md` pendings under human judgment
+3. Optional: review/approve/reject the three `current-state.md` pendings under human judgment (reject UX now available)
