@@ -327,8 +327,25 @@ app.post("/mcp-v2", async (req, res) => {
   }
 });
 
-app.listen(config.GUARDIAN_PORT, config.GUARDIAN_HOST, () => {
+const httpServer = app.listen(config.GUARDIAN_PORT, config.GUARDIAN_HOST, () => {
   console.log(`Scarlett Guardian MCP listening on http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/mcp`);
   console.log(`Dashboard: http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/dashboard`);
   console.log(`Forwarding retrieval calls to ${config.RAG_MCP_URL}`);
+  console.log("(leave this terminal open — Ctrl+C to stop)");
+});
+
+httpServer.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `\nPort ${config.GUARDIAN_PORT} is already in use — another Guardian (or process) is bound there.`
+    );
+    console.error("That is why the shell prompt returns immediately instead of staying attached.");
+    console.error("Free the port, then run npm run dev again:\n");
+    console.error(`  fuser -k ${config.GUARDIAN_PORT}/tcp`);
+    console.error(`  # or: ss -tlnp | rg ${config.GUARDIAN_PORT}`);
+    console.error(`  # or: pkill -f 'tsx src/guardian/server.ts'\n`);
+    process.exit(1);
+  }
+  console.error("Guardian HTTP server failed to start:", err);
+  process.exit(1);
 });
