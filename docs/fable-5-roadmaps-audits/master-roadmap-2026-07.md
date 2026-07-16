@@ -278,8 +278,9 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 1.7 | **done** | `scripts/backfill-telemetry.ts`, `telemetry-aggregate.ts`, `GET /dashboard` + `/telemetry/api/{health,summary,recent}`, `public/dashboard.*`. |
 | 2.1 | **done** | `## Session —` headings on `event-log.md` + chronological summaries 4/5/6; maintenance guide updated; reindex four files. Pre-phase2 preserve branches/tags on both repos. |
 | 2.2 | **done** | `src/guardian/recency.ts` (`parseLiveBeat`/`scoreRecency`); `get_live_story_state` in parallel dispatch; `selectPrecedents` both sites; scene/tone fallbacks use live cues; `tests/recency.test.ts`. |
-| 2.3 | **done** | LIVE BEAT block above auditor evidence (`formatLiveBeatBlock` + `buildAuditorUserMessage`); supersession instruction in system prompt; `liveBeat` passed from preflight; `tests/llm-assessment-live-beat.test.ts`. |
-| 2.4–2.7 | pending | |
+| 2.3 | **done** | LIVE BEAT block above auditor evidence (`formatLiveBeatBlock` + `buildAuditorUserMessage`); supersession instruction in system prompt; `liveBeat` passed from preflight; `tests/llm-assessment-live-beat.test.ts`. Preserve: `preserve/roadmap-wp23-live-beat-auditor-20260716`. |
+| 2.4 | **done** | De-hardcoded `isMaterialMemoryUpdate` (generic advance language + `hasLiveBeatDelta`); `## Session —` on beat-advance formats; `liveBeat` into `decideMemoryWrite` from preflight. Preserve: `preserve/roadmap-wp24-writeback-delta-20260716`. |
+| 2.5–2.7 | pending | |
 | 3.1–3.5 | pending | |
 | 4.1–4.8 | pending | |
 | 5.1–5.10 | pending | |

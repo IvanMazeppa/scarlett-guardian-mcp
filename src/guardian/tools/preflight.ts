@@ -336,7 +336,8 @@ async function runGuardianPreflightInner(
     assessment: llmAssessment,
     highRiskTriggers,
     proceedRecommendation,
-    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE
+    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE,
+    liveBeat
   });
 
   if (writeDecision.action === "none") {
