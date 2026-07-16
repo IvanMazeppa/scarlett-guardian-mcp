@@ -143,7 +143,16 @@ In addition to the MCP endpoint, Guardian exposes a plain JSON preflight endpoin
 POST /preflight
 ```
 
-It uses the same bearer-token protection as `POST /mcp` and runs the same Guardian logic as `guardian_memory_preflight`. This endpoint exists so a future browser/Tampermonkey bridge can call Guardian directly without implementing the MCP protocol.
+It uses the same bearer-token protection as `POST /mcp` and runs the same Guardian logic as `guardian_memory_preflight`. This endpoint exists so a browser/Tampermonkey bridge can call Guardian directly without implementing the MCP protocol.
+
+### Shadow duplex cache (WP-3.1+)
+
+```text
+POST /duplex-cache   # body: { scarlett_message, thread_key?, content_hash? }
+GET  /duplex-cache   # stats only (no message bodies)
+```
+
+The Tampermonkey script `scripts/guardian-browser-bridge.user.js` (v2, **shadow** mode by default) scrapes Scarlett’s last bubble and POSTs here. Preflight then fills `scarlett_previous_message` from the cache when the MCP caller omits it (`duplex_source: "bridge_cache"`). Install notes: `docs/browser-bridge-v2-install.md`.
 
 Example:
 
