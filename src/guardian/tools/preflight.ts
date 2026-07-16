@@ -14,6 +14,12 @@ import type {
   RagToolCall
 } from "../report/models.js";
 import {
+  parseLiveBeat,
+  scoreRecency,
+  textMatchesLiveBeat,
+  type LiveBeat
+} from "../recency.js";
+import {
   PreflightTelemetryCollector,
   buildPreflightTelemetryEvent,
   getDefaultTelemetrySink,
@@ -66,7 +72,12 @@ type HighRiskTrigger = {
   queryHint: string;
 };
 
-const OPTIONAL_RAG_TOOLS = new Set(["index_status", "expand_context_around_chunk", "verify_story_fact"]);
+const OPTIONAL_RAG_TOOLS = new Set([
+  "index_status",
+  "expand_context_around_chunk",
+  "verify_story_fact",
+  "get_live_story_state"
+]);
 
 const HIGH_RISK_TRIGGERS: HighRiskTrigger[] = [
   {
@@ -216,6 +227,10 @@ async function runGuardianPreflightInner(
   console.log(`${Date.now()} Dispatching queries to RAG...`);
   collector.mark("dispatch");
   const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
+  // Live disk snapshot for recency (WP-2.2) — not index-stale mid-reindex.
+  const liveStatePromise = callText(toolCalls, ragClient, "get_live_story_state", {
+    include_event_log: false
+  });
   const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
     query: preflightQuery,
     max_results: 6,
@@ -234,6 +249,8 @@ async function runGuardianPreflightInner(
 
   console.log(`${Date.now()} Awaiting indexStatus...`);
   const indexStatus = await indexStatusPromise;
+  console.log(`${Date.now()} Awaiting live story state...`);
+  const liveState = await liveStatePromise;
   console.log(`${Date.now()} Awaiting preflight...`);
   const preflight = await preflightPromise;
   console.log(`${Date.now()} Awaiting memoryResults...`);
@@ -242,6 +259,15 @@ async function runGuardianPreflightInner(
     .filter((call) => call.ok && call.response)
     .map((call) => call.response as RagRetrieveResponse);
   collector.mark("rag_batch");
+
+  const liveBeat = parseLiveBeat(
+    liveState.ok && typeof liveState.response === "string" ? liveState.response : ""
+  );
+  if (liveBeat.liveCues.length) {
+    console.log(
+      `${Date.now()} Live beat cues: live=[${liveBeat.liveCues.slice(0, 8).join(", ")}] superseded=[${liveBeat.supersededCues.slice(0, 8).join(", ")}]`
+    );
+  }
 
   // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
   console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
@@ -367,18 +393,42 @@ async function runGuardianPreflightInner(
   }
 
   const allResults = collectAllResults(preflight.response, memoryResponses);
-  const criticalPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 5);
+  const criticalPrecedents = selectPrecedents(
+    allResults,
+    highRiskTriggers,
+    input.user_message,
+    5,
+    liveBeat
+  );
   const hardFlags = buildHardFlags(retrievalStatus, highRiskTriggers, preflight.response, memoryResponses, factChecks, llmAssessment);
   if (!input.scarlett_previous_message?.trim()) {
     hardFlags.push(
       "DUPLEX_INPUT_MISSING: Pass scarlett_previous_message (Scarlett's last IC reply) so Guardian can apply Director's Correction when needed."
     );
   }
-  const currentStateSummary = summarizeCurrentState(preflight.response, memoryResponses, llmAssessment, input);
-  const emotionalTone = buildToneGuidance(preflight.response, memoryResponses, llmAssessment, input);
+  const currentStateSummary = summarizeCurrentState(
+    preflight.response,
+    memoryResponses,
+    llmAssessment,
+    input,
+    liveBeat
+  );
+  const emotionalTone = buildToneGuidance(
+    preflight.response,
+    memoryResponses,
+    llmAssessment,
+    input,
+    liveBeat
+  );
   const openThreads = collectOpenThreads(preflight.response, memoryResponses, llmAssessment);
   const keyFacts = buildKeyFacts(allResults, llmAssessment, hardFlags, highRiskTriggers, input);
-  const grokPrecedents = selectPrecedents(allResults, highRiskTriggers, input.user_message, 2);
+  const grokPrecedents = selectPrecedents(
+    allResults,
+    highRiskTriggers,
+    input.user_message,
+    2,
+    liveBeat
+  );
 
   const retrievalNotes = [
     buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
@@ -656,7 +706,8 @@ export function selectPrecedents(
   results: RagContextResult[],
   highRiskTriggers: string[],
   userMessage: string,
-  limit = 2
+  limit = 2,
+  liveBeat?: LiveBeat
 ): CriticalPrecedent[] {
   const historyAllowed = highRiskTriggers.some((t) =>
     /Family|transition|trauma|Vaxholm|Mormor|milestone|Repeated gesture|memory echo/i.test(t)
@@ -680,6 +731,11 @@ export function selectPrecedents(
     // Prefer sections that look like open-state / current emotional content.
     const section = (result.section ?? "").toLowerCase();
     if (/current|open story|pending|emotional state|live/.test(section)) score += 12;
+
+    // WP-2.2: demote superseded same-day beats; boost live cues
+    if (liveBeat) {
+      score += scoreRecency(result, liveBeat, userMessage);
+    }
 
     return { result, score };
   });
@@ -719,7 +775,8 @@ export function summarizeCurrentState(
   preflight: RagRetrieveResponse | undefined,
   memories: RagRetrieveResponse[] = [],
   llmAssessment?: GuardianLlmAssessment,
-  input?: GuardianPreflightInput
+  input?: GuardianPreflightInput,
+  liveBeat?: LiveBeat
 ): string {
   if (llmAssessment?.enabled && !llmAssessment.error) {
     if (llmAssessment.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
@@ -736,28 +793,37 @@ export function summarizeCurrentState(
     }
   }
 
+  // Prefer structured live beat location/time when available (WP-2.2).
+  if (liveBeat?.locationLine && liveBeat.locationLine.length > 20) {
+    const stamp = [liveBeat.timeLine, liveBeat.locationLine].filter(Boolean).join(" — ");
+    if (stamp.length > 40) return truncateAtSentence(compactWhitespace(stamp), 900);
+  }
+
   // Real session recap only — ignore placeholders like "None yet, establishing scene".
   const recent = input?.recent_context?.trim();
   if (recent && !isPlaceholderContext(recent) && !isRagMetaText(recent)) {
     return truncateAtSentence(compactWhitespace(recent), 900);
   }
 
-  // Fresh thread / missing recap: Benjamin's turn often *is* the scene beat (and may be ahead of disk state).
+  // Fresh thread / missing recap: Benjamin's turn often *is* the scene beat when it matches live cues
+  // (or legacy geo/scene keywords if live beat empty).
   const user = input?.user_message?.trim();
   if (
     user &&
     user.length > 40 &&
     !isPlaceholderContext(user) &&
     (isPlaceholderContext(recent) || !recent) &&
-    /\b(friday|thursday|nordschleife|n[uü]rburgring|paddock|pit\s*lane|race suit|locker|villa|luxembourg|track)\b/i.test(
-      user
-    )
+    (liveBeat && liveBeat.liveCues.length > 0
+      ? textMatchesLiveBeat(user, liveBeat)
+      : /\b(friday|thursday|nordschleife|n[uü]rburgring|paddock|pit\s*lane|race suit|locker|villa|luxembourg|track)\b/i.test(
+          user
+        ))
   ) {
     return firstSentences(user, 4, 900);
   }
 
   const results = collectAllResults(preflight, memories);
-  const preferred = pickPreferredSceneResults(results, "scene");
+  const preferred = pickPreferredSceneResults(results, "scene", liveBeat);
 
   for (const result of preferred) {
     const cleaned = cleanResultText(result.text, 900);
@@ -780,7 +846,8 @@ export function summarizeCurrentState(
 
 function pickPreferredSceneResults(
   results: RagContextResult[],
-  purpose: "scene" | "tone" | "facts" = "scene"
+  purpose: "scene" | "tone" | "facts" = "scene",
+  liveBeat?: LiveBeat
 ): RagContextResult[] {
   const rank = (r: RagContextResult): number => {
     const hay = `${r.source_file ?? ""} ${r.source_role ?? ""} ${r.section ?? ""}`.toLowerCase();
@@ -803,12 +870,18 @@ function pickPreferredSceneResults(
     if (/character-bible/.test(hay) && /current emotional|emotional state/.test(hay)) {
       score += purpose === "tone" ? 25 : 40;
     }
-    if (/chronological-summary/.test(hay) && /germany|nuerburgring|luxembourg|current/.test(hay)) {
-      score += 55;
+    // Prefer chronological/event material that matches live cues (not hardcoded Germany literals).
+    if (/chronological-summary|event-log|session —/i.test(hay)) {
+      if (liveBeat && liveBeat.liveCues.length > 0) {
+        score += textMatchesLiveBeat(`${r.section ?? ""} ${r.text ?? ""}`, liveBeat) ? 55 : 15;
+      } else {
+        score += 40;
+      }
     }
     if (isOpenThreads && purpose === "scene") score -= 25;
     if (isHistoricalThread(r.source_file, r.section)) score = Math.min(score, 15);
     score += (r.rank_score ?? r.relevance_score ?? 0) * 10;
+    if (liveBeat) score += scoreRecency(r, liveBeat);
     return score;
   };
   return [...results].sort((a, b) => rank(b) - rank(a));
@@ -818,7 +891,8 @@ export function buildToneGuidance(
   preflight: RagRetrieveResponse | undefined,
   memories: RagRetrieveResponse[],
   llmAssessment?: GuardianLlmAssessment,
-  input?: GuardianPreflightInput
+  input?: GuardianPreflightInput,
+  liveBeat?: LiveBeat
 ): string {
   // Session recap often carries the true emotional beat for this turn.
   if (input?.recent_context?.trim() && !isPlaceholderContext(input.recent_context)) {
@@ -829,19 +903,42 @@ export function buildToneGuidance(
       return truncateAtSentence(compactWhitespace(moodish[0]), 420);
     }
     const first = firstSentences(input.recent_context, 2, 400);
-    if (first && /emotion|aftercare|connected|tender|warm|playful|trust|relief|close|love|suit|track|pit/i.test(first)) {
+    // Mood keywords from live cues + generic affect terms (not Germany-arc-only).
+    const liveMood = liveBeat?.liveCues?.length
+      ? textMatchesLiveBeat(first, liveBeat)
+      : false;
+    if (
+      first &&
+      (liveMood ||
+        /emotion|aftercare|connected|tender|warm|playful|trust|relief|close|love|suit|track|pit|focus|radio/i.test(
+          first
+        ))
+    ) {
       return first;
     }
   } else if (input?.user_message?.trim() && isPlaceholderContext(input.recent_context)) {
     // Fresh thread: pull a mood cue from Benjamin's scene-setting turn if present.
     const first = firstSentences(input.user_message, 2, 400);
-    if (first && /intimate|aftercare|love|embrace|kiss|professional|race suit|connected|playful/i.test(first)) {
+    const liveMood = liveBeat?.liveCues?.length
+      ? textMatchesLiveBeat(first, liveBeat)
+      : false;
+    if (
+      first &&
+      (liveMood ||
+        /intimate|aftercare|love|embrace|kiss|professional|race suit|connected|playful|track|radio/i.test(
+          first
+        ))
+    ) {
       return first;
     }
   }
 
   // Prefer live current-state emotional / event-log beats, not stale character-bible inventories.
-  const preferred = pickPreferredSceneResults(collectAllResults(preflight, memories), "tone");
+  const preferred = pickPreferredSceneResults(
+    collectAllResults(preflight, memories),
+    "tone",
+    liveBeat
+  );
   for (const result of preferred.slice(0, 5)) {
     const hay = `${result.source_file ?? ""} ${result.section ?? ""}`.toLowerCase();
     if (/open story|pending elements/.test(hay)) continue;

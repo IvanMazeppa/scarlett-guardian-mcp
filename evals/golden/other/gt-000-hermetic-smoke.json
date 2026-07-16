@@ -11,6 +11,7 @@
   },
   "cassette": {
     "index_status": "Active Vector Store ID: vs_eval_smoke\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State (from current-state.md)\n\n# Current Story State\n\n**Last Updated:** Evening at home\n\n## Where We Are Right Now (High-Level Snapshot)\n\n- **Location / Setting:** Home, quiet evening after dinner; soft conversation.\n- **Time in Story:** Evening.\n- **Overall Mood/Atmosphere:** Warm ordinary night. **Now:** quiet partnership at home.\n\n## Recent Key Events (Last 1–3 Sessions — Brief)\n\n- Soft evening conversation at home.\n\n## Notes for Next Response\n\n- Do not invent a track day.\n",
     "retrieve_story_context": {
       "query": "current scene",
       "status": "ok",
