@@ -284,7 +284,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 2.6 | **done** | RAG `list_staged_story_updates include_content` + `reject_staged_story_update` (archive under `staged-updates/rejected/`). Round-trip verified on throwaway event-log draft. Preserve: `preserve/roadmap-wp26-reject-list-content-20260716`. |
 | 2.7 | **done** | RAG `rotation.ts` + `rotate_event_log` (dry_run default) + auto-trigger after event-log writes + `EVENT_LOG_*` env; `arc_chronicle` role (prio 75) + `historical/arc-*` → `historical_narrative`. Verbatim tests + live dry plan green. Evidence: `wp-2.7-event-log-rotation-evidence-2026-07-16.md`. Preserve: `preserve/roadmap-wp27-event-log-rotation-20260716`. |
 | **FOLLOW-UP (ops, not blocking Phase 3)** | **deferred** | **Staged-update queue hygiene:** three pending `current-state.md` drafts remain under `rag-memory-mcp/.rag-memory-mcp/staged-updates/` (Jun 23 antigravity test; Jul 15 cooling lap; Jul 16 thermal validation). After restarting live RAG on WP-2.6+ code, run `npx tsx scripts/wp25-staging-ceremony.ts list --include-content` from `rag-memory-mcp/`, then **reject** or carefully **approve** each. Do not approve the Jun 23 test chunk. Come back before relying on auto-approve transitions. |
-| 3.1–3.5 | pending | |
+| 3.1 | **done** | `DuplexCache` + `POST/GET /duplex-cache` + `GUARDIAN_DUPLEX_CACHE_TTL_MS`; preflight merge (caller wins); report `duplex_source`; telemetry uses report source. Unit tests green; `eval:fast` 16/16. Preserve: `preserve/roadmap-wp31-duplex-cache-20260716`. |
+| 3.2–3.5 | pending | |
 | 4.1–4.8 | pending | |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |

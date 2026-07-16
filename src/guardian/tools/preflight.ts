@@ -58,12 +58,16 @@ import {
   truncateAtSentence
 } from "../report/text-clean.js";
 import { getSerendipityNudge } from "../serendipity.js";
+import { resolveDuplexInput } from "../duplex-cache.js";
+import type { DuplexSource } from "../report/models.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
   scarlett_previous_message?: string;
   recent_context?: string;
   force_full_retrieval?: boolean;
+  /** Optional Grok conversation id for multi-thread cache disambiguation (WP-3.1+). */
+  thread_key?: string;
 };
 
 type HighRiskTrigger = {
@@ -180,7 +184,9 @@ export async function runGuardianPreflight(
     | "GUARDIAN_MEMORY_WRITE_MODE"
     | "GUARDIAN_EXPAND_BUDGET_MS"
     | "GUARDIAN_VERIFY_BUDGET_MS"
-  >,
+  > & {
+    GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
+  },
   options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
   const collector = new PreflightTelemetryCollector();
@@ -190,7 +196,7 @@ export async function runGuardianPreflight(
 }
 
 async function runGuardianPreflightInner(
-  input: GuardianPreflightInput,
+  rawInput: GuardianPreflightInput,
   ragClient: RagToolCaller,
   config: Pick<
     GuardianConfig,
@@ -204,23 +210,42 @@ async function runGuardianPreflightInner(
     | "GUARDIAN_MEMORY_WRITE_MODE"
     | "GUARDIAN_EXPAND_BUDGET_MS"
     | "GUARDIAN_VERIFY_BUDGET_MS"
-  >,
+  > & {
+    GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
+  },
   options: GuardianPreflightOptions | undefined,
   collector: PreflightTelemetryCollector
 ): Promise<GuardianReport> {
+  // WP-3.1: merge shadow-sidecar cache when caller omitted duplex (caller always wins).
+  const ttlMs = config.GUARDIAN_DUPLEX_CACHE_TTL_MS ?? 45 * 60 * 1000;
+  const duplexResolved = resolveDuplexInput({
+    scarlettPreviousMessage: rawInput.scarlett_previous_message,
+    threadKey: rawInput.thread_key,
+    ttlMs
+  });
+  const input: GuardianPreflightInput = {
+    ...rawInput,
+    scarlett_previous_message: duplexResolved.scarlettPreviousMessage || undefined
+  };
+  const duplexSource: DuplexSource = duplexResolved.duplexSource;
+
   const preflightQuery = buildPreflightQuery(input);
   const memoryQueries = buildMemoryQueries(input);
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
 
   // Full-duplex: auditor needs Scarlett's previous turn for Director's Correction.
-  if (!input.scarlett_previous_message?.trim()) {
+  if (duplexSource === "absent") {
     console.warn(
-      `${Date.now()} Duplex input missing: scarlett_previous_message not provided — grok_performance_correction cannot fire this turn.`
+      `${Date.now()} Duplex input missing: scarlett_previous_message not provided (caller empty, bridge cache miss) — grok_performance_correction cannot fire this turn.`
+    );
+  } else if (duplexSource === "bridge_cache") {
+    console.log(
+      `${Date.now()} Duplex input from bridge_cache: scarlett_previous_message (${input.scarlett_previous_message!.trim().length} chars).`
     );
   } else {
     console.log(
-      `${Date.now()} Duplex input present: scarlett_previous_message (${input.scarlett_previous_message.trim().length} chars).`
+      `${Date.now()} Duplex input from caller: scarlett_previous_message (${input.scarlett_previous_message!.trim().length} chars).`
     );
   }
 
@@ -403,9 +428,10 @@ async function runGuardianPreflightInner(
     liveBeat
   );
   const hardFlags = buildHardFlags(retrievalStatus, highRiskTriggers, preflight.response, memoryResponses, factChecks, llmAssessment);
-  if (!input.scarlett_previous_message?.trim()) {
+  // Only when both caller and bridge cache are empty (WP-3.1).
+  if (duplexSource === "absent") {
     hardFlags.push(
-      "DUPLEX_INPUT_MISSING: Pass scarlett_previous_message (Scarlett's last IC reply) so Guardian can apply Director's Correction when needed."
+      "DUPLEX_INPUT_MISSING: Pass scarlett_previous_message (Scarlett's last IC reply) so Guardian can apply Director's Correction when needed — or run the browser shadow bridge to POST /duplex-cache."
     );
   }
   const currentStateSummary = summarizeCurrentState(
@@ -432,12 +458,17 @@ async function runGuardianPreflightInner(
     liveBeat
   );
 
+  const duplexNote =
+    duplexSource === "caller"
+      ? "Duplex: scarlett_previous_message provided (caller)."
+      : duplexSource === "bridge_cache"
+        ? "Duplex: scarlett_previous_message provided (bridge_cache)."
+        : "Duplex: scarlett_previous_message MISSING.";
+
   const retrievalNotes = [
     buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
     `Expand results: ${expandedContexts.length}; fact checks: ${factChecks.length}.`,
-    input.scarlett_previous_message?.trim()
-      ? "Duplex: scarlett_previous_message provided."
-      : "Duplex: scarlett_previous_message MISSING."
+    duplexNote
   ].join(" ");
 
   const report: GuardianReport = {
@@ -454,6 +485,7 @@ async function runGuardianPreflightInner(
     open_threads: openThreads,
     hard_flags: hardFlags,
     retrieval_notes: retrievalNotes,
+    duplex_source: duplexSource,
     serendipity_nudge: getSerendipityNudge(highRiskTriggers),
     memory_write: memoryWrite,
     grok_scene_summary: currentStateSummary,

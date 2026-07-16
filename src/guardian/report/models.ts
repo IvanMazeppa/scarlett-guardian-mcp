@@ -1,6 +1,8 @@
 export type RetrievalStatus = "success" | "partial" | "failed";
 export type ProceedRecommendation = "proceed" | "proceed_with_caution" | "do_not_proceed";
 export type RagConfidence = "high" | "medium" | "low";
+/** WP-3.1: where scarlett_previous_message came from for this preflight. */
+export type DuplexSource = "caller" | "bridge_cache" | "absent";
 
 export type RagContextResult = {
   result_id?: string;
@@ -123,6 +125,13 @@ export type GuardianReport = {
   open_threads: string[];
   hard_flags: string[];
   retrieval_notes: string;
+  /**
+   * WP-3.1 duplex provenance:
+   * - caller: MCP/REST arg was non-empty (always wins over cache)
+   * - bridge_cache: filled from POST /duplex-cache shadow sidecar
+   * - absent: both empty → DUPLEX_INPUT_MISSING
+   */
+  duplex_source?: DuplexSource;
   serendipity_nudge?: string;
   /** Clean prose-facing fields for Grok brief (optional; compiler falls back if absent). */
   grok_scene_summary?: string;

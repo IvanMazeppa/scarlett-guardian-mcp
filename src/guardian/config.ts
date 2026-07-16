@@ -36,7 +36,17 @@ const EnvSchema = z.object({
    * - live: append to current-state.md via update_story_state (legacy; prefer stage)
    * - off: never write or stage from preflight
    */
-  GUARDIAN_MEMORY_WRITE_MODE: z.enum(["stage", "live", "off"]).default("stage")
+  GUARDIAN_MEMORY_WRITE_MODE: z.enum(["stage", "live", "off"]).default("stage"),
+  /**
+   * Shadow-sidecar duplex cache TTL (WP-3.1). Stale entries are ignored rather than
+   * guessing — wrong-turn critique is worse than missing duplex.
+   * Default 45 minutes.
+   */
+  GUARDIAN_DUPLEX_CACHE_TTL_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(45 * 60 * 1000)
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;

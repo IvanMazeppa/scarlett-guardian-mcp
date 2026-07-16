@@ -14,6 +14,7 @@ import {
 } from "./telemetry-aggregate.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
+import { duplexCache, storeDuplexMessage } from "./duplex-cache.js";
 
 const config = getConfig();
 const ragClient = new RagMcpClient(config);
@@ -29,7 +30,8 @@ const PreflightInputSchema = z.object({
         "You MUST copy your EXACT previous in-character Scarlett reply (the full prior Scarlett message you wrote) and paste it here as plain text.",
         "Do not summarize, truncate to one sentence, or invent a stand-in.",
         "If you skip this field, Director's Correction cannot run and continuity quality drops.",
-        "Only omit when Scarlett has never spoken yet in this thread."
+        "Only omit when Scarlett has never spoken yet in this thread.",
+        "Optional automation: the browser shadow bridge may POST Scarlett's last reply to /duplex-cache; if this field is empty, Guardian fills it from that cache."
       ].join(" ")
     ),
   user_message: z.string().min(1).describe("Raw latest Benjamin/user message that Scarlett would respond to."),
@@ -42,7 +44,20 @@ const PreflightInputSchema = z.object({
   force_full_retrieval: z
     .boolean()
     .default(false)
-    .describe("If true, run broader targeted memory searches (up to 3) for high-risk or diagnostic turns.")
+    .describe("If true, run broader targeted memory searches (up to 3) for high-risk or diagnostic turns."),
+  thread_key: z
+    .string()
+    .optional()
+    .describe(
+      "Optional conversation/thread id for duplex cache disambiguation when multiple Grok threads are active."
+    )
+});
+
+const DuplexCacheBodySchema = z.object({
+  scarlett_message: z.string().min(1).describe("Full Scarlett IC reply scraped from the browser."),
+  thread_key: z.string().optional().describe("Grok conversation id or 'default'."),
+  content_hash: z.string().optional().describe("Optional sha256 of normalized text (server recomputes if omitted)."),
+  captured_at: z.number().int().optional().describe("Optional epoch ms capture time.")
 });
 
 function createServer(): McpServer {
@@ -240,6 +255,58 @@ app.post("/preflight", async (req, res) => {
       detail: error instanceof Error ? error.message : String(error)
     });
   }
+});
+
+/**
+ * WP-3.1 shadow sidecar: browser bridge POSTs Scarlett's last reply here.
+ * Preflight merges from cache when scarlett_previous_message is omitted (caller wins).
+ */
+app.post("/duplex-cache", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+
+  const parsed = DuplexCacheBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: "Invalid duplex-cache request",
+      issues: parsed.error.issues
+    });
+    return;
+  }
+
+  try {
+    const entry = storeDuplexMessage({
+      scarlettMessage: parsed.data.scarlett_message,
+      threadKey: parsed.data.thread_key,
+      contentHash: parsed.data.content_hash,
+      nowMs: parsed.data.captured_at,
+      minChars: 20
+    });
+    console.log(
+      `${Date.now()} Duplex cache set: thread=${entry.threadKey} chars=${entry.scarlettMessage.length} hash=${entry.contentHash.slice(0, 12)}`
+    );
+    res.json({
+      ok: true,
+      thread_key: entry.threadKey,
+      chars: entry.scarlettMessage.length,
+      hash: entry.contentHash,
+      ttl_ms: config.GUARDIAN_DUPLEX_CACHE_TTL_MS
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+/** Observability only — no message bodies. */
+app.get("/duplex-cache", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  res.json({
+    ok: true,
+    entries: duplexCache.size(),
+    ttl_ms: config.GUARDIAN_DUPLEX_CACHE_TTL_MS,
+    threads: duplexCache.stats()
+  });
 });
 
 app.get("/mcp", (req, res) => {

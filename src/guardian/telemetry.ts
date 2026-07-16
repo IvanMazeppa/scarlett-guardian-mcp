@@ -210,6 +210,8 @@ export type BuildEventInput = {
     retrieval_status: string;
     hard_flags?: string[];
     memory_write?: { action?: string; reason?: string };
+    duplex_source?: "caller" | "bridge_cache" | "absent";
+    retrieval_notes?: string;
     llm_assessment?: {
       supported_facts?: string[];
       scene_state_delta?: string | null;
@@ -285,7 +287,20 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
     .filter((s) => !known.has(s.tool))
     .map((s) => ({ tool: s.tool, ms: Math.round(s.ms) }));
 
-  const prev = input.input.scarlett_previous_message?.trim() ?? "";
+  // Prefer report.duplex_source (WP-3.1) so bridge_cache merges are visible on the dashboard.
+  const reportDuplex = report.duplex_source;
+  const prevFromInput = input.input.scarlett_previous_message?.trim() ?? "";
+  const duplexSource: PreflightTelemetryEvent["duplex"]["source"] =
+    reportDuplex === "caller" || reportDuplex === "bridge_cache" || reportDuplex === "absent"
+      ? reportDuplex
+      : prevFromInput
+        ? "caller"
+        : "absent";
+  const prevChars =
+    duplexSource === "absent"
+      ? 0
+      : prevFromInput.length ||
+        (typeof report.retrieval_notes === "string" && /provided/i.test(report.retrieval_notes) ? 1 : 0);
   const correction = report.llm_assessment?.grok_performance_correction;
   const correctionFired =
     typeof correction === "string" && correction.trim().length > 0 && correction.trim() !== "null";
@@ -325,8 +340,8 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
       meta_pollution: detectMetaPollution(scene)
     },
     duplex: {
-      source: prev ? "caller" : "absent",
-      previous_message_chars: prev.length,
+      source: duplexSource,
+      previous_message_chars: prevChars,
       correction_fired: correctionFired
     },
     serendipity: {
