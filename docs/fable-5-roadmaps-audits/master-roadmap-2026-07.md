@@ -276,7 +276,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 1.5 | **done** | Mutants in `tests/eval-mutants-1.5.test.ts` (meta leak, temporal-mud, unexpected write, duplex correction suppressed). Workflow contract in Guardian `AGENTS.md` + RAG `AGENTS.md`. |
 | 1.6 | **done** | `src/guardian/telemetry.ts` + ALS tool timings in `rag-client` / cassette; emit at end of preflight (fire-and-forget NDJSON under `.guardian/telemetry/`). Tests: never fail turn; overhead << 5ms. |
 | 1.7 | **done** | `scripts/backfill-telemetry.ts`, `telemetry-aggregate.ts`, `GET /dashboard` + `/telemetry/api/{health,summary,recent}`, `public/dashboard.*`. |
-| 2.1–2.7 | pending | |
+| 2.1 | **done** | `## Session —` headings on `event-log.md` + chronological summaries 4/5/6; maintenance guide updated; reindex four files. Pre-phase2 preserve branches/tags on both repos. |
+| 2.2–2.7 | pending | |
 | 3.1–3.5 | pending | |
 | 4.1–4.8 | pending | |
 | 5.1–5.10 | pending | |
