@@ -234,6 +234,52 @@ export function parseLiveBeat(currentStateMarkdown: string): LiveBeat {
   };
 }
 
+/**
+ * WP-2.3 — human-readable LIVE BEAT block for the continuity auditor prompt.
+ * Placed **above** retrieved evidence; empty/sparse beats still emit a short stub.
+ */
+export function formatLiveBeatBlock(beat: LiveBeat | undefined | null): string {
+  if (!beat) {
+    return [
+      "### LIVE BEAT",
+      "(no live snapshot available — treat retrieval timestamps carefully; do not invent present location/time)"
+    ].join("\n");
+  }
+
+  const hasSignal =
+    Boolean(beat.lastUpdated || beat.locationLine || beat.timeLine) ||
+    beat.liveCues.length > 0 ||
+    beat.supersededCues.length > 0 ||
+    beat.antiResetNotes.length > 0;
+
+  if (!hasSignal) {
+    return [
+      "### LIVE BEAT",
+      "(snapshot present but sparse — prefer current-state fields in evidence over older session logs)"
+    ].join("\n");
+  }
+
+  const lines = [
+    "### LIVE BEAT",
+    "This is the present story moment from current-state.md. Supersedes earlier same-day beats."
+  ];
+  if (beat.lastUpdated) lines.push(`- Last updated: ${beat.lastUpdated}`);
+  if (beat.locationLine) lines.push(`- Location: ${beat.locationLine}`);
+  if (beat.timeLine) lines.push(`- Time in story: ${beat.timeLine}`);
+  if (beat.liveCues.length) {
+    lines.push(`- Live cues: ${beat.liveCues.slice(0, 16).join(", ")}`);
+  }
+  if (beat.supersededCues.length) {
+    lines.push(
+      `- Superseded / earlier same-day cues (context only, NOT current): ${beat.supersededCues.slice(0, 16).join(", ")}`
+    );
+  }
+  if (beat.antiResetNotes.length) {
+    lines.push(`- Anti-reset: ${beat.antiResetNotes.join("; ")}`);
+  }
+  return lines.join("\n");
+}
+
 function uniqueStrings(xs: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];

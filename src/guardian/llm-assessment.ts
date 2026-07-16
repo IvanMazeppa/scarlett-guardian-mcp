@@ -6,6 +6,7 @@ import type {
   GuardianLlmAssessment,
   RagRetrieveResponse
 } from "./report/models.js";
+import { formatLiveBeatBlock, type LiveBeat } from "./recency.js";
 import type { GuardianPreflightInput } from "./tools/preflight.js";
 
 type AssessmentConfig = Pick<
@@ -17,6 +18,12 @@ type AssessmentConfig = Pick<
   | "GUARDIAN_LLM_VERBOSITY"
   | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
 >;
+
+/** Shared supersession rule for system prompt (WP-2.3 / D4 §A.3 point B). */
+export const LIVE_BEAT_SUPERSESSION_INSTRUCTION =
+  "LIVE BEAT (below, above retrieved evidence) is ground truth for the present moment. " +
+  "Facts and precedents that describe earlier beats of the same day are context, not the present. " +
+  "Never describe superseded beats as current. If evidence conflicts with the LIVE BEAT, the LIVE BEAT wins.";
 
 const assessmentSchema = {
   type: "object",
@@ -58,15 +65,61 @@ const assessmentSchema = {
   ]
 } as const;
 
-export async function assessGuardianEvidence(input: {
+export type AssessGuardianEvidenceInput = {
   preflightInput: GuardianPreflightInput;
   preflight?: RagRetrieveResponse;
   memories: RagRetrieveResponse[];
   expandedContexts: ExpandedContext[];
   factChecks: FactCheck[];
   highRiskTriggers: string[];
+  /** Parsed current-state snapshot (WP-2.2/2.3). Optional for OOC paths. */
+  liveBeat?: LiveBeat;
   config: AssessmentConfig;
-}): Promise<GuardianLlmAssessment> {
+};
+
+/**
+ * Build the auditor user message: LIVE BEAT block first, then JSON evidence.
+ * Exported for hermetic tests (no network).
+ */
+export function buildAuditorUserMessage(
+  input: Omit<AssessGuardianEvidenceInput, "config">,
+  maxEvidenceChars: number
+): string {
+  const liveBlock = formatLiveBeatBlock(input.liveBeat);
+  const evidenceJson = buildEvidencePayload(input, maxEvidenceChars);
+  return [
+    liveBlock,
+    "",
+    "### RETRIEVED EVIDENCE (JSON)",
+    "Use for support and history. Do not treat older same-day beats as the present if they conflict with LIVE BEAT.",
+    evidenceJson
+  ].join("\n");
+}
+
+export function buildAuditorSystemPrompt(): string {
+  return [
+    "You are the Scarlett & Benjamin Guardian continuity auditor.",
+    "You are a silent database auditor, not the creative director. Do NOT prescribe tone, pacing, or POV.",
+    "Use only the provided retrieved evidence and the LIVE BEAT block. Do not invent canon.",
+    LIVE_BEAT_SUPERSESSION_INSTRUCTION,
+    "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
+    "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
+    "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",
+    "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
+    "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
+    "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",
+    "Fill scene_state_delta with one tight scene summary sentence or two for the novelist — grounded on LIVE BEAT location/time when present.",
+    "Set candidate_memory_update to null unless a durable canon change should be written; empty/no-op updates should be null.",
+    "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, or relationship milestone worth the notebook.",
+    "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes.",
+    "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
+    "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
+  ].join(" ");
+}
+
+export async function assessGuardianEvidence(
+  input: AssessGuardianEvidenceInput
+): Promise<GuardianLlmAssessment> {
   const { config } = input;
   if (!config.GUARDIAN_LLM_ENABLED) {
     return { enabled: false, model: config.GUARDIAN_MODEL };
@@ -80,7 +133,7 @@ export async function assessGuardianEvidence(input: {
   }
 
   const client = new OpenAI({ apiKey: config.OPENAI_API_KEY });
-  const evidence = buildEvidencePayload(input, config.GUARDIAN_LLM_MAX_EVIDENCE_CHARS);
+  const userMessage = buildAuditorUserMessage(input, config.GUARDIAN_LLM_MAX_EVIDENCE_CHARS);
 
   try {
     const response = await client.responses.create({
@@ -95,29 +148,13 @@ export async function assessGuardianEvidence(input: {
           content: [
             {
               type: "input_text",
-              text: [
-                "You are the Scarlett & Benjamin Guardian continuity auditor.",
-                "You are a silent database auditor, not the creative director. Do NOT prescribe tone, pacing, or POV.",
-                "Use only the provided retrieved evidence. Do not invent canon.",
-                "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
-                "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
-                "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",
-                "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
-                "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
-                "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",
-                "Fill scene_state_delta with one tight scene summary sentence or two for the novelist.",
-                "Set candidate_memory_update to null unless a durable canon change should be written; empty/no-op updates should be null.",
-                "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, or relationship milestone worth the notebook.",
-                "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes.",
-                "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
-                "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
-              ].join(" ")
+              text: buildAuditorSystemPrompt()
             }
           ]
         },
         {
           role: "user",
-          content: [{ type: "input_text", text: evidence }]
+          content: [{ type: "input_text", text: userMessage }]
         }
       ],
       text: {
@@ -152,13 +189,27 @@ export async function assessGuardianEvidence(input: {
   }
 }
 
-function buildEvidencePayload(input: Omit<Parameters<typeof assessGuardianEvidence>[0], "config">, maxChars: number): string {
+function buildEvidencePayload(
+  input: Omit<AssessGuardianEvidenceInput, "config">,
+  maxChars: number
+): string {
   const payload = {
     scarlett_previous_message: input.preflightInput.scarlett_previous_message,
     latest_user_message: input.preflightInput.user_message,
     recent_context: input.preflightInput.recent_context,
     force_full_retrieval: input.preflightInput.force_full_retrieval ?? false,
     high_risk_triggers: input.highRiskTriggers,
+    // Compact echo for debugging / frozen traces (full prose is in LIVE BEAT block above).
+    live_beat_summary: input.liveBeat
+      ? {
+          lastUpdated: input.liveBeat.lastUpdated,
+          locationLine: input.liveBeat.locationLine,
+          timeLine: input.liveBeat.timeLine,
+          liveCues: input.liveBeat.liveCues.slice(0, 12),
+          supersededCues: input.liveBeat.supersededCues.slice(0, 12),
+          antiResetNotes: input.liveBeat.antiResetNotes
+        }
+      : null,
     preflight_summary: input.preflight?.summary,
     preflight_results: summarizeResults(input.preflight),
     memory_results: input.memories.flatMap((memory) => summarizeResults(memory)),

@@ -313,6 +313,7 @@ async function runGuardianPreflightInner(
         expandedContexts,
         factChecks,
         highRiskTriggers,
+        liveBeat,
         config
       });
   const llmAssessmentMs = Math.round(performance.now() - llmT0);
