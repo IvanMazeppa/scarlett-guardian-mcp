@@ -140,9 +140,10 @@ rg -n "duplex_source|DUPLEX_INPUT_MISSING|scarlett_previous" \
 | Symptom | Action |
 |---------|--------|
 | Cache never updates after Scarlett | scrape now → post scrape; or calibrate selector; check TM `@connect` / base URL |
-| Cache updates but preflight `absent` | Different machine/URL Guardian; bearer mismatch; preflight hit other host; TTL (unlikely in one session) |
+| Cache updates but preflight `absent` | **Fixed 2026-07-17:** empty MCP `thread_key` used to require exactly one cache entry; now uses **newest** fresh entry. Restart Guardian after pull. Also: bearer mismatch / wrong host / TTL. Optional: `curl -X DELETE http://127.0.0.1:8790/duplex-cache` then re-post once from the main thread. |
 | Always `caller` | Model still pasting duplex — strengthen OOC “omit scarlett_previous_message” |
 | Pill offline | `npm run dev` Guardian; menu set base URL `http://127.0.0.1:8790` |
+| Junk / second-tab pollution | `DELETE /duplex-cache` or TM menu **clear duplex-cache**, then one fresh post from the RP thread |
 
 ---
 

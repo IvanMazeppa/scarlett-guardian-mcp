@@ -305,7 +305,33 @@ app.get("/duplex-cache", (req, res) => {
     ok: true,
     entries: duplexCache.size(),
     ttl_ms: config.GUARDIAN_DUPLEX_CACHE_TTL_MS,
-    threads: duplexCache.stats()
+    threads: duplexCache.stats(),
+    note: "MCP preflight with no thread_key uses newest fresh entry (capturedAt DESC)."
+  });
+});
+
+/**
+ * Clear duplex cache (WP-3.4 ops). Optional ?thread_key= to drop one thread only.
+ * DELETE /duplex-cache  or  DELETE /duplex-cache?thread_key=...
+ */
+app.delete("/duplex-cache", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  const threadKey =
+    typeof req.query.thread_key === "string"
+      ? req.query.thread_key
+      : typeof req.body?.thread_key === "string"
+        ? req.body.thread_key
+        : undefined;
+  const removed = duplexCache.clear(threadKey);
+  console.log(
+    `${Date.now()} Duplex cache clear: removed=${removed}${threadKey ? ` thread=${threadKey}` : " (all)"}`
+  );
+  res.json({
+    ok: true,
+    removed,
+    scope: threadKey ? "thread" : "all",
+    thread_key: threadKey ?? null,
+    entries_remaining: duplexCache.size()
   });
 });
 

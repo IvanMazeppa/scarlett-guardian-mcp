@@ -98,47 +98,72 @@ function testTtlExpiry() {
   console.log("ok TTL expiry");
 }
 
-function testAmbiguousThreadsWithoutKey() {
+function testNewestWinsWithoutKey() {
   const cache = new DuplexCache();
   const now = Date.now();
   storeDuplexMessage({
-    scarlettMessage: "Thread A Scarlett reply long enough for cache.",
+    scarlettMessage: "Thread A older Scarlett reply long enough for cache.",
     threadKey: "thread-a",
     cache,
     nowMs: now
   });
   storeDuplexMessage({
-    scarlettMessage: "Thread B Scarlett reply long enough for cache.",
+    scarlettMessage: "Thread B NEWER Scarlett reply long enough for cache.",
     threadKey: "thread-b",
     cache,
-    nowMs: now
+    nowMs: now + 5_000
   });
-  // No thread key + two fresh threads → refuse to guess
-  const ambig = resolveDuplexInput({
+  // No thread key + two fresh threads → newest by capturedAt (WP-3.4 fix)
+  const newest = resolveDuplexInput({
     scarlettPreviousMessage: "",
     threadKey: undefined,
     ttlMs: DEFAULT_DUPLEX_CACHE_TTL_MS,
     cache,
-    nowMs: now
+    nowMs: now + 6_000
   });
-  assert.equal(ambig.duplexSource, "absent");
+  assert.equal(newest.duplexSource, "bridge_cache");
+  assert.match(newest.scarlettPreviousMessage, /Thread B NEWER/);
 
-  // Single thread + no key → OK
-  cache.clear();
-  storeDuplexMessage({
-    scarlettMessage: "Only thread Scarlett reply long enough for cache.",
-    threadKey: "only",
-    cache,
-    nowMs: now
-  });
-  const single = resolveDuplexInput({
+  // Explicit wrong thread key still misses (no silent cross-thread when keyed)
+  const miss = resolveDuplexInput({
     scarlettPreviousMessage: "",
+    threadKey: "thread-z",
     ttlMs: DEFAULT_DUPLEX_CACHE_TTL_MS,
     cache,
-    nowMs: now
+    nowMs: now + 6_000
   });
-  assert.equal(single.duplexSource, "bridge_cache");
-  console.log("ok multi-thread disambiguation without key");
+  assert.equal(miss.duplexSource, "absent");
+
+  // Explicit correct key still exact-matches
+  const hit = resolveDuplexInput({
+    scarlettPreviousMessage: "",
+    threadKey: "thread-a",
+    ttlMs: DEFAULT_DUPLEX_CACHE_TTL_MS,
+    cache,
+    nowMs: now + 6_000
+  });
+  assert.equal(hit.duplexSource, "bridge_cache");
+  assert.match(hit.scarlettPreviousMessage, /Thread A older/);
+  console.log("ok multi-thread newest-wins without key");
+}
+
+function testClear() {
+  const cache = new DuplexCache();
+  storeDuplexMessage({
+    scarlettMessage: "Clear test message long enough for min chars aa.",
+    threadKey: "c1",
+    cache
+  });
+  storeDuplexMessage({
+    scarlettMessage: "Clear test message long enough for min chars bb.",
+    threadKey: "c2",
+    cache
+  });
+  assert.equal(cache.clear("c1"), 1);
+  assert.equal(cache.size(), 1);
+  assert.equal(cache.clear(), 1);
+  assert.equal(cache.size(), 0);
+  console.log("ok clear thread and all");
 }
 
 function testMinChars() {
@@ -155,7 +180,8 @@ function main() {
   testBridgeCacheFill();
   testAbsentWhenBothEmpty();
   testTtlExpiry();
-  testAmbiguousThreadsWithoutKey();
+  testNewestWinsWithoutKey();
+  testClear();
   testMinChars();
   console.log("\nAll duplex-cache tests passed.");
 }

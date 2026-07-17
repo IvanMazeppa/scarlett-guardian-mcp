@@ -674,6 +674,26 @@
       }
       await onScarlettComplete(text);
     });
+    GM_registerMenuCommand("Guardian: clear duplex-cache (server)", () => {
+      GM_xmlhttpRequest({
+        method: "DELETE",
+        url: `${CONFIG.guardianBaseUrl}/duplex-cache`,
+        headers: authHeaders(),
+        onload(res) {
+          if (res.status >= 200 && res.status < 300) {
+            lastPostedHash = "";
+            gmSet("guardian_last_duplex_hash", "");
+            showPill("🛡 cache cleared", "ok");
+            console.log("[Guardian Bridge] duplex-cache cleared", res.responseText);
+          } else {
+            showPill(`🛡 clear failed HTTP ${res.status}`, "err");
+          }
+        },
+        onerror() {
+          showPill("🛡 clear offline", "err");
+        }
+      });
+    });
   } catch {
     /* menu optional */
   }

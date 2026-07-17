@@ -30,6 +30,7 @@
 | set bearer token… | If `GUARDIAN_MCP_BEARER_TOKEN` is set on the server |
 | scrape now (debug) | Log last bubble + hash (hash-check acceptance) |
 | post scrape → duplex-cache | Force one POST without waiting for completion |
+| clear duplex-cache (server) | `DELETE /duplex-cache` — wipe all in-memory entries (then re-post from main thread) |
 
 Storage keys (no secrets in the script body): `guardian_base_url`, `guardian_bearer_token`, `guardian_mode`, `guardian_selector_override`, `guardian_last_duplex_hash`.
 

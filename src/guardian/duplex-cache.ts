@@ -41,9 +41,10 @@ export class DuplexCache {
 
   /**
    * Return a non-stale entry.
-   * - Known threadKey → that thread's entry if fresh.
-   * - Unknown/empty threadKey → most recent fresh entry only if exactly one
-   *   thread has a fresh entry (avoids cross-thread ambiguity).
+   * - Known threadKey → that thread's entry if fresh (exact match only).
+   * - Unknown/empty threadKey → **newest** fresh entry by capturedAt (WP-3.4 fix).
+   *   MCP preflights usually omit thread_key; requiring fresh.length === 1 broke
+   *   daily use when a second tab/test thread also posted within TTL.
    */
   getFresh(threadKey: string | undefined, ttlMs: number, nowMs = Date.now()): DuplexCacheEntry | undefined {
     const ttl = Math.max(0, ttlMs);
@@ -56,17 +57,24 @@ export class DuplexCache {
       return undefined;
     }
 
-    const fresh: DuplexCacheEntry[] = [];
+    let newest: DuplexCacheEntry | undefined;
     for (const e of this.byThread.values()) {
-      if (isFresh(e)) fresh.push(e);
+      if (!isFresh(e)) continue;
+      if (!newest || e.capturedAt > newest.capturedAt) newest = e;
     }
-    if (fresh.length === 1) return fresh[0];
-    return undefined;
+    return newest;
   }
 
-  /** Test/debug: clear all entries. */
-  clear(): void {
+  /** Test/ops: clear all entries (or one thread if threadKey set). */
+  clear(threadKey?: string): number {
+    if (threadKey?.trim()) {
+      const key = threadKey.trim();
+      const had = this.byThread.delete(key);
+      return had ? 1 : 0;
+    }
+    const n = this.byThread.size;
     this.byThread.clear();
+    return n;
   }
 
   size(): number {
