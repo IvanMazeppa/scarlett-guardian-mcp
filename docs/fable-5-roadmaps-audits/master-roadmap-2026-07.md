@@ -286,7 +286,9 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | **FOLLOW-UP (ops, not blocking Phase 3)** | **deferred** | **Staged-update queue hygiene:** three pending `current-state.md` drafts remain under `rag-memory-mcp/.rag-memory-mcp/staged-updates/` (Jun 23 antigravity test; Jul 15 cooling lap; Jul 16 thermal validation). After restarting live RAG on WP-2.6+ code, run `npx tsx scripts/wp25-staging-ceremony.ts list --include-content` from `rag-memory-mcp/`, then **reject** or carefully **approve** each. Do not approve the Jun 23 test chunk. Come back before relying on auto-approve transitions. |
 | 3.1 | **done** | `DuplexCache` + `POST/GET /duplex-cache` + `GUARDIAN_DUPLEX_CACHE_TTL_MS`; preflight merge (caller wins); report `duplex_source`; telemetry uses report source. Unit tests green; `eval:fast` 16/16. Preserve: `preserve/roadmap-wp31-duplex-cache-20260716`. **2026-07-17 fix:** empty `thread_key` → newest fresh entry (not `fresh.length===1`); `DELETE /duplex-cache` clear. |
 | 3.2 | **done** | Userscript v2.0 `scripts/guardian-browser-bridge.user.js`: shadow default (completion detector + layered scrape + GM POST `/duplex-cache` + status pill); modes interceptor/calibrate stub; menu for URL/token/debug scrape. Install: `docs/browser-bridge-v2-install.md`. Preserve: `preserve/roadmap-wp32-browser-bridge-v2-20260716`. |
-| 3.3–3.5 | pending | |
+| 3.3 | **partial / stub** | Calibrate mode + GM storage for URL/token/selector override already in bridge v2; full polish optional. Not blocking Phase 4. |
+| 3.4 | **done** | Live proof: `duplex_source: "bridge_cache"` without OOC paste of `scarlett_previous_message`. Evidence: `wp-3.4-live-bridge-cache-green-2026-07-17.md`; report `preflight-full-2026-07-17T03-22-10-667Z.json`. Newest-wins fix `e05a08c` de-risked multi-entry cache. Shadow architecture **green**. |
+| 3.5 | pending | Robustness: stronger thread-key path, multi-thread tests, 90s preflight idempotency (optional before Phase 4). |
 | 4.1–4.8 | pending | |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
