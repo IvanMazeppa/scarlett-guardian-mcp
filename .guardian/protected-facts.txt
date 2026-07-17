@@ -1,0 +1,12 @@
+# Protected facts — must survive any current-state.md rewrite (WP-4.2 / D4 §C.3).
+# One literal per line (case-insensitive substring match). Lines starting with # are comments.
+# Seeded from project-instructions v6 §1 CORE + story-bible identity/relationship anchors.
+
+pre-op
+trans woman
+Qualified Autonomy
+Swedish
+Benjamin
+Scarlett
+Black Panther
+AMG

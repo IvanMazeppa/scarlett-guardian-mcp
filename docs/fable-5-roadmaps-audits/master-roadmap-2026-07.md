@@ -290,7 +290,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 3.4 | **done** | Live proof: `duplex_source: "bridge_cache"` without OOC paste of `scarlett_previous_message`. Evidence: `wp-3.4-live-bridge-cache-green-2026-07-17.md`; report `preflight-full-2026-07-17T03-22-10-667Z.json`. Newest-wins fix `e05a08c` de-risked multi-entry cache. Shadow architecture **green**. |
 | 3.5 | deferred | Robustness (thread-key, multi-thread tests, 90s idempotency) — optional; duplex daily path de-risked at 3.4. Revisit when operator requests. |
 | 4.1 | **done** | Auditor `scene_transition` schema field + system prompt; `stage_transition` decision class in `decideMemoryWrite`; report `scene_transition` + `memory_write.action=stage_transition`; preflight stages with transition citations. Tests + eval:fast 16/16. Evidence: `wp-4.1-scene-transition-2026-07-17.md`. Preserve: `preserve/roadmap-wp41-scene-transition-20260717`. |
-| 4.2–4.8 | pending | |
+| 4.2 | **done** | `state-rewrite.ts` (`generateStateRewrite` medium terra + `validateStateRewrite` gates); `.guardian/protected-facts.txt`; preflight transition path stages **overwrite** rewrite; `held_for_review` on gen/validate fail; `GUARDIAN_AUTO_APPROVE` default `beats` (hold transitions). Tests + eval:fast 16/16. Evidence: `wp-4.2-state-rewrite-2026-07-17.md`. Preserve: `preserve/roadmap-wp42-state-rewrite-20260717`. |
+| 4.3–4.8 | pending | |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |

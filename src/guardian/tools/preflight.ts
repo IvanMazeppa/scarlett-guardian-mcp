@@ -2,6 +2,7 @@ import { performance } from "node:perf_hooks";
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
 import { decideMemoryWrite } from "../memory-writeback.js";
+import { generateStateRewrite, validateStateRewrite } from "../state-rewrite.js";
 import type { RagToolCaller } from "../rag-client.js";
 import type {
   CriticalPrecedent,
@@ -186,6 +187,11 @@ export async function runGuardianPreflight(
     | "GUARDIAN_VERIFY_BUDGET_MS"
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
+    GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
+    OPENAI_API_KEY?: string;
+    GUARDIAN_LLM_ENABLED?: boolean;
+    GUARDIAN_MODEL?: string;
+    GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
   },
   options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
@@ -212,6 +218,11 @@ async function runGuardianPreflightInner(
     | "GUARDIAN_VERIFY_BUDGET_MS"
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
+    GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
+    OPENAI_API_KEY?: string;
+    GUARDIAN_LLM_ENABLED?: boolean;
+    GUARDIAN_MODEL?: string;
+    GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
   },
   options: GuardianPreflightOptions | undefined,
   collector: PreflightTelemetryCollector
@@ -368,20 +379,7 @@ async function runGuardianPreflightInner(
   if (writeDecision.action === "none") {
     memoryWrite = { action: "none", reason: writeDecision.reason };
     console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
-  } else if (writeDecision.action === "stage" || writeDecision.action === "stage_transition") {
-    // WP-4.1: stage_transition uses same staging path for now; WP-4.2 will overwrite via state rewrite.
-    const isTransition = writeDecision.action === "stage_transition";
-    const citations = [
-      `preflight_query:${preflightQuery.slice(0, 200)}`,
-      ...highRiskTriggers.map((t) => `trigger:${t}`)
-    ];
-    if (isTransition && "transition" in writeDecision) {
-      citations.push(
-        `scene_transition:${writeDecision.transition.kind ?? "unknown"}`,
-        `from:${(writeDecision.transition.from ?? "").slice(0, 120)}`,
-        `to:${(writeDecision.transition.to ?? "").slice(0, 120)}`
-      );
-    }
+  } else if (writeDecision.action === "stage") {
     const stageResult = await callJson<{
       success?: boolean;
       staged_update?: { id?: string };
@@ -390,16 +388,19 @@ async function runGuardianPreflightInner(
       proposed_content: writeDecision.content,
       mode: "append",
       rationale: writeDecision.rationale,
-      citations
+      citations: [
+        `preflight_query:${preflightQuery.slice(0, 200)}`,
+        ...highRiskTriggers.map((t) => `trigger:${t}`)
+      ]
     });
     if (stageResult.ok && stageResult.response?.staged_update?.id) {
       memoryWrite = {
-        action: isTransition ? "stage_transition" : "staged",
+        action: "staged",
         reason: writeDecision.reason,
         staged_update_id: stageResult.response.staged_update.id
       };
       console.log(
-        `${Date.now()} Memory update ${isTransition ? "stage_transition" : "staged"}: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
+        `${Date.now()} Memory update staged: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
       );
     } else {
       memoryWrite = {
@@ -409,6 +410,20 @@ async function runGuardianPreflightInner(
       };
       console.warn(`${Date.now()} Memory stage failed: ${memoryWrite.error}`);
     }
+  } else if (writeDecision.action === "stage_transition") {
+    // WP-4.2: generate full current-state rewrite → validate → stage overwrite (hold unless auto-approve transitions).
+    const liveStateText =
+      liveState.ok && typeof liveState.response === "string" ? liveState.response : "";
+    memoryWrite = await applySceneTransitionWrite({
+      writeDecision,
+      llmAssessment,
+      liveStateText,
+      ragClient,
+      toolCalls,
+      preflightQuery,
+      highRiskTriggers,
+      config
+    });
   } else if (writeDecision.action === "live_append") {
     const liveResult = await callJson(toolCalls, ragClient, "update_story_state", {
       source_file: "project_source_files/current-state.md",
@@ -529,6 +544,223 @@ async function runGuardianPreflightInner(
   }
 
   return report;
+}
+
+/**
+ * WP-4.2 scene transition path: generate structured rewrite → validate → stage overwrite.
+ * Auto-approve only when GUARDIAN_AUTO_APPROVE=beats_and_valid_transitions (burn-in default is hold).
+ */
+async function applySceneTransitionWrite(input: {
+  writeDecision: Extract<
+    ReturnType<typeof decideMemoryWrite>,
+    { action: "stage_transition" }
+  >;
+  llmAssessment: GuardianLlmAssessment;
+  liveStateText: string;
+  ragClient: RagToolCaller;
+  toolCalls: RagToolCall[];
+  preflightQuery: string;
+  highRiskTriggers: string[];
+  config: {
+    GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
+    GUARDIAN_LLM_ENABLED?: boolean;
+    OPENAI_API_KEY?: string;
+    GUARDIAN_MODEL?: string;
+    GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
+  };
+}): Promise<NonNullable<GuardianReport["memory_write"]>> {
+  const {
+    writeDecision,
+    llmAssessment,
+    liveStateText,
+    ragClient,
+    toolCalls,
+    preflightQuery,
+    highRiskTriggers,
+    config
+  } = input;
+
+  const citations = [
+    `preflight_query:${preflightQuery.slice(0, 200)}`,
+    `scene_transition:${writeDecision.transition.kind ?? "unknown"}`,
+    `from:${(writeDecision.transition.from ?? "").slice(0, 120)}`,
+    `to:${(writeDecision.transition.to ?? "").slice(0, 120)}`,
+    ...highRiskTriggers.map((t) => `trigger:${t}`)
+  ];
+
+  const oldMd = extractCurrentStateMarkdown(liveStateText);
+  if (!oldMd || oldMd.length < 80) {
+    // Fall back to staging the short transition note.
+    const stageResult = await callJson<{ staged_update?: { id?: string } }>(
+      toolCalls,
+      ragClient,
+      "stage_story_update",
+      {
+        target_source_file: "project_source_files/current-state.md",
+        proposed_content: writeDecision.content,
+        mode: "append",
+        rationale: writeDecision.rationale,
+        citations: [...citations, "rewrite_skipped:no_live_current_state"]
+      }
+    );
+    if (stageResult.ok && stageResult.response?.staged_update?.id) {
+      return {
+        action: "held_for_review",
+        reason: "stage_transition: live current-state unavailable for rewrite; staged bullet only",
+        staged_update_id: stageResult.response.staged_update.id
+      };
+    }
+    return {
+      action: "failed",
+      reason: writeDecision.reason,
+      error: stageResult.error ?? "could not stage transition fallback"
+    };
+  }
+
+  const generated = await generateStateRewrite({
+    currentStateMarkdown: oldMd,
+    transition: {
+      occurred: true,
+      from: writeDecision.transition.from,
+      to: writeDecision.transition.to,
+      kind: writeDecision.transition.kind
+    },
+    supportedFacts: llmAssessment.supported_facts ?? [],
+    candidateMemoryUpdate: llmAssessment.candidate_memory_update,
+    config: {
+      GUARDIAN_LLM_ENABLED: config.GUARDIAN_LLM_ENABLED ?? false,
+      OPENAI_API_KEY: config.OPENAI_API_KEY,
+      GUARDIAN_MODEL: config.GUARDIAN_MODEL ?? "gpt-5.6-terra",
+      GUARDIAN_LLM_VERBOSITY: config.GUARDIAN_LLM_VERBOSITY ?? "medium",
+      rewriteReasoningEffort: "medium"
+    }
+  });
+
+  if ("error" in generated) {
+    console.warn(`${Date.now()} State rewrite generation failed: ${generated.error}`);
+    const stageResult = await callJson<{ staged_update?: { id?: string } }>(
+      toolCalls,
+      ragClient,
+      "stage_story_update",
+      {
+        target_source_file: "project_source_files/current-state.md",
+        proposed_content: writeDecision.content,
+        mode: "append",
+        rationale: `${writeDecision.rationale}; rewrite_error=${generated.error}`,
+        citations: [...citations, `rewrite_error:${generated.error.slice(0, 160)}`]
+      }
+    );
+    return {
+      action: "held_for_review",
+      reason: `stage_transition rewrite failed: ${generated.error}; staged bullet for review`,
+      staged_update_id: stageResult.response?.staged_update?.id,
+      error: generated.error
+    };
+  }
+
+  const validation = validateStateRewrite(oldMd, generated.markdown);
+  if (!validation.ok) {
+    console.warn(
+      `${Date.now()} State rewrite validation failed: ${validation.violations.join("; ")}`
+    );
+    // Stage the *generated* markdown anyway for human review (overwrite mode), marked held.
+    const stageResult = await callJson<{ staged_update?: { id?: string } }>(
+      toolCalls,
+      ragClient,
+      "stage_story_update",
+      {
+        target_source_file: "project_source_files/current-state.md",
+        proposed_content: generated.markdown,
+        mode: "overwrite",
+        rationale: `${writeDecision.rationale}; VALIDATION_FAILED: ${validation.violations.join(" | ")}`,
+        citations: [...citations, ...validation.violations.map((v) => `violation:${v.slice(0, 120)}`)]
+      }
+    );
+    return {
+      action: "held_for_review",
+      reason: `stage_transition validation failed; staged rewrite for human review`,
+      staged_update_id: stageResult.response?.staged_update?.id,
+      violations: validation.violations
+    };
+  }
+
+  const stageResult = await callJson<{ staged_update?: { id?: string } }>(
+    toolCalls,
+    ragClient,
+    "stage_story_update",
+    {
+      target_source_file: "project_source_files/current-state.md",
+      proposed_content: generated.markdown,
+      mode: "overwrite",
+      rationale: writeDecision.rationale,
+      citations
+    }
+  );
+
+  if (!stageResult.ok || !stageResult.response?.staged_update?.id) {
+    return {
+      action: "failed",
+      reason: writeDecision.reason,
+      error: stageResult.error ?? "stage_story_update (overwrite rewrite) failed"
+    };
+  }
+
+  const stagedId = stageResult.response.staged_update.id;
+  const auto = config.GUARDIAN_AUTO_APPROVE ?? "beats";
+
+  // Burn-in: only auto-apply when explicitly graduated (WP-4.3/4.5).
+  if (auto === "beats_and_valid_transitions") {
+    const dry = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+      staged_update_id: stagedId,
+      dry_run: true
+    });
+    if (!dry.ok) {
+      return {
+        action: "held_for_review",
+        reason: "stage_transition validated but dry_run approve failed; left staged",
+        staged_update_id: stagedId,
+        error: dry.error
+      };
+    }
+    const applied = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+      staged_update_id: stagedId,
+      dry_run: false,
+      delete_after_approval: true
+    });
+    if (applied.ok) {
+      console.log(`${Date.now()} Scene transition rewrite auto-approved: ${stagedId}`);
+      return {
+        action: "stage_transition",
+        reason: `stage_transition validated + auto-approved (${writeDecision.reason})`,
+        staged_update_id: stagedId
+      };
+    }
+    return {
+      action: "held_for_review",
+      reason: "stage_transition validated; auto-approve apply failed; left staged",
+      staged_update_id: stagedId,
+      error: applied.error
+    };
+  }
+
+  console.log(
+    `${Date.now()} Scene transition rewrite staged for review (GUARDIAN_AUTO_APPROVE=${auto}): ${stagedId}`
+  );
+  return {
+    action: "stage_transition",
+    reason: `stage_transition validated + staged overwrite (hold for human; ${writeDecision.reason})`,
+    staged_update_id: stagedId
+  };
+}
+
+/** Pull current-state body from get_live_story_state text (may include a section header). */
+function extractCurrentStateMarkdown(liveStateText: string): string {
+  const t = liveStateText.trim();
+  if (!t) return "";
+  const marker = t.search(/^# Current Story State/m);
+  if (marker >= 0) return t.slice(marker).trim();
+  if (t.includes("## Where We Are Right Now")) return t;
+  return t;
 }
 
 /**

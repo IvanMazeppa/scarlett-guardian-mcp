@@ -117,10 +117,17 @@ export type GuardianLlmAssessment = {
   error?: string;
   /** P1: what Guardian did with candidate_memory_update (stage/live/skip). */
   memory_write?: {
-    action: "none" | "staged" | "stage_transition" | "live_append" | "failed";
+    action:
+      | "none"
+      | "staged"
+      | "stage_transition"
+      | "held_for_review"
+      | "live_append"
+      | "failed";
     reason: string;
     staged_update_id?: string;
     error?: string;
+    violations?: string[];
   };
 };
 
@@ -153,10 +160,17 @@ export type GuardianReport = {
   grok_emotional_context?: string;
   /** P1 write-back decision surface (also mirrored under llm_assessment.memory_write). */
   memory_write?: {
-    action: "none" | "staged" | "stage_transition" | "live_append" | "failed";
+    action:
+      | "none"
+      | "staged"
+      | "stage_transition"
+      | "held_for_review"
+      | "live_append"
+      | "failed";
     reason: string;
     staged_update_id?: string;
     error?: string;
+    violations?: string[];
   };
   /** WP-4.1: copy of auditor scene_transition for consumers (dramaturg, compression). */
   scene_transition?: SceneTransition | null;

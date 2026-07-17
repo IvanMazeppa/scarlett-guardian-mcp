@@ -46,7 +46,16 @@ const EnvSchema = z.object({
     .number()
     .int()
     .positive()
-    .default(45 * 60 * 1000)
+    .default(45 * 60 * 1000),
+  /**
+   * WP-4.2/4.3 burn-in:
+   * - none: never auto-approve staged writes from preflight
+   * - beats (default): auto path only for ordinary beat stages if implemented; transitions stage-and-hold
+   * - beats_and_valid_transitions: also auto-approve validated current-state rewrites after dry-run
+   */
+  GUARDIAN_AUTO_APPROVE: z
+    .enum(["none", "beats", "beats_and_valid_transitions"])
+    .default("beats")
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;
