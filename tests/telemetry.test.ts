@@ -134,6 +134,10 @@ assert.equal(detectMetaPollution("HIGH confidence context found from project_sou
     }
   );
   assert.ok(report.confidence_score >= 0);
+  // WP-4.3: memory_write always present on report
+  assert.ok(report.memory_write, "memory_write must always be recorded");
+  assert.ok(report.memory_write?.action, "memory_write.action required");
+  assert.ok(typeof report.memory_write?.reason === "string");
   assert.equal(events.length, 1);
   assert.ok(events[0].latency_ms.total >= 0);
   // cassette tools should have been timed via ALS

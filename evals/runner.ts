@@ -74,6 +74,7 @@ export type EvalConfig = Pick<
   | "GUARDIAN_MEMORY_WRITE_MODE"
   | "GUARDIAN_EXPAND_BUDGET_MS"
   | "GUARDIAN_VERIFY_BUDGET_MS"
+  | "GUARDIAN_AUTO_APPROVE"
 >;
 
 export function hermeticEvalConfig(): EvalConfig {
@@ -88,7 +89,9 @@ export function hermeticEvalConfig(): EvalConfig {
     GUARDIAN_MEMORY_WRITE_MODE: "stage",
     // Keep budgets short so optional tools bail quickly if cassette is thin.
     GUARDIAN_EXPAND_BUDGET_MS: 200,
-    GUARDIAN_VERIFY_BUDGET_MS: 200
+    GUARDIAN_VERIFY_BUDGET_MS: 200,
+    // Hermetic: do not auto-approve staged writes (cassette has no stage tools)
+    GUARDIAN_AUTO_APPROVE: "none"
   };
 }
 

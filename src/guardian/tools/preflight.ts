@@ -1,7 +1,10 @@
 import { performance } from "node:perf_hooks";
 import type { GuardianConfig } from "../config.js";
 import { assessGuardianEvidence } from "../llm-assessment.js";
-import { decideMemoryWrite } from "../memory-writeback.js";
+import {
+  decideMemoryWrite,
+  formatBeatAdvanceSessionContent
+} from "../memory-writeback.js";
 import { generateStateRewrite, validateStateRewrite } from "../state-rewrite.js";
 import type { RagToolCaller } from "../rag-client.js";
 import type {
@@ -362,87 +365,79 @@ async function runGuardianPreflightInner(
     ? "do_not_proceed"
     : deterministicProceedRecommendation;
 
-  // P1: material gate + prefer stage_story_update over live append spam.
-  let memoryWrite: GuardianReport["memory_write"] = {
+  // WP-4.3: material gate + staging branch; memory_write ALWAYS set on the report.
+  let memoryWrite: NonNullable<GuardianReport["memory_write"]> = {
     action: "none",
     reason: "not evaluated"
   };
-  const writeDecision = decideMemoryWrite({
-    candidateUpdate: llmAssessment.candidate_memory_update,
-    assessment: llmAssessment,
-    highRiskTriggers,
-    proceedRecommendation,
-    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE,
-    liveBeat
-  });
-
-  if (writeDecision.action === "none") {
-    memoryWrite = { action: "none", reason: writeDecision.reason };
-    console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
-  } else if (writeDecision.action === "stage") {
-    const stageResult = await callJson<{
-      success?: boolean;
-      staged_update?: { id?: string };
-    }>(toolCalls, ragClient, "stage_story_update", {
-      target_source_file: "project_source_files/current-state.md",
-      proposed_content: writeDecision.content,
-      mode: "append",
-      rationale: writeDecision.rationale,
-      citations: [
-        `preflight_query:${preflightQuery.slice(0, 200)}`,
-        ...highRiskTriggers.map((t) => `trigger:${t}`)
-      ]
+  try {
+    const writeDecision = decideMemoryWrite({
+      candidateUpdate: llmAssessment.candidate_memory_update,
+      assessment: llmAssessment,
+      highRiskTriggers,
+      proceedRecommendation,
+      writeMode: config.GUARDIAN_MEMORY_WRITE_MODE,
+      liveBeat
     });
-    if (stageResult.ok && stageResult.response?.staged_update?.id) {
-      memoryWrite = {
-        action: "staged",
-        reason: writeDecision.reason,
-        staged_update_id: stageResult.response.staged_update.id
-      };
-      console.log(
-        `${Date.now()} Memory update staged: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
-      );
+
+    if (writeDecision.action === "none") {
+      memoryWrite = { action: "none", reason: writeDecision.reason };
+      console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
+    } else if (writeDecision.action === "stage") {
+      memoryWrite = await applyBeatStageWrite({
+        writeDecision,
+        candidateRaw: llmAssessment.candidate_memory_update,
+        liveBeat,
+        ragClient,
+        toolCalls,
+        preflightQuery,
+        highRiskTriggers,
+        autoApprove: config.GUARDIAN_AUTO_APPROVE ?? "beats"
+      });
+    } else if (writeDecision.action === "stage_transition") {
+      const liveStateText =
+        liveState.ok && typeof liveState.response === "string" ? liveState.response : "";
+      memoryWrite = await applySceneTransitionWrite({
+        writeDecision,
+        llmAssessment,
+        liveStateText,
+        ragClient,
+        toolCalls,
+        preflightQuery,
+        highRiskTriggers,
+        config
+      });
+    } else if (writeDecision.action === "live_append") {
+      const liveResult = await callJson(toolCalls, ragClient, "update_story_state", {
+        source_file: "project_source_files/current-state.md",
+        content: writeDecision.content,
+        mode: "append"
+      });
+      memoryWrite = liveResult.ok
+        ? { action: "live_append", reason: writeDecision.reason }
+        : {
+            action: "failed",
+            reason: writeDecision.reason,
+            error: liveResult.error ?? "update_story_state failed"
+          };
+      console.log(`${Date.now()} Memory live append: ${memoryWrite.action} (${writeDecision.reason})`);
     } else {
       memoryWrite = {
-        action: "failed",
-        reason: writeDecision.reason,
-        error: stageResult.error ?? "stage_story_update returned no staged_update id"
+        action: "none",
+        reason: `unhandled write decision: ${(writeDecision as { action: string }).action}`
       };
-      console.warn(`${Date.now()} Memory stage failed: ${memoryWrite.error}`);
     }
-  } else if (writeDecision.action === "stage_transition") {
-    // WP-4.2: generate full current-state rewrite → validate → stage overwrite (hold unless auto-approve transitions).
-    const liveStateText =
-      liveState.ok && typeof liveState.response === "string" ? liveState.response : "";
-    memoryWrite = await applySceneTransitionWrite({
-      writeDecision,
-      llmAssessment,
-      liveStateText,
-      ragClient,
-      toolCalls,
-      preflightQuery,
-      highRiskTriggers,
-      config
-    });
-  } else if (writeDecision.action === "live_append") {
-    const liveResult = await callJson(toolCalls, ragClient, "update_story_state", {
-      source_file: "project_source_files/current-state.md",
-      content: writeDecision.content,
-      mode: "append"
-    });
-    memoryWrite = liveResult.ok
-      ? { action: "live_append", reason: writeDecision.reason }
-      : {
-          action: "failed",
-          reason: writeDecision.reason,
-          error: liveResult.error ?? "update_story_state failed"
-        };
-    console.log(`${Date.now()} Memory live append: ${memoryWrite.action} (${writeDecision.reason})`);
+  } catch (err) {
+    memoryWrite = {
+      action: "failed",
+      reason: "write-branch exception",
+      error: err instanceof Error ? err.message : String(err)
+    };
+    console.warn(`${Date.now()} Memory write-branch error: ${memoryWrite.error}`);
   }
 
-  if (llmAssessment.enabled) {
-    llmAssessment.memory_write = memoryWrite;
-  }
+  // Always mirror onto assessment when present (even if LLM disabled).
+  llmAssessment.memory_write = memoryWrite;
 
   const allResults = collectAllResults(preflight.response, memoryResponses);
   const criticalPrecedents = selectPrecedents(
@@ -544,6 +539,141 @@ async function runGuardianPreflightInner(
   }
 
   return report;
+}
+
+/**
+ * WP-4.3 beat path: stage event-log session append + current-state patch;
+ * auto-approve both when GUARDIAN_AUTO_APPROVE is beats | beats_and_valid_transitions.
+ */
+async function applyBeatStageWrite(input: {
+  writeDecision: Extract<ReturnType<typeof decideMemoryWrite>, { action: "stage" }>;
+  candidateRaw: string | null | undefined;
+  liveBeat: LiveBeat | null | undefined;
+  ragClient: RagToolCaller;
+  toolCalls: RagToolCall[];
+  preflightQuery: string;
+  highRiskTriggers: string[];
+  autoApprove: "none" | "beats" | "beats_and_valid_transitions";
+}): Promise<NonNullable<GuardianReport["memory_write"]>> {
+  const {
+    writeDecision,
+    candidateRaw,
+    liveBeat,
+    ragClient,
+    toolCalls,
+    preflightQuery,
+    highRiskTriggers,
+    autoApprove
+  } = input;
+
+  const citations = [
+    `preflight_query:${preflightQuery.slice(0, 200)}`,
+    ...highRiskTriggers.map((t) => `trigger:${t}`),
+    "write_class:beat"
+  ];
+
+  const raw =
+    typeof candidateRaw === "string" && candidateRaw.trim()
+      ? candidateRaw.trim()
+      : writeDecision.content;
+  const eventLogBody = formatBeatAdvanceSessionContent(raw, liveBeat);
+
+  // 1) Episodic append to event-log (session heading form)
+  const eventStage = await callJson<{ staged_update?: { id?: string } }>(
+    toolCalls,
+    ragClient,
+    "stage_story_update",
+    {
+      target_source_file: "project_source_files/event-log.md",
+      proposed_content: eventLogBody,
+      mode: "append",
+      rationale: `${writeDecision.rationale}; target=event-log`,
+      citations: [...citations, "target:event-log"]
+    }
+  );
+
+  // 2) Continuity bullet to current-state (reviewable snapshot patch)
+  const stateStage = await callJson<{ staged_update?: { id?: string } }>(
+    toolCalls,
+    ragClient,
+    "stage_story_update",
+    {
+      target_source_file: "project_source_files/current-state.md",
+      proposed_content: writeDecision.content,
+      mode: "append",
+      rationale: writeDecision.rationale,
+      citations: [...citations, "target:current-state"]
+    }
+  );
+
+  const eventId = eventStage.response?.staged_update?.id;
+  const stateId = stateStage.response?.staged_update?.id;
+
+  if (!stateStage.ok || !stateId) {
+    return {
+      action: "failed",
+      reason: writeDecision.reason,
+      error:
+        stateStage.error ??
+        eventStage.error ??
+        "stage_story_update returned no staged_update id for current-state",
+      staged_update_id: eventId
+    };
+  }
+
+  const shouldAuto =
+    autoApprove === "beats" || autoApprove === "beats_and_valid_transitions";
+
+  if (shouldAuto) {
+    const ids = [eventId, stateId].filter(Boolean) as string[];
+    const applied: string[] = [];
+    const errors: string[] = [];
+    for (const sid of ids) {
+      const dry = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+        staged_update_id: sid,
+        dry_run: true
+      });
+      if (!dry.ok) {
+        errors.push(`dry_run ${sid}: ${dry.error ?? "fail"}`);
+        continue;
+      }
+      const ok = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+        staged_update_id: sid,
+        dry_run: false,
+        delete_after_approval: true
+      });
+      if (ok.ok) applied.push(sid);
+      else errors.push(`approve ${sid}: ${ok.error ?? "fail"}`);
+    }
+    if (applied.length > 0 && errors.length === 0) {
+      console.log(
+        `${Date.now()} Beat write auto-approved (${autoApprove}): ${applied.join(", ")}`
+      );
+      return {
+        action: "staged",
+        reason: `beat staged+auto-approved (${writeDecision.reason}); event_log=${eventId ?? "n/a"}; current_state=${stateId}`,
+        staged_update_id: stateId
+      };
+    }
+    console.warn(
+      `${Date.now()} Beat auto-approve partial/failed: applied=${applied.join(",") || "none"}; ${errors.join("; ")}`
+    );
+    return {
+      action: "held_for_review",
+      reason: `beat staged; auto-approve incomplete (${errors.join("; ") || "unknown"}); ${writeDecision.reason}`,
+      staged_update_id: stateId,
+      error: errors.join("; ") || undefined
+    };
+  }
+
+  console.log(
+    `${Date.now()} Beat staged for review (GUARDIAN_AUTO_APPROVE=${autoApprove}): state=${stateId} event=${eventId ?? "n/a"}`
+  );
+  return {
+    action: "staged",
+    reason: `beat staged hold (${writeDecision.reason}); event_log=${eventId ?? "n/a"}; current_state=${stateId}`,
+    staged_update_id: stateId
+  };
 }
 
 /**
