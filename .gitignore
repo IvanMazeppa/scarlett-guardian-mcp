@@ -6,3 +6,4 @@ dist/
 docs/guardian-reports/
 evals/runs/
 .guardian/telemetry/
+.guardian/serendipity-state.json

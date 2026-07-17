@@ -293,7 +293,9 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 4.2 | **done** | `state-rewrite.ts` (`generateStateRewrite` medium terra + `validateStateRewrite` gates); `.guardian/protected-facts.txt`; preflight transition path stages **overwrite** rewrite; `held_for_review` on gen/validate fail; `GUARDIAN_AUTO_APPROVE` default `beats` (hold transitions). Tests + eval:fast 16/16. Evidence: `wp-4.2-state-rewrite-2026-07-17.md`. Preserve: `preserve/roadmap-wp42-state-rewrite-20260717`. |
 | 4.3 | **done** | Write-branch: beat path stages **event-log + current-state**; `GUARDIAN_AUTO_APPROVE` (default `beats` auto-applies beat stages; transitions still hold unless `beats_and_valid_transitions`); **`memory_write` always on report** (try/catch + mirror to assessment). Hermetic eval uses `AUTO_APPROVE=none`. Evidence: `wp-4.3-memory-write-always-2026-07-17.md`. |
 | 4.4 | **done** | `scripts/review-staged.ts` + `npm run review:staged` — list/show/diff/dry-run/approve/reject against RAG staging tools. Doc: `docs/review-staged-cli.md`. Preserve: `preserve/roadmap-wp44-review-staged-20260717`. |
-| 4.5–4.8 | pending | |
+| 4.5 | pending | Burn-in ops for auto-approve transitions |
+| 4.6 | **done** | `serendipity-weaver.ts`: tiers, scene modes, deferral queue, Ryan arc stages, drought fire chance, `.guardian/serendipity-state.json`; preflight uses weaver; `serendipity.ts` thin wrapper. Tests: intimate ambient-only, deferral, arc order, 50-turn sim. Evidence: `wp-4.6-serendipity-weaver-2026-07-17.md`. Preserve: `preserve/roadmap-wp46-serendipity-weaver-20260717`. |
+| 4.7–4.8 | pending | Auditor weave field (4.7); L3 eval (4.8) |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |

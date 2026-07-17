@@ -61,7 +61,7 @@ import {
   truncate,
   truncateAtSentence
 } from "../report/text-clean.js";
-import { getSerendipityNudge } from "../serendipity.js";
+import { runSerendipityTurn } from "../serendipity-weaver.js";
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 
@@ -506,7 +506,11 @@ async function runGuardianPreflightInner(
     hard_flags: hardFlags,
     retrieval_notes: retrievalNotes,
     duplex_source: duplexSource,
-    serendipity_nudge: getSerendipityNudge(highRiskTriggers),
+    serendipity_nudge: runSerendipityTurn({
+      highRiskTriggers,
+      userMessage: input.user_message,
+      liveBeat
+    }).nudge,
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
     grok_scene_summary: currentStateSummary,
