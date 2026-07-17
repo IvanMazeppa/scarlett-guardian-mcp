@@ -288,8 +288,9 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 3.2 | **done** | Userscript v2.0 `scripts/guardian-browser-bridge.user.js`: shadow default (completion detector + layered scrape + GM POST `/duplex-cache` + status pill); modes interceptor/calibrate stub; menu for URL/token/debug scrape. Install: `docs/browser-bridge-v2-install.md`. Preserve: `preserve/roadmap-wp32-browser-bridge-v2-20260716`. |
 | 3.3 | **partial / stub** | Calibrate mode + GM storage for URL/token/selector override already in bridge v2; full polish optional. Not blocking Phase 4. |
 | 3.4 | **done** | Live proof: `duplex_source: "bridge_cache"` without OOC paste of `scarlett_previous_message`. Evidence: `wp-3.4-live-bridge-cache-green-2026-07-17.md`; report `preflight-full-2026-07-17T03-22-10-667Z.json`. Newest-wins fix `e05a08c` de-risked multi-entry cache. Shadow architecture **green**. |
-| 3.5 | pending | Robustness: stronger thread-key path, multi-thread tests, 90s preflight idempotency (optional before Phase 4). |
-| 4.1–4.8 | pending | |
+| 3.5 | deferred | Robustness (thread-key, multi-thread tests, 90s idempotency) — optional; duplex daily path de-risked at 3.4. Revisit when operator requests. |
+| 4.1 | **done** | Auditor `scene_transition` schema field + system prompt; `stage_transition` decision class in `decideMemoryWrite`; report `scene_transition` + `memory_write.action=stage_transition`; preflight stages with transition citations. Tests + eval:fast 16/16. Evidence: `wp-4.1-scene-transition-2026-07-17.md`. Preserve: `preserve/roadmap-wp41-scene-transition-20260717`. |
+| 4.2–4.8 | pending | |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |

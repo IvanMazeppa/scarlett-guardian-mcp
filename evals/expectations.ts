@@ -42,9 +42,10 @@ function correctionPresent(report: GuardianReport): boolean {
 function writeActionClass(report: GuardianReport): "none" | "stage" | "stage_transition" | "other" {
   const action = report.memory_write?.action ?? "none";
   if (action === "none") return "none";
+  if (action === "stage_transition") return "stage_transition";
   if (action === "staged") {
     const reason = report.memory_write?.reason ?? "";
-    if (/transition|scene.?advance|beat.?advance/i.test(reason)) return "stage_transition";
+    if (/stage_transition|scene.?transition|scene.?advance/i.test(reason)) return "stage_transition";
     return "stage";
   }
   return "other";

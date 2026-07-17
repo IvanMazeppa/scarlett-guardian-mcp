@@ -145,6 +145,56 @@ const offMode = decideMemoryWrite({
 });
 assert.equal(offMode.action, "none");
 
+// WP-4.1: auditor scene_transition → stage_transition class
+const transitionWrite = decideMemoryWrite({
+  candidateUpdate:
+    "Departed Nordschleife paddock; arrived Affalterbach AMG HQ for the aero presentation.",
+  assessment: {
+    enabled: true,
+    continuity_risk_level: "medium",
+    scene_transition: {
+      occurred: true,
+      from: "Nürburgring Industry Pool paddock, Friday afternoon",
+      to: "Affalterbach AMG headquarters, presentation bay",
+      kind: "location"
+    }
+  },
+  highRiskTriggers: [],
+  proceedRecommendation: "proceed",
+  writeMode: "stage",
+  liveBeat: trackBeat
+});
+assert.equal(transitionWrite.action, "stage_transition");
+if (transitionWrite.action === "stage_transition") {
+  assert.match(transitionWrite.reason, /stage_transition/);
+  assert.equal(transitionWrite.transition.kind, "location");
+  assert.match(transitionWrite.transition.to ?? "", /Affalterbach/);
+  assert.match(transitionWrite.content, /## Session —/);
+}
+
+// Transition declared with empty candidate → synthetic note still stages as transition
+const transitionOnly = decideMemoryWrite({
+  candidateUpdate: null,
+  assessment: {
+    enabled: true,
+    continuity_risk_level: "low",
+    scene_transition: {
+      occurred: true,
+      from: "Villa Pétrusse, Luxembourg",
+      to: "Eifel B-roads toward Nürburg",
+      kind: "both"
+    }
+  },
+  highRiskTriggers: [],
+  proceedRecommendation: "proceed",
+  writeMode: "stage",
+  liveBeat: trackBeat
+});
+assert.equal(transitionOnly.action, "stage_transition");
+if (transitionOnly.action === "stage_transition") {
+  assert.match(transitionOnly.content, /Scene transition/);
+}
+
 const blocked = decideMemoryWrite({
   candidateUpdate: "They moved to the villa overnight.",
   assessment: { enabled: true, continuity_risk_level: "high", should_block_prose: true },

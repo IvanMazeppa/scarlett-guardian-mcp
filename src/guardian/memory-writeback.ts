@@ -16,6 +16,18 @@ export type MemoryWriteMode = "stage" | "live" | "off";
 export type MemoryWriteDecision =
   | { action: "none"; reason: string }
   | { action: "stage"; content: string; rationale: string; reason: string }
+  | {
+      action: "stage_transition";
+      content: string;
+      rationale: string;
+      reason: string;
+      /** Snapshot from auditor scene_transition (for WP-4.2 rewrite input). */
+      transition: {
+        from?: string;
+        to?: string;
+        kind?: "location" | "time_jump" | "both";
+      };
+    }
   | { action: "live_append"; content: string; reason: string };
 
 const NOOP_PATTERNS = [
@@ -209,36 +221,70 @@ export function decideMemoryWrite(input: {
         ? ""
         : String(input.candidateUpdate);
 
+  const transition = input.assessment.scene_transition;
+  const transitionOccurred = Boolean(transition && transition.occurred === true);
+
+  // Scene transition may still need a non-noop candidate; if auditor set transition but
+  // empty update, synthesize a minimal note from from→to for staging (WP-4.2 will rewrite).
+  let rawForWrite = raw;
   if (isNoOpMemoryUpdate(raw)) {
-    return { action: "none", reason: "null/empty/no-op candidate_memory_update" };
+    if (transitionOccurred && transition) {
+      const from = transition.from?.trim() || "prior scene";
+      const to = transition.to?.trim() || "new scene";
+      rawForWrite = `Scene transition (${transition.kind ?? "location"}): ${from} → ${to}.`;
+    } else {
+      return { action: "none", reason: "null/empty/no-op candidate_memory_update" };
+    }
   }
 
-  if (!isMaterialMemoryUpdate(raw, input.assessment, input.highRiskTriggers, input.liveBeat)) {
+  // Transitions are always material when auditor declared them; otherwise use existing gate.
+  if (
+    !transitionOccurred &&
+    !isMaterialMemoryUpdate(rawForWrite, input.assessment, input.highRiskTriggers, input.liveBeat)
+  ) {
     return {
       action: "none",
       reason: "immaterial under write-back gate (need medium+ risk or clear state advance / live-beat delta)"
     };
   }
 
-  const delta = hasLiveBeatDelta(raw, input.liveBeat);
+  const delta = hasLiveBeatDelta(rawForWrite, input.liveBeat);
   const rationale = [
     `risk=${input.assessment.continuity_risk_level ?? "unknown"}`,
     input.highRiskTriggers.length ? `triggers=${input.highRiskTriggers.slice(0, 3).join("|")}` : "triggers=none",
     input.assessment.scene_state_delta ? "has_scene_delta" : "no_scene_delta",
-    delta ? "live_beat_delta=yes" : "live_beat_delta=no"
+    delta ? "live_beat_delta=yes" : "live_beat_delta=no",
+    transitionOccurred
+      ? `scene_transition=yes kind=${transition?.kind ?? "unknown"}`
+      : "scene_transition=no"
   ].join("; ");
 
   if (mode === "live") {
     return {
       action: "live_append",
-      content: formatLiveAppendContent(raw, input.liveBeat),
+      content: formatLiveAppendContent(rawForWrite, input.liveBeat),
       reason: `live append allowed (${rationale})`
+    };
+  }
+
+  // WP-4.1: auditor-declared scene transition → distinct decision class (rewrite in WP-4.2).
+  if (transitionOccurred) {
+    return {
+      action: "stage_transition",
+      content: formatStagedMemoryContent(rawForWrite, input.liveBeat),
+      rationale: `Guardian preflight scene transition (${rationale}) from=${transition?.from ?? "?"} to=${transition?.to ?? "?"}`,
+      reason: `stage_transition preferred (${rationale})`,
+      transition: {
+        from: transition?.from,
+        to: transition?.to,
+        kind: transition?.kind
+      }
     };
   }
 
   return {
     action: "stage",
-    content: formatStagedMemoryContent(raw, input.liveBeat),
+    content: formatStagedMemoryContent(rawForWrite, input.liveBeat),
     rationale: `Guardian preflight staged update (${rationale})`,
     reason: `stage preferred (${rationale})`
   };

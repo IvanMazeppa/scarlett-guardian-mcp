@@ -89,6 +89,14 @@ export type FactCheck = {
   next_action?: string;
 };
 
+/** WP-4.1 / D4 §C.3 — auditor declaration of a durable location/time scene change. */
+export type SceneTransition = {
+  occurred: boolean;
+  from?: string;
+  to?: string;
+  kind?: "location" | "time_jump" | "both";
+};
+
 export type GuardianLlmAssessment = {
   enabled: boolean;
   model?: string;
@@ -101,10 +109,15 @@ export type GuardianLlmAssessment = {
   should_block_prose?: boolean;
   candidate_memory_update?: string | null;
   grok_performance_correction?: string | null;
+  /**
+   * WP-4.1: set when location/story-time durably changed vs LIVE BEAT.
+   * Continuous same-place action is not a transition.
+   */
+  scene_transition?: SceneTransition | null;
   error?: string;
   /** P1: what Guardian did with candidate_memory_update (stage/live/skip). */
   memory_write?: {
-    action: "none" | "staged" | "live_append" | "failed";
+    action: "none" | "staged" | "stage_transition" | "live_append" | "failed";
     reason: string;
     staged_update_id?: string;
     error?: string;
@@ -140,11 +153,13 @@ export type GuardianReport = {
   grok_emotional_context?: string;
   /** P1 write-back decision surface (also mirrored under llm_assessment.memory_write). */
   memory_write?: {
-    action: "none" | "staged" | "live_append" | "failed";
+    action: "none" | "staged" | "stage_transition" | "live_append" | "failed";
     reason: string;
     staged_update_id?: string;
     error?: string;
   };
+  /** WP-4.1: copy of auditor scene_transition for consumers (dramaturg, compression). */
+  scene_transition?: SceneTransition | null;
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

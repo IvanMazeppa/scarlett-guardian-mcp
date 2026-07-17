@@ -368,7 +368,20 @@ async function runGuardianPreflightInner(
   if (writeDecision.action === "none") {
     memoryWrite = { action: "none", reason: writeDecision.reason };
     console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
-  } else if (writeDecision.action === "stage") {
+  } else if (writeDecision.action === "stage" || writeDecision.action === "stage_transition") {
+    // WP-4.1: stage_transition uses same staging path for now; WP-4.2 will overwrite via state rewrite.
+    const isTransition = writeDecision.action === "stage_transition";
+    const citations = [
+      `preflight_query:${preflightQuery.slice(0, 200)}`,
+      ...highRiskTriggers.map((t) => `trigger:${t}`)
+    ];
+    if (isTransition && "transition" in writeDecision) {
+      citations.push(
+        `scene_transition:${writeDecision.transition.kind ?? "unknown"}`,
+        `from:${(writeDecision.transition.from ?? "").slice(0, 120)}`,
+        `to:${(writeDecision.transition.to ?? "").slice(0, 120)}`
+      );
+    }
     const stageResult = await callJson<{
       success?: boolean;
       staged_update?: { id?: string };
@@ -377,19 +390,16 @@ async function runGuardianPreflightInner(
       proposed_content: writeDecision.content,
       mode: "append",
       rationale: writeDecision.rationale,
-      citations: [
-        `preflight_query:${preflightQuery.slice(0, 200)}`,
-        ...highRiskTriggers.map((t) => `trigger:${t}`)
-      ]
+      citations
     });
     if (stageResult.ok && stageResult.response?.staged_update?.id) {
       memoryWrite = {
-        action: "staged",
+        action: isTransition ? "stage_transition" : "staged",
         reason: writeDecision.reason,
         staged_update_id: stageResult.response.staged_update.id
       };
       console.log(
-        `${Date.now()} Memory update staged: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
+        `${Date.now()} Memory update ${isTransition ? "stage_transition" : "staged"}: ${stageResult.response.staged_update.id} (${writeDecision.reason})`
       );
     } else {
       memoryWrite = {
@@ -488,6 +498,7 @@ async function runGuardianPreflightInner(
     duplex_source: duplexSource,
     serendipity_nudge: getSerendipityNudge(highRiskTriggers),
     memory_write: memoryWrite,
+    scene_transition: llmAssessment.scene_transition ?? null,
     grok_scene_summary: currentStateSummary,
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,

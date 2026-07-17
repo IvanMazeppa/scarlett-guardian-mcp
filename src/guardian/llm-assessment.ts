@@ -50,7 +50,27 @@ const assessmentSchema = {
       type: ["string", "null"],
       description: "Durable canon change only; null/empty if scene stays aligned with no write needed."
     },
-    grok_performance_correction: { type: ["string", "null"] }
+    grok_performance_correction: { type: ["string", "null"] },
+    // WP-4.1 / D4 §C.3 point E — additive; null when no durable location/time jump.
+    scene_transition: {
+      type: ["object", "null"],
+      additionalProperties: false,
+      description:
+        "Set only when location or story-time has durably changed versus the LIVE BEAT. Same place/hour continuous action → null.",
+      properties: {
+        occurred: { type: "boolean" },
+        from: {
+          type: "string",
+          description: "Prior scene snapshot, e.g. Villa Pétrusse suite, Luxembourg, Thursday night"
+        },
+        to: {
+          type: "string",
+          description: "New scene snapshot, e.g. Nürburgring industry paddock, Friday midday"
+        },
+        kind: { type: "string", enum: ["location", "time_jump", "both"] }
+      },
+      required: ["occurred", "from", "to", "kind"]
+    }
   },
   required: [
     "continuity_risk_level",
@@ -61,7 +81,8 @@ const assessmentSchema = {
     "needs_more_retrieval",
     "should_block_prose",
     "candidate_memory_update",
-    "grok_performance_correction"
+    "grok_performance_correction",
+    "scene_transition"
   ]
 } as const;
 
@@ -113,8 +134,38 @@ export function buildAuditorSystemPrompt(): string {
     "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, or relationship milestone worth the notebook.",
     "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes.",
     "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
+    "Set scene_transition only when the scene's location or story-time has durably changed versus the LIVE BEAT block. Continuous action in the same place and hour is not a transition — use null.",
+    "When scene_transition.occurred is true, fill from/to as short human snapshots and kind as location|time_jump|both; also set a non-null candidate_memory_update summarizing the durable move.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
   ].join(" ");
+}
+
+/**
+ * Normalize auditor JSON so partial/frozen fixtures without scene_transition stay valid.
+ */
+export function normalizeAssessmentFields(
+  raw: Record<string, unknown>
+): Partial<import("./report/models.js").GuardianLlmAssessment> {
+  const st = raw.scene_transition;
+  let scene_transition: import("./report/models.js").SceneTransition | null = null;
+  if (st && typeof st === "object" && !Array.isArray(st)) {
+    const o = st as Record<string, unknown>;
+    if (typeof o.occurred === "boolean") {
+      scene_transition = {
+        occurred: o.occurred,
+        from: typeof o.from === "string" ? o.from : undefined,
+        to: typeof o.to === "string" ? o.to : undefined,
+        kind:
+          o.kind === "location" || o.kind === "time_jump" || o.kind === "both"
+            ? o.kind
+            : undefined
+      };
+    }
+  }
+  return {
+    ...(raw as object),
+    scene_transition
+  } as Partial<import("./report/models.js").GuardianLlmAssessment>;
 }
 
 export async function assessGuardianEvidence(
@@ -175,10 +226,11 @@ export async function assessGuardianEvidence(
       throw new Error("OpenAI response did not contain output_text.");
     }
 
+    const parsed = JSON.parse(outputText) as Record<string, unknown>;
     return {
       enabled: true,
       model: config.GUARDIAN_MODEL,
-      ...JSON.parse(outputText)
+      ...normalizeAssessmentFields(parsed)
     };
   } catch (error) {
     return {
