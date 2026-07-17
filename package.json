@@ -12,7 +12,8 @@
     "curate:golden": "tsx scripts/curate-golden.ts",
     "eval:fast": "tsx evals/runner.ts --llm-mode off",
     "eval:baseline": "tsx evals/runner.ts --llm-mode off --write-baseline",
-    "telemetry:backfill": "tsx scripts/backfill-telemetry.ts"
+    "telemetry:backfill": "tsx scripts/backfill-telemetry.ts",
+    "review:staged": "tsx scripts/review-staged.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
