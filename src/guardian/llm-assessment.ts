@@ -8,6 +8,7 @@ import type {
 } from "./report/models.js";
 import { formatLiveBeatBlock, type LiveBeat } from "./recency.js";
 import type { GuardianPreflightInput } from "./tools/preflight.js";
+import type { Intrusiveness, SceneMode, SerendipityEvent } from "./serendipity-weaver.js";
 
 type AssessmentConfig = Pick<
   GuardianConfig,
@@ -70,6 +71,12 @@ const assessmentSchema = {
         kind: { type: "string", enum: ["location", "time_jump", "both"] }
       },
       required: ["occurred", "from", "to", "kind"]
+    },
+    // WP-4.7 / D4 §B point C — auditor weave of selected world event (null = veto).
+    serendipity_weave: {
+      type: ["string", "null"],
+      description:
+        "When a SERENDIPITY WORLD EVENT is provided in the user message: ONE sentence weaving it into the scene background at its tier. Ambient must not demand a response. Null if it cannot be woven without disrupting the scene. Null when no event was provided."
     }
   },
   required: [
@@ -82,9 +89,18 @@ const assessmentSchema = {
     "should_block_prose",
     "candidate_memory_update",
     "grok_performance_correction",
-    "scene_transition"
+    "scene_transition",
+    "serendipity_weave"
   ]
 } as const;
+
+/** Optional serendipity pick passed into the auditor for weaving (WP-4.7). */
+export type SerendipityForAuditor = {
+  event: SerendipityEvent;
+  mode: SceneMode;
+  maxTier: Intrusiveness;
+  fromDeferral?: boolean;
+};
 
 export type AssessGuardianEvidenceInput = {
   preflightInput: GuardianPreflightInput;
@@ -95,6 +111,8 @@ export type AssessGuardianEvidenceInput = {
   highRiskTriggers: string[];
   /** Parsed current-state snapshot (WP-2.2/2.3). Optional for OOC paths. */
   liveBeat?: LiveBeat;
+  /** WP-4.7: selected world event for one-sentence weave (optional). */
+  serendipity?: SerendipityForAuditor;
   config: AssessmentConfig;
 };
 
@@ -108,13 +126,34 @@ export function buildAuditorUserMessage(
 ): string {
   const liveBlock = formatLiveBeatBlock(input.liveBeat);
   const evidenceJson = buildEvidencePayload(input, maxEvidenceChars);
-  return [
+  const parts = [
     liveBlock,
     "",
     "### RETRIEVED EVIDENCE (JSON)",
     "Use for support and history. Do not treat older same-day beats as the present if they conflict with LIVE BEAT.",
     evidenceJson
-  ].join("\n");
+  ];
+  if (input.serendipity?.event) {
+    const e = input.serendipity.event;
+    const delay = input.serendipity.fromDeferral
+      ? " This was deferred earlier and is a delayed discovery when the scene opened."
+      : "";
+    const note = e.grokNote ? ` Respect the Grok note: ${e.grokNote}` : "";
+    parts.push(
+      "",
+      "### SERENDIPITY WORLD EVENT (selected by Guardian weaver)",
+      `A background world event was selected: '${e.text}' (tier: ${e.tier}, scene mode: ${input.serendipity.mode}, max admissible tier: ${input.serendipity.maxTier}).${delay}`,
+      `Write ONE sentence in serendipity_weave weaving it into the current scene's background at its tier — ambient events must not demand a character response; peripheral may be noticed and ignored; engaging/disruptive may invite response only if the scene can hold it.${note}`,
+      "If it cannot be woven without disrupting the scene (especially intimate/vulnerable), return serendipity_weave: null."
+    );
+  } else {
+    parts.push(
+      "",
+      "### SERENDIPITY WORLD EVENT",
+      "None selected this turn. Set serendipity_weave to null."
+    );
+  }
+  return parts.join("\n");
 }
 
 export function buildAuditorSystemPrompt(): string {
@@ -136,6 +175,8 @@ export function buildAuditorSystemPrompt(): string {
     "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
     "Set scene_transition only when the scene's location or story-time has durably changed versus the LIVE BEAT block. Continuous action in the same place and hour is not a transition — use null.",
     "When scene_transition.occurred is true, fill from/to as short human snapshots and kind as location|time_jump|both; also set a non-null candidate_memory_update summarizing the durable move.",
+    "When a SERENDIPITY WORLD EVENT block is present: set serendipity_weave to exactly ONE grounded background sentence at the event's tier (or null to veto). Never invent a different event. Never put tool names or 'SERENDIPITY EVENT' labels in the weave.",
+    "When no serendipity event is provided: serendipity_weave must be null.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
   ].join(" ");
 }
@@ -162,9 +203,16 @@ export function normalizeAssessmentFields(
       };
     }
   }
+  let serendipity_weave: string | null = null;
+  if (typeof raw.serendipity_weave === "string" && raw.serendipity_weave.trim()) {
+    const w = raw.serendipity_weave.trim();
+    serendipity_weave = w === "null" ? null : w;
+  }
+
   return {
     ...(raw as object),
-    scene_transition
+    scene_transition,
+    serendipity_weave
   } as Partial<import("./report/models.js").GuardianLlmAssessment>;
 }
 

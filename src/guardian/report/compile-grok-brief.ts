@@ -165,9 +165,25 @@ export function compileGrokBrief(report: GuardianReport): string {
   }
   parts.push("");
 
-  if (report.serendipity_nudge && !isRagMetaText(report.serendipity_nudge)) {
+  // WP-4.7: prefer auditor serendipity_weave (already preferred into serendipity_nudge in preflight).
+  const weave =
+    (report.llm_assessment?.serendipity_weave &&
+    typeof report.llm_assessment.serendipity_weave === "string" &&
+    report.llm_assessment.serendipity_weave.trim() &&
+    report.llm_assessment.serendipity_weave !== "null"
+      ? report.llm_assessment.serendipity_weave.trim()
+      : undefined) ||
+    (report.serendipity_nudge && !isRagMetaText(report.serendipity_nudge)
+      ? report.serendipity_nudge.trim()
+      : undefined);
+  if (weave && !isRagMetaText(weave)) {
     parts.push("**World Weaver (Serendipity):**");
-    parts.push(`- ${truncateAtSentence(report.serendipity_nudge, 320)}`);
+    // Strip legacy "SERENDIPITY EVENT..." prefix if present for cleaner novelist brief
+    const clean = weave
+      .replace(/^SERENDIPITY EVENT[^:]*:\s*/i, "")
+      .replace(/\s*Grok Note:.*$/i, "")
+      .trim();
+    parts.push(`- ${truncateAtSentence(clean || weave, 320)}`);
     parts.push("");
   }
 

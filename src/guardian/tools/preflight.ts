@@ -61,7 +61,10 @@ import {
   truncate,
   truncateAtSentence
 } from "../report/text-clean.js";
-import { runSerendipityTurn } from "../serendipity-weaver.js";
+import {
+  formatSerendipityNudge,
+  runSerendipityTurn
+} from "../serendipity-weaver.js";
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 
@@ -336,6 +339,22 @@ async function runGuardianPreflightInner(
     : confidenceScore >= config.GUARDIAN_CONFIDENCE_THRESHOLD && retrievalStatus === "success"
       ? "proceed"
       : "proceed_with_caution";
+  // WP-4.6/4.7: pick serendipity before auditor so terra can weave (or veto).
+  const serendipityPick = runSerendipityTurn({
+    highRiskTriggers,
+    userMessage: input.user_message,
+    liveBeat
+  });
+  if (serendipityPick.event) {
+    console.log(
+      `${Date.now()} Serendipity pick: id=${serendipityPick.event.id} tier=${serendipityPick.event.tier} mode=${serendipityPick.mode}${serendipityPick.surfacedFromDeferral ? " (deferred)" : ""}`
+    );
+  } else if (serendipityPick.deferredInstead) {
+    console.log(
+      `${Date.now()} Serendipity deferred: id=${serendipityPick.deferredInstead.id} tier=${serendipityPick.deferredInstead.tier} (mode=${serendipityPick.mode})`
+    );
+  }
+
   console.log(`${Date.now()} Starting assessGuardianEvidence...`);
   const llmT0 = performance.now();
   const llmAssessment: GuardianLlmAssessment = options?.frozenLlmAssessment
@@ -353,6 +372,14 @@ async function runGuardianPreflightInner(
         factChecks,
         highRiskTriggers,
         liveBeat,
+        serendipity: serendipityPick.event
+          ? {
+              event: serendipityPick.event,
+              mode: serendipityPick.mode,
+              maxTier: serendipityPick.maxTier,
+              fromDeferral: serendipityPick.surfacedFromDeferral
+            }
+          : undefined,
         config
       });
   const llmAssessmentMs = Math.round(performance.now() - llmT0);
@@ -360,6 +387,9 @@ async function runGuardianPreflightInner(
     `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
   );
   collector.mark("llm_assessment");
+
+  // Prefer auditor weave; fall back to deterministic catalog nudge (WP-4.7).
+  const serendipityNudge = resolveSerendipityNudge(llmAssessment, serendipityPick);
   
   const proceedRecommendation = llmAssessment.enabled && llmAssessment.should_block_prose
     ? "do_not_proceed"
@@ -506,11 +536,7 @@ async function runGuardianPreflightInner(
     hard_flags: hardFlags,
     retrieval_notes: retrievalNotes,
     duplex_source: duplexSource,
-    serendipity_nudge: runSerendipityTurn({
-      highRiskTriggers,
-      userMessage: input.user_message,
-      liveBeat
-    }).nudge,
+    serendipity_nudge: serendipityNudge,
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
     grok_scene_summary: currentStateSummary,
@@ -543,6 +569,28 @@ async function runGuardianPreflightInner(
   }
 
   return report;
+}
+
+/** WP-4.7: weave wins; null weave = veto; no event = undefined. */
+function resolveSerendipityNudge(
+  llmAssessment: GuardianLlmAssessment,
+  pick: ReturnType<typeof runSerendipityTurn>
+): string | undefined {
+  if (!pick.event) return undefined;
+  const weave = llmAssessment.serendipity_weave;
+  if (typeof weave === "string" && weave.trim() && weave.trim() !== "null") {
+    // Novelist-facing: plain sentence, no SERENDIPITY label spam
+    return weave.trim();
+  }
+  if (weave === null || weave === "null") {
+    // Auditor veto — do not inject catalog text
+    return undefined;
+  }
+  // LLM disabled / frozen without weave → deterministic fallback
+  return formatSerendipityNudge(pick.event, {
+    fromDeferral: pick.surfacedFromDeferral,
+    mode: pick.mode
+  });
 }
 
 /**

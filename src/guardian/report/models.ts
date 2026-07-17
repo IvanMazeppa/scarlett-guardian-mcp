@@ -114,6 +114,11 @@ export type GuardianLlmAssessment = {
    * Continuous same-place action is not a transition.
    */
   scene_transition?: SceneTransition | null;
+  /**
+   * WP-4.7: one scene-aware sentence weaving a selected serendipity event
+   * into the background (null = veto / cannot weave without disruption).
+   */
+  serendipity_weave?: string | null;
   error?: string;
   /** P1: what Guardian did with candidate_memory_update (stage/live/skip). */
   memory_write?: {

@@ -140,6 +140,12 @@ const noisyReport: GuardianReport = {
     }
   ],
   grok_emotional_context: "Warm aftercare turning to focused track-day energy; still physically close.",
+  llm_assessment: {
+    enabled: true,
+    serendipity_weave: "Rain ticks on the pit canopy while the open channel stays soft static."
+  },
+  serendipity_nudge:
+    "SERENDIPITY EVENT (Optional, tier=ambient): It starts raining. Weave this naturally.",
   retrieval_plan: {
     preflight_query: "x",
     memory_queries: ["y"],
@@ -149,6 +155,9 @@ const noisyReport: GuardianReport = {
 };
 
 const brief = compileGrokBrief(noisyReport);
+assert.match(brief, /World Weaver \(Serendipity\)/);
+assert.match(brief, /Rain ticks on the pit canopy/);
+assert.ok(!/SERENDIPITY EVENT \(Optional/i.test(brief), "brief should prefer clean weave over catalog label");
 assert.ok(!/search_story_memory/i.test(brief), "brief must not coach RAG tools");
 assert.ok(!/HIGH confidence context found/i.test(brief), "brief must not paste RAG meta summaries");
 assert.ok(!/Do not draft from this preflight/i.test(brief));

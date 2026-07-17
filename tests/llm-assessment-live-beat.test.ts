@@ -71,6 +71,49 @@ function testSystemPromptSupersession() {
   assert.ok(sys.includes(LIVE_BEAT_SUPERSESSION_INSTRUCTION));
   assert.match(sys, /LIVE BEAT wins/i);
   assert.match(sys, /Never describe superseded beats as current/i);
+  assert.match(sys, /serendipity_weave/i);
+}
+
+function testSerendipityBlockInUserMessage() {
+  const withEvent = buildAuditorUserMessage(
+    {
+      preflightInput: { user_message: "hey" },
+      memories: [],
+      expandedContexts: [],
+      factChecks: [],
+      highRiskTriggers: [],
+      liveBeat: sampleBeat,
+      serendipity: {
+        event: {
+          id: "weather_rain",
+          category: "weather",
+          tier: "ambient",
+          text: "Heavy rain starts on the paddock roof.",
+          cooldownTurns: 8,
+          weight: 1
+        },
+        mode: "professional",
+        maxTier: "engaging"
+      }
+    },
+    8000
+  );
+  assert.match(withEvent, /SERENDIPITY WORLD EVENT/);
+  assert.match(withEvent, /Heavy rain starts on the paddock roof/);
+  assert.match(withEvent, /tier: ambient/);
+
+  const none = buildAuditorUserMessage(
+    {
+      preflightInput: { user_message: "hey" },
+      memories: [],
+      expandedContexts: [],
+      factChecks: [],
+      highRiskTriggers: [],
+      liveBeat: sampleBeat
+    },
+    8000
+  );
+  assert.match(none, /None selected this turn/);
 }
 
 function testParseThenFormatRoundTrip() {
@@ -103,5 +146,6 @@ function testParseThenFormatRoundTrip() {
 testFormatLiveBeatBlock();
 testUserMessageOrder();
 testSystemPromptSupersession();
+testSerendipityBlockInUserMessage();
 testParseThenFormatRoundTrip();
 console.log("llm-assessment-live-beat.test.ts: all passed");

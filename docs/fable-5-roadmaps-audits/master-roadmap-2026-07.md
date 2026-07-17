@@ -295,7 +295,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 4.4 | **done** | `scripts/review-staged.ts` + `npm run review:staged` — list/show/diff/dry-run/approve/reject against RAG staging tools. Doc: `docs/review-staged-cli.md`. Preserve: `preserve/roadmap-wp44-review-staged-20260717`. |
 | 4.5 | pending | Burn-in ops for auto-approve transitions |
 | 4.6 | **done** | `serendipity-weaver.ts`: tiers, scene modes, deferral queue, Ryan arc stages, drought fire chance, `.guardian/serendipity-state.json`; preflight uses weaver; `serendipity.ts` thin wrapper. Tests: intimate ambient-only, deferral, arc order, 50-turn sim. Evidence: `wp-4.6-serendipity-weaver-2026-07-17.md`. Preserve: `preserve/roadmap-wp46-serendipity-weaver-20260717`. |
-| 4.7–4.8 | pending | Auditor weave field (4.7); L3 eval (4.8) |
+| 4.7 | **done** | Auditor `serendipity_weave` schema field; pick before assess; user-message SERENDIPITY block; preflight prefers weave over catalog (null = veto); brief **World Weaver** prefers weave and strips SERENDIPITY labels. Tests + eval:fast 16/16. Evidence: `wp-4.7-serendipity-weave-2026-07-17.md`. Preserve: `preserve/roadmap-wp47-serendipity-weave-20260717`. |
+| 4.8 | pending | L3 eval / goldens growth |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
