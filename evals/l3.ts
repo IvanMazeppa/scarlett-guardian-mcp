@@ -8,6 +8,7 @@
  * Requires OPENAI_API_KEY (+ GUARDIAN_LLM_ENABLED effective true in liveConfig).
  * Spec: guardian-eval-harness-design-2026-07.md §3 L3
  */
+import "dotenv/config";
 import { performance } from "node:perf_hooks";
 import { compileGrokBrief } from "../src/guardian/report/compile-grok-brief.js";
 import type { GuardianReport } from "../src/guardian/report/models.js";

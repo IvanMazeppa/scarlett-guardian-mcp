@@ -11,6 +11,7 @@
  *
  * Spec: docs/fable-5-roadmaps-audits/guardian-eval-harness-design-2026-07.md §3 L1/L3, §4
  */
+import "dotenv/config"; // L3 needs OPENAI_API_KEY from .env (preflight only type-imports config)
 import fs from "node:fs";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
