@@ -1,0 +1,247 @@
+{
+  "id": "gt-051-ambient-paddock-nudge",
+  "category": "serendipity",
+  "description": "WP-4.8 synthetic serendipity seed: ambient paddock detail available; L1 only checks meta-pollution and scene anchors (weaver is deterministic separately).",
+  "source_report": "(synthetic-fixture-wp-4.8)",
+  "input": {
+    "user_message": "Standing in the shade of the Albion lorry, I hand you a cold bottle and watch the pit lane breathe between runs. Anything catching your eye out here?",
+    "recent_context": "Nordschleife paddock, between stints. Cool-down shade by Albion lorry. Light ambient world pressure allowed.",
+    "scarlett_previous_message": null,
+    "force_full_retrieval": false
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_serendipity\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State\n\n- **Location:** Nordschleife paddock, shade of Albion lorry between stints.\n- **Mood:** Cool-down, ambient world open, not crisis.\n",
+    "retrieve_story_context": [
+      {
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Paddock ambient",
+            "text": "Between stints at the Industry Pool paddock. Albion lorry shade. Ambient details: engineers, coffee, radio chatter, heat shimmer off asphalt. No emergency.",
+            "rank_score": 0.9,
+            "source_role": "current_state",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Paddock ambient",
+            "text": "Between stints at the Industry Pool paddock. Albion lorry shade. Ambient details: engineers, coffee, radio chatter, heat shimmer off asphalt. No emergency.",
+            "rank_score": 0.9,
+            "source_role": "current_state",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Paddock ambient",
+            "text": "Between stints at the Industry Pool paddock. Albion lorry shade. Ambient details: engineers, coffee, radio chatter, heat shimmer off asphalt. No emergency.",
+            "rank_score": 0.9,
+            "source_role": "current_state",
+            "confidence": "high"
+          }
+        ]
+      }
+    ],
+    "search_story_memory": [
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      },
+      {
+        "status": "ok",
+        "confidence": "medium",
+        "result_count": 1,
+        "results": [
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "World texture",
+            "text": "Paddock ambient texture is fair game for light serendipity (crew banter, weather shift, distant V8) without hijacking intimacy or plot.",
+            "rank_score": 0.8,
+            "source_role": "event_log",
+            "confidence": "medium"
+          }
+        ]
+      }
+    ],
+    "expand_context_around_chunk": [
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      }
+    ],
+    "verify_story_fact": [
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      }
+    ]
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "paddock",
+        "Albion",
+        "lorry"
+      ],
+      [
+        "stint",
+        "shade",
+        "pit"
+      ]
+    ],
+    "brief_must_not_include": [
+      "search_story_memory",
+      "retrieve_story_context",
+      "HIGH confidence context found",
+      "vector_store",
+      "project_source_files",
+      "rank_score"
+    ],
+    "flags_expected": [],
+    "flags_forbidden": [],
+    "precedents_must_not_match": [],
+    "correction_expected": "none",
+    "write_action_expected": "either",
+    "brief_chars": {
+      "min": 100,
+      "max": 12000
+    },
+    "llm": {
+      "facts_min": 1
+    }
+  },
+  "tags": [
+    "wp-4.8",
+    "synthetic",
+    "serendipity"
+  ]
+}

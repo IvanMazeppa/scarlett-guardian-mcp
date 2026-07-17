@@ -125,15 +125,31 @@ export type CassetteClientOptions = {
  * Structural stand-in for RagMcpClient. Zero network. Loud on miss.
  */
 export class CassetteRagClient implements RagToolCaller {
-  private readonly slots: Map<string, ConsumableSlot>;
+  private readonly cassette: GoldenCassette;
+  private slots: Map<string, ConsumableSlot>;
   private readonly caseId?: string;
   /** Ordered log of successful cassette hits (for scorecards / debug). */
   readonly hits: Array<{ tool: string; argsHash: string }> = [];
 
   constructor(cassette: GoldenCassette, options: CassetteClientOptions = {}) {
     this.caseId = options.caseId;
+    this.cassette = cassette;
     this.slots = new Map();
-    for (const [tool, entry] of Object.entries(cassette)) {
+    this.rebuildSlots();
+  }
+
+  /**
+   * Reset FIFO / map consumption so the same cassette can be replayed
+   * (WP-4.8 L3 multi-trial). Does not mutate the original cassette payload.
+   */
+  reset(): void {
+    this.hits.length = 0;
+    this.rebuildSlots();
+  }
+
+  private rebuildSlots(): void {
+    this.slots = new Map();
+    for (const [tool, entry] of Object.entries(this.cassette)) {
       this.slots.set(tool, toSlot(entry));
     }
   }

@@ -10,6 +10,7 @@ npm install
 npm run build
 npm test                 # unit + eval schema/cassette/runner + WP-1.5 mutants
 npm run eval:fast        # L1 hermetic goldens — REQUIRED green on every code change
+npm run eval:llm         # L3 live terra on cassette RAG (needs OPENAI_API_KEY; use --category / --trials)
 npm run eval:baseline -- --tag <name>
 npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --category <cat>
 ```
@@ -20,7 +21,7 @@ npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --catego
 |-------------|----------------|
 | Any Guardian code | `npm test && npm run eval:fast` |
 | Selector / assembler / write-back gate | above + check temporal-mud + write-back categories |
-| Prompt / auditor schema | later: `eval:llm` when L3 lands |
+| Prompt / auditor schema | `npm run eval:llm -- --category duplex,write-back --trials 3` (valid API key) |
 | Reindex / ranking / corpus (RAG side) | RAG `eval:memory`; re-curate goldens if plan drifts |
 
 ### Golden maintenance

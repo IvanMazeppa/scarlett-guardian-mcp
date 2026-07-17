@@ -724,6 +724,10 @@
     "brief_chars": {
       "min": 100,
       "max": 15000
+    },
+    "llm": {
+      "facts_min": 1,
+      "scene_delta_required": true
     }
   },
   "frozen_llm_assessment": {
@@ -739,6 +743,8 @@
   "tags": [
     "curated-skeleton",
     "wp-1.4-skeleton",
-    "write-back"
+    "write-back",
+    "wp-4.8",
+    "l3"
   ]
 }

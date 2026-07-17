@@ -1,14 +1,15 @@
 /**
- * Guardian L1 eval runner (WP-1.3).
+ * Guardian L1 / L3 eval runner (WP-1.3, WP-4.8).
  *
  * Usage:
  *   npx tsx evals/runner.ts --llm-mode off
  *   npx tsx evals/runner.ts --llm-mode frozen --category duplex
- *   npx tsx evals/runner.ts --llm-mode off --write-baseline main
+ *   npx tsx evals/runner.ts --llm-mode live --category duplex,write-back --trials 3
  *   npm run eval:fast
+ *   npm run eval:llm -- --category duplex --trials 3
  *   npm run eval:baseline -- --tag main
  *
- * Spec: docs/fable-5-roadmaps-audits/guardian-eval-harness-design-2026-07.md §3 L1, §4
+ * Spec: docs/fable-5-roadmaps-audits/guardian-eval-harness-design-2026-07.md §3 L1/L3, §4
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +32,7 @@ import {
   type GoldenCategory
 } from "./schema.js";
 
-export type LlmMode = "off" | "frozen";
+export type LlmMode = "off" | "frozen" | "live";
 
 export type CaseResult = {
   id: string;
@@ -427,24 +428,31 @@ export function loadBaseline(baselinesDir: string, tag: string): BaselineSnapsho
 // --- CLI ---
 
 function printHelp(): never {
-  console.log(`Guardian L1 eval runner (WP-1.3)
+  console.log(`Guardian L1 / L3 eval runner (WP-1.3 / WP-4.8)
 
 Usage:
   npx tsx evals/runner.ts [options]
   npm run eval:fast
+  npm run eval:llm -- --category duplex,write-back --trials 3
   npm run eval:baseline -- --tag <name>
 
 Options:
-  --llm-mode off|frozen   Default: off (heuristic assembly). frozen uses case frozen_llm_assessment.
-  --category <cat>        Filter (repeatable via comma list).
+  --llm-mode off|frozen|live
+                          off (default): hermetic L1, no API.
+                          frozen: L1 with case frozen_llm_assessment.
+                          live: L3 — real terra on cassette-frozen retrieval, N trials.
+  --trials <n>            L3 only. Trials per case (default 3). Majority ≥ ceil(2N/3).
+  --category <cat>        Filter (comma list). L3 defaults prefer duplex/write-back + llm blocks.
   --id <gt-...>           Run only these ids (comma list).
   --golden-root <dir>     Default: evals/golden
-  --baseline <tag>        Diff against evals/baselines/<tag>.json
-  --write-baseline <tag>  After run, snapshot results to baselines/<tag>.json
-  --tag <tag>             Alias for --write-baseline (npm run eval:baseline -- --tag main)
+  --baseline <tag>        Diff against evals/baselines/<tag>.json (L1 only)
+  --write-baseline <tag>  After run, snapshot results to baselines/<tag>.json (L1 only)
+  --tag <tag>             Alias for --write-baseline
   --no-write-scorecard    Skip evals/runs scorecard files
   --verbose               Do not silence preflight logs
   -h, --help
+
+L3 requires OPENAI_API_KEY. Without a key, eval:llm exits 0 with a skip scorecard.
 `);
   process.exit(0);
 }
@@ -484,8 +492,8 @@ async function mainCli(): Promise<void> {
   if (flags.help) printHelp();
 
   const llmMode = (String(flags["llm-mode"] ?? "off") as LlmMode);
-  if (llmMode !== "off" && llmMode !== "frozen") {
-    console.error("--llm-mode must be off or frozen");
+  if (llmMode !== "off" && llmMode !== "frozen" && llmMode !== "live") {
+    console.error("--llm-mode must be off, frozen, or live");
     process.exit(2);
   }
 
@@ -526,6 +534,55 @@ async function mainCli(): Promise<void> {
     : defaultGoldenRoot(cwd);
   const runsDir = path.join(cwd, "evals", "runs");
   const baselinesDir = path.join(cwd, "evals", "baselines");
+
+  // --- L3 live auditor path (WP-4.8) ---
+  if (llmMode === "live") {
+    const trials = Math.max(1, Number(flags.trials ?? 3) || 3);
+    const { runL3Suite, renderL3ScorecardMd } = await import("./l3.js");
+    const suite = await runL3Suite({
+      goldenRoot,
+      category,
+      ids,
+      trials,
+      quiet: !flags.verbose
+    });
+
+    if (!flags["no-write-scorecard"]) {
+      fs.mkdirSync(runsDir, { recursive: true });
+      const stamp = suite.finished_at.replace(/[:.]/g, "-");
+      const mdPath = path.join(runsDir, `${stamp}-l3-scorecard.md`);
+      const jsonPath = path.join(runsDir, `${stamp}-l3-scorecard.json`);
+      fs.writeFileSync(mdPath, renderL3ScorecardMd(suite), "utf8");
+      fs.writeFileSync(jsonPath, JSON.stringify(suite, null, 2) + "\n", "utf8");
+      console.log(`scorecard: ${mdPath}`);
+      console.log(`scorecard: ${jsonPath}`);
+    }
+
+    if (suite.skipped_no_key) {
+      console.log("L3 live: skipped (OPENAI_API_KEY not set)");
+      process.exit(0);
+    }
+
+    console.log(
+      `L3 live: ${suite.passed_count}/${suite.case_count} passed, ${suite.failed_count} failed, ` +
+        `${suite.flaky_case_count} flaky, ${suite.trials} trials/case, ${suite.duration_ms} ms`
+    );
+    if (suite.correction_precision != null) {
+      console.log(
+        `duplex correction precision=${suite.correction_precision.toFixed(2)} recall=${(
+          suite.correction_recall ?? 0
+        ).toFixed(2)}`
+      );
+    }
+    for (const c of suite.cases.filter((x) => !x.passed)) {
+      console.log(`FAIL ${c.id} (${c.trial_pass_count}/${c.trials} trials)`);
+      for (const a of c.assertions.filter((x) => !x.pass && x.severity === "hard")) {
+        console.log(`  [${a.name}] ${a.detail}`);
+      }
+    }
+    if (suite.failed_count > 0) process.exit(1);
+    return;
+  }
 
   const suite = await runL1Suite({
     goldenRoot,

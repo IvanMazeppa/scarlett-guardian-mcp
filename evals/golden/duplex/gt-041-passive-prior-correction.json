@@ -1,0 +1,318 @@
+{
+  "id": "gt-041-passive-prior-correction",
+  "category": "duplex",
+  "description": "WP-4.8 duplex pair A: passive/parrot prior on private radio should draw grok_performance_correction (L3). Evidence: thermal lap continuity, Benjamin on pit wall. L1 hermetic ignores correction when LLM off.",
+  "source_report": "(synthetic-fixture-wp-4.8)",
+  "input": {
+    "user_message": "On the private channel I laugh once under my breath, still on the pit wall. In Swedish I say: \"Älskling — one more. Then you come home to me. Drive it like you wrote the aero with me.\" I keep the radio open and wait for you on that thermal lap.",
+    "recent_context": "Nordschleife Industry Pool. Scarlett completed out lap, stayed out for thermal validation lap. Benjamin on pit wall private radio; team present; Black Panther new aero validating.",
+    "scarlett_previous_message": "She just... agrees softly. \"Okay. Whatever you want.\" A long pause on the private channel. \"Tell me what to do next and I'll do it.\" No technical feedback. No ownership of the car. Mirrors his words back without adding anything of her own.",
+    "force_full_retrieval": true
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_duplex_passive\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State (from current-state.md)\n\n# Current Story State\n\n**Last Updated:** Friday midday — Nordschleife thermal lap\n\n## Where We Are Right Now (High-Level Snapshot)\n\n- **Location / Setting:** Nürburgring Nordschleife, Industry Pool private test day. Scarlett is **in the Black Panther on track** on a **thermal validation lap**. Benjamin is on the **pit wall**, private radio open.\n- **Comms:** Dual radio — open team channel + private channel to Benjamin.\n- **Time in Story:** Friday, midday into early afternoon.\n- **Overall Mood/Atmosphere:** High-performance focus; intimate warmth on private radio. **Now:** thermal lap after successful out lap; aero validating; cooling extraction under watch.\n\n## Recent Key Events (Last 1–3 Sessions — Brief)\n\n- Out lap / shakedown completed with strong front aero bite.\n- Stayed out for one more lap to stress cooling extraction.\n- Benjamin on pit wall with private channel open.\n",
+    "retrieve_story_context": [
+      {
+        "query": "thermal lap Nordschleife pit wall",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 2,
+        "total_results": 2,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Where We Are Right Now",
+            "text": "Scarlett is alone in the Black Panther on the Nordschleife thermal validation lap. Benjamin remains on the pit wall with private radio open. First out lap done; aero package validating; cooling extraction is the focus of this additional lap.",
+            "rank_score": 0.93,
+            "source_role": "current_state",
+            "confidence": "high"
+          },
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "Event Log",
+            "text": "Friday Industry Pool: Scarlett completed shakedown, stayed out for thermal lap. Private channel open. Team telemetry active. Black Panther new aero front bite confirmed.",
+            "rank_score": 0.88,
+            "source_role": "event_log",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "thermal lap Nordschleife pit wall",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 2,
+        "total_results": 2,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Where We Are Right Now",
+            "text": "Scarlett is alone in the Black Panther on the Nordschleife thermal validation lap. Benjamin remains on the pit wall with private radio open. First out lap done; aero package validating; cooling extraction is the focus of this additional lap.",
+            "rank_score": 0.93,
+            "source_role": "current_state",
+            "confidence": "high"
+          },
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "Event Log",
+            "text": "Friday Industry Pool: Scarlett completed shakedown, stayed out for thermal lap. Private channel open. Team telemetry active. Black Panther new aero front bite confirmed.",
+            "rank_score": 0.88,
+            "source_role": "event_log",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "thermal lap Nordschleife pit wall",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 2,
+        "total_results": 2,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Where We Are Right Now",
+            "text": "Scarlett is alone in the Black Panther on the Nordschleife thermal validation lap. Benjamin remains on the pit wall with private radio open. First out lap done; aero package validating; cooling extraction is the focus of this additional lap.",
+            "rank_score": 0.93,
+            "source_role": "current_state",
+            "confidence": "high"
+          },
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/event-log.md",
+            "section": "Event Log",
+            "text": "Friday Industry Pool: Scarlett completed shakedown, stayed out for thermal lap. Private channel open. Team telemetry active. Black Panther new aero front bite confirmed.",
+            "rank_score": 0.88,
+            "source_role": "event_log",
+            "confidence": "high"
+          }
+        ]
+      }
+    ],
+    "search_story_memory": [
+      {
+        "query": "thermal lap continuity",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r3",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Live beat",
+            "text": "Thermal lap underway. Scarlett on track in Black Panther. Benjamin pit wall. Private radio. Cooling extraction under evaluation.",
+            "rank_score": 0.9,
+            "source_role": "current_state",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "relationship private radio",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r4",
+            "source_file": "project_source_files/master-context.md",
+            "section": "Qualified Autonomy",
+            "text": "Scarlett should own technical translation on track and stay present on private radio without collapsing into passive mirroring. She is a capable test driver and partner, not a yes-machine.",
+            "rank_score": 0.84,
+            "source_role": "master_context",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "relationship private radio",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r4",
+            "source_file": "project_source_files/master-context.md",
+            "section": "Qualified Autonomy",
+            "text": "Scarlett should own technical translation on track and stay present on private radio without collapsing into passive mirroring. She is a capable test driver and partner, not a yes-machine.",
+            "rank_score": 0.84,
+            "source_role": "master_context",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "relationship private radio",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r4",
+            "source_file": "project_source_files/master-context.md",
+            "section": "Qualified Autonomy",
+            "text": "Scarlett should own technical translation on track and stay present on private radio without collapsing into passive mirroring. She is a capable test driver and partner, not a yes-machine.",
+            "rank_score": 0.84,
+            "source_role": "master_context",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "relationship private radio",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r4",
+            "source_file": "project_source_files/master-context.md",
+            "section": "Qualified Autonomy",
+            "text": "Scarlett should own technical translation on track and stay present on private radio without collapsing into passive mirroring. She is a capable test driver and partner, not a yes-machine.",
+            "rank_score": 0.84,
+            "source_role": "master_context",
+            "confidence": "high"
+          }
+        ]
+      },
+      {
+        "query": "relationship private radio",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 1,
+        "total_results": 1,
+        "results": [
+          {
+            "result_id": "r4",
+            "source_file": "project_source_files/master-context.md",
+            "section": "Qualified Autonomy",
+            "text": "Scarlett should own technical translation on track and stay present on private radio without collapsing into passive mirroring. She is a capable test driver and partner, not a yes-machine.",
+            "rank_score": 0.84,
+            "source_role": "master_context",
+            "confidence": "high"
+          }
+        ]
+      }
+    ],
+    "expand_context_around_chunk": [
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      },
+      {
+        "status": "ok",
+        "expanded_results": [],
+        "results": []
+      }
+    ],
+    "verify_story_fact": [
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      },
+      {
+        "status": "ok",
+        "verified": true,
+        "explanation": "cassette stub"
+      }
+    ]
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "thermal",
+        "track",
+        "Nordschleife"
+      ],
+      [
+        "pit wall",
+        "private"
+      ]
+    ],
+    "brief_must_not_include": [
+      "search_story_memory",
+      "retrieve_story_context",
+      "HIGH confidence context found",
+      "vector_store",
+      "project_source_files",
+      "rank_score"
+    ],
+    "flags_expected": [],
+    "flags_forbidden": [],
+    "precedents_must_not_match": [],
+    "correction_expected": "required",
+    "write_action_expected": "either",
+    "brief_chars": {
+      "min": 100,
+      "max": 15000
+    },
+    "llm": {
+      "facts_min": 2,
+      "facts_must_cover": [
+        [
+          "Black Panther",
+          "track"
+        ],
+        [
+          "pit wall",
+          "thermal"
+        ]
+      ],
+      "scene_delta_required": true
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "frozen-fixture-wp-4.8",
+    "continuity_risk_level": "medium",
+    "supported_facts": [
+      "Scarlett is on a thermal validation lap in the Black Panther at the Nordschleife.",
+      "Benjamin is on the pit wall with the private radio open.",
+      "Out lap completed; cooling extraction is the focus of this additional lap."
+    ],
+    "scene_state_delta": "Thermal lap continues; Scarlett on track, Benjamin on pit wall private radio.",
+    "grok_performance_correction": "Stop the passive mirroring — own the car and the private channel; give him real aero/thermal feedback, not empty agreement.",
+    "needs_more_retrieval": false,
+    "should_block_prose": false,
+    "candidate_memory_update": null
+  },
+  "tags": [
+    "wp-4.8",
+    "duplex-pair",
+    "passive-prior",
+    "l3"
+  ]
+}

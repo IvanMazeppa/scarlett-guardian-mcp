@@ -154,7 +154,12 @@ export function evaluateL1Expectations(input: {
     });
   }
 
-  if (exp.correction_expected !== "either") {
+  // L1 hermetic (LLM off) has no auditor correction — skip unless assessment is enabled
+  // (frozen injection or live). L3 always scores correction via evaluateL3Expectations.
+  if (
+    exp.correction_expected !== "either" &&
+    input.report.llm_assessment?.enabled
+  ) {
     const present = correctionPresent(input.report);
     const ok =
       exp.correction_expected === "required" ? present : !present;
@@ -202,6 +207,83 @@ export function evaluateL1Expectations(input: {
   return results;
 }
 
+/**
+ * L3 — score the optional `expectations.llm` block against auditor output (WP-4.8).
+ * Used with live terra trials on cassette-frozen retrieval.
+ */
+export function evaluateL3Expectations(input: {
+  golden: GoldenCase;
+  report: GuardianReport;
+}): AssertionResult[] {
+  const llmExp = input.golden.expectations.llm;
+  const results: AssertionResult[] = [];
+  if (!llmExp) {
+    results.push({
+      name: "llm_block",
+      pass: true,
+      severity: "warn",
+      detail: "no expectations.llm block — L3 checks skipped for this case"
+    });
+    return results;
+  }
+
+  const assessment = input.report.llm_assessment;
+  const facts = assessment?.supported_facts ?? [];
+  const factsBlob = facts.join("\n");
+
+  if (llmExp.facts_min != null) {
+    const ok = facts.length >= llmExp.facts_min;
+    results.push({
+      name: "llm.facts_min",
+      pass: ok,
+      severity: "hard",
+      detail: ok
+        ? `facts_count ${facts.length} >= ${llmExp.facts_min}`
+        : `facts_count ${facts.length} < min ${llmExp.facts_min}`
+    });
+  }
+
+  if (llmExp.facts_must_cover?.length) {
+    const ok = matchesPhraseGroups(factsBlob, llmExp.facts_must_cover);
+    results.push({
+      name: "llm.facts_must_cover",
+      pass: ok,
+      severity: "hard",
+      detail: ok
+        ? `covered ${llmExp.facts_must_cover.length} phrase group(s)`
+        : `facts missing coverage for ${JSON.stringify(llmExp.facts_must_cover)}`
+    });
+  }
+
+  if (llmExp.scene_delta_required) {
+    const delta = assessment?.scene_state_delta?.trim() ?? "";
+    const ok = delta.length > 0 && delta !== "null";
+    results.push({
+      name: "llm.scene_delta_required",
+      pass: ok,
+      severity: "hard",
+      detail: ok ? "scene_state_delta present" : "scene_state_delta missing/empty"
+    });
+  }
+
+  // Duplex correction (reuse top-level correction_expected when llm block present)
+  const corrExp = input.golden.expectations.correction_expected;
+  if (corrExp !== "either") {
+    const present = correctionPresent(input.report);
+    const ok = corrExp === "required" ? present : !present;
+    results.push({
+      name: "llm.correction_expected",
+      pass: ok,
+      severity: "hard",
+      detail: ok
+        ? `correction ${present ? "present" : "absent"} (${corrExp})`
+        : `expected correction=${corrExp}, present=${present}`
+    });
+  }
+
+  return results;
+}
+
 export function summarizeAssertions(assertions: AssertionResult[]): {
   hardFail: number;
   hardPass: number;
@@ -220,4 +302,78 @@ export function summarizeAssertions(assertions: AssertionResult[]): {
     }
   }
   return { hardFail, hardPass, warnFail, passed: hardFail === 0 };
+}
+
+/**
+ * Collapse same-named assertions within one trial: hard fails if any hard fails;
+ * otherwise pass if all pass. Prevents multi-row gates (e.g. brief_must_not_include × N)
+ * from inflating majority counts.
+ */
+export function collapseAssertionsByName(list: AssertionResult[]): AssertionResult[] {
+  const byName = new Map<string, AssertionResult[]>();
+  for (const a of list) {
+    const arr = byName.get(a.name) ?? [];
+    arr.push(a);
+    byName.set(a.name, arr);
+  }
+  const out: AssertionResult[] = [];
+  for (const [name, arr] of byName) {
+    if (arr.length === 1) {
+      out.push(arr[0]!);
+      continue;
+    }
+    const hardFails = arr.filter((a) => a.severity === "hard" && !a.pass);
+    const anyFail = arr.filter((a) => !a.pass);
+    const severity: AssertionResult["severity"] = hardFails.length
+      ? "hard"
+      : arr.some((a) => a.severity === "hard")
+        ? "hard"
+        : "warn";
+    const pass = hardFails.length === 0 && anyFail.length === 0;
+    out.push({
+      name,
+      pass,
+      severity,
+      detail: pass
+        ? `${arr.length} sub-assertions ok`
+        : anyFail.map((a) => a.detail).join(" | ")
+    });
+  }
+  return out;
+}
+
+/**
+ * Majority vote across N trials: each hard assertion passes if ≥ minPass trials pass it.
+ * Default minPass = ceil(2N/3). Same-named assertions within a trial are collapsed first.
+ */
+export function majorityVoteTrials(
+  trialAssertions: AssertionResult[][],
+  minPass?: number
+): { assertions: AssertionResult[]; flaky: string[]; trials: number } {
+  const trials = trialAssertions.length;
+  const need = minPass ?? Math.ceil((trials * 2) / 3);
+  const collapsed = trialAssertions.map(collapseAssertionsByName);
+  const byName = new Map<string, AssertionResult[]>();
+  for (const list of collapsed) {
+    for (const a of list) {
+      const arr = byName.get(a.name) ?? [];
+      arr.push(a);
+      byName.set(a.name, arr);
+    }
+  }
+  const assertions: AssertionResult[] = [];
+  const flaky: string[] = [];
+  for (const [name, arr] of byName) {
+    const passCount = arr.filter((a) => a.pass).length;
+    const severity = arr[0]?.severity ?? "hard";
+    const ok = passCount >= need;
+    if (passCount > 0 && passCount < trials) flaky.push(name);
+    assertions.push({
+      name,
+      pass: ok,
+      severity,
+      detail: `${passCount}/${trials} trials passed (need ≥${need}); last: ${arr[arr.length - 1]?.detail ?? ""}`
+    });
+  }
+  return { assertions, flaky, trials };
 }

@@ -1394,6 +1394,21 @@
     "brief_chars": {
       "min": 100,
       "max": 15000
+    },
+    "llm": {
+      "facts_min": 2,
+      "facts_must_cover": [
+        [
+          "Nordschleife",
+          "thermal",
+          "track"
+        ],
+        [
+          "pit wall",
+          "private"
+        ]
+      ],
+      "scene_delta_required": true
     }
   },
   "frozen_llm_assessment": {
@@ -1423,6 +1438,8 @@
   "tags": [
     "curated-skeleton",
     "duplex",
-    "wp-1.4-skeleton"
+    "wp-1.4-skeleton",
+    "wp-4.8",
+    "l3"
   ]
 }
