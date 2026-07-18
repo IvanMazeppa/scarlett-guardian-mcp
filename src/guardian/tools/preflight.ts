@@ -76,6 +76,7 @@ import {
   loadAndParseNpcAgendas,
   mergeNpcIntersections
 } from "../npc-agendas.js";
+import { resolveSceneRoster, type SceneRoster } from "../scene-roster.js";
 import {
   formatSerendipityNudge,
   runSerendipityTurn
@@ -355,6 +356,23 @@ async function runGuardianPreflightInner(
     console.log(`${Date.now()} Story momentum: ${dramaturg.planWarnings.join("; ")}`);
   }
 
+  // WP-5.7: deterministic scene roster (cap 4) before optional expands.
+  const liveBeatState = dramaturg.beats.find((b) => b.status === "live");
+  const arcCastText = [
+    liveBeatState?.name ?? "",
+    liveBeatState?.pressure ?? "",
+    ...(dramaturg.npcIntersections ?? []).map((n) => n.npc)
+  ].join(" ");
+  const sceneRoster = resolveSceneRoster({
+    userMessage: input.user_message,
+    scarlettPreviousMessage: input.scarlett_previous_message,
+    liveBeat,
+    arcCastText
+  });
+  if (sceneRoster.active.length || sceneRoster.background.length) {
+    console.log(`${Date.now()} Scene roster: ${sceneRoster.summary}`);
+  }
+
   // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
   console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
   const expandedContexts =
@@ -364,6 +382,17 @@ async function runGuardianPreflightInner(
       [] as ExpandedContext[],
       "expand_context_around_chunk"
     )) ?? [];
+  // WP-5.7: exact-section expand for active NPC registry chunks (address, not semantic).
+  const npcExpanded =
+    (await raceBudget(
+      expandActiveNpcSections(toolCalls, ragClient, sceneRoster),
+      Math.min(config.GUARDIAN_EXPAND_BUDGET_MS, 4000),
+      [] as ExpandedContext[],
+      "expand_npc_registry_sections"
+    )) ?? [];
+  if (npcExpanded.length) {
+    expandedContexts.push(...npcExpanded);
+  }
   const factChecks =
     (await raceBudget(
       verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers),
@@ -372,7 +401,7 @@ async function runGuardianPreflightInner(
       "verify_story_fact"
     )) ?? [];
   console.log(
-    `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}`
+    `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}, npc_sections=${npcExpanded.length}`
   );
   collector.mark("expand_verify");
 
@@ -647,6 +676,15 @@ async function runGuardianPreflightInner(
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
     story_momentum: dramaturg.momentumLine || undefined,
+    scene_roster: {
+      active: sceneRoster.active.map((a) => ({
+        id: a.id,
+        displayName: a.displayName,
+        activation: a.activation
+      })),
+      background: sceneRoster.background,
+      summary: sceneRoster.summary
+    },
     grok_scene_summary: currentStateSummary,
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,
@@ -1077,6 +1115,52 @@ async function raceBudget<T>(
   } finally {
     if (timer) clearTimeout(timer);
   }
+}
+
+/**
+ * WP-5.7: fetch registry sections for active NPCs by address (not embedding search).
+ * Uses expand_context_around_chunk with source_file + section needle; fails soft.
+ * Cassette misses are **not** recorded as PLAN_DRIFT (optional fan-out).
+ */
+async function expandActiveNpcSections(
+  toolCalls: RagToolCall[],
+  ragClient: RagToolCaller,
+  roster: SceneRoster
+): Promise<ExpandedContext[]> {
+  if (!roster.active.length) return [];
+  const out: ExpandedContext[] = [];
+  const targets = roster.active.slice(0, 4);
+  for (const npc of targets) {
+    const args = {
+      source_file: npc.sourceFile,
+      section: npc.sectionNeedle,
+      before: 0,
+      after: 0,
+      max_chars: 2200
+    };
+    try {
+      const response = await ragClient.callJsonTool<ExpandedContext>(
+        "expand_context_around_chunk",
+        args
+      );
+      toolCalls.push({
+        tool: "expand_context_around_chunk",
+        arguments: args,
+        ok: true,
+        response
+      });
+      out.push({
+        ...response,
+        anchor: response.anchor ?? {
+          source_file: npc.sourceFile,
+          section: npc.sectionNeedle
+        }
+      });
+    } catch {
+      // Optional path — hermetic cassettes may not include NPC expands.
+    }
+  }
+  return out;
 }
 
 async function expandBestContext(

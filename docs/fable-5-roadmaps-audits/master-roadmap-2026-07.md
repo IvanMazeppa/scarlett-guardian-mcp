@@ -305,7 +305,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 5.5 | **done** | Auditor `scarlett_next_intention` + `resonance_echo`; normalize + echo budget ≤1; brief Intention before QA + optional Echo; `resonanceEchoRate` scorecard helper. Tests + eval:fast 31/31. Evidence: `wp-5.5-intention-resonance-echo-2026-07-18.md`. |
 | 5.6 | **done** | `npc_canon` role prio 78 for secondary-characters-bible + family-dynamics; enum + retriever; registry tails on top NPCs (Shevchenko, Ryan, Lynn, Chris/Deb, Dan, Maya, Karin, Dr Berg) merged with agendas; reindex. Evidence: `wp-5.6-npc-canon-registry-2026-07-18.md`. |
 | **IDEAS** | parking | Living GM / Truman Show (Christof) analogy; set-piece guided pressure vs dual control; Fable feasibility `fable5-living-gm-feasibility-2026-07-18.md`; parking note `ideas-parking-living-gm-truman-2026-07-18.md`. Does not block 5.7+. |
-| 5.7–5.10 | pending | |
+| 5.7 | **done** | `scene-roster.ts` cap 4; `presentCast` from `**Present:**`; preflight roster + soft exact-section expand; report.scene_roster; current-state Present line. Evidence: `wp-5.7-scene-roster-2026-07-18.md`. |
+| 5.8–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
 

@@ -194,6 +194,18 @@ export type GuardianReport = {
    * Pressure/schedule only — never outcomes. Empty/absent when no active plan.
    */
   story_momentum?: string;
+  /**
+   * WP-5.7: deterministic scene roster (max 4 active supporting NPCs).
+   */
+  scene_roster?: {
+    active: Array<{
+      id: string;
+      displayName: string;
+      activation: string;
+    }>;
+    background: string[];
+    summary: string;
+  };
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

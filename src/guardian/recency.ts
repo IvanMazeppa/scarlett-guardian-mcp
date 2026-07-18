@@ -10,6 +10,11 @@ export type LiveBeat = {
   supersededCues: string[];
   liveCues: string[];
   antiResetNotes: string[];
+  /**
+   * WP-5.7: names from `**Present:**` (or Present:) in current-state snapshot.
+   * Used by scene-roster activation (present_cast). Optional for older fixtures.
+   */
+  presentCast?: string[];
 };
 
 export type RecencyChunk = {
@@ -26,7 +31,8 @@ const EMPTY_BEAT: LiveBeat = {
   timeLine: "",
   supersededCues: [],
   liveCues: [],
-  antiResetNotes: []
+  antiResetNotes: [],
+  presentCast: []
 };
 
 /** Split markdown into ## sections (title → body). */
@@ -188,6 +194,18 @@ export function parseLiveBeat(currentStateMarkdown: string): LiveBeat {
     extractBoldField(whereBody, "Overall Mood") ||
     "";
 
+  // WP-5.7: **Present:** Scarlett, Benjamin, Shevchenko, AMG engineers
+  const presentRaw =
+    extractBoldField(whereBody, "Present") ||
+    extractBoldField(md, "Present") ||
+    "";
+  const presentCast = presentRaw
+    ? presentRaw
+        .split(/[,;|/]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && !/^n\/?a$/i.test(s))
+    : [];
+
   const { earlier, now } = splitEarlierNow(moodLine);
 
   // Recent events: last bullet(s) with **bold** "complete" / out lap tend to be live;
@@ -230,7 +248,8 @@ export function parseLiveBeat(currentStateMarkdown: string): LiveBeat {
     timeLine,
     supersededCues: uniqueStrings(supersededCues),
     liveCues: uniqueStrings(liveCues),
-    antiResetNotes: uniqueStrings(antiResetNotes)
+    antiResetNotes: uniqueStrings(antiResetNotes),
+    presentCast
   };
 }
 
@@ -268,6 +287,9 @@ export function formatLiveBeatBlock(beat: LiveBeat | undefined | null): string {
   if (beat.timeLine) lines.push(`- Time in story: ${beat.timeLine}`);
   if (beat.liveCues.length) {
     lines.push(`- Live cues: ${beat.liveCues.slice(0, 16).join(", ")}`);
+  }
+  if (beat.presentCast?.length) {
+    lines.push(`- Present cast: ${beat.presentCast.slice(0, 8).join(", ")}`);
   }
   if (beat.supersededCues.length) {
     lines.push(
