@@ -230,7 +230,7 @@ Three staged proposals, one operator sitting (D8 §5.1). Everything here reuses 
 | 7.2 | Epoch-distance demotion Guardian-side; retriever surfaces `story_epoch`; cross-layer dedup guard | `recency.ts`; RAG `retriever.ts` | Luxembourg-era chunks demoted during later arcs |
 | 7.3 | Graduated trust: auto-approve VOLATILE reconciliations + valid transitions after burn-ins (3 clean cycles each); STABLE stays human forever | config | Burn-in logs cited |
 | 7.4 | Interceptor fallback: `format: "brief"` on `/preflight`, interceptor mode on v2 scraper (manual-submit, fail-open), instruction-layer skip line; certify once, then park | `server.ts`; userscript; instruction files | One supervised end-to-end session, then dormant |
-| 7.5 | Telemetry P1/P2: serendipity/dramaturg panels, chunk-size trends, rollup cache, eval scorecard panel; L2 retrieval eval bridging `eval:memory` | dashboard; evals | D3 + D2 P2 acceptance |
+| 7.5 | Telemetry P1/P2: serendipity/dramaturg panels, chunk-size trends, rollup cache, eval scorecard panel; L2 retrieval eval bridging `eval:memory`; **dashboard UX revamp** (legend + hover tooltips for cards incl. meta pollution, duplex source, correction rate; wire serendipity tier if emitted) | dashboard; evals | D3 + D2 P2 acceptance; operator can read every card without docs |
 | 7.6 | Backfill compression of chronological-summaries 4/5/6, one at a time, human-approved | ops | After first natural arc proved the pipeline |
 | 7.7 | `generate-instruction-sync.ts` + version-hash convention in bootstrap templates | NEW script | Marriage-test flow (D8 §9) under 15 min operator time |
 
@@ -297,6 +297,7 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 4.6 | **done** | `serendipity-weaver.ts`: tiers, scene modes, deferral queue, Ryan arc stages, drought fire chance, `.guardian/serendipity-state.json`; preflight uses weaver; `serendipity.ts` thin wrapper. Tests: intimate ambient-only, deferral, arc order, 50-turn sim. Evidence: `wp-4.6-serendipity-weaver-2026-07-17.md`. Preserve: `preserve/roadmap-wp46-serendipity-weaver-20260717`. |
 | 4.7 | **done** | Auditor `serendipity_weave` schema field; pick before assess; user-message SERENDIPITY block; preflight prefers weave over catalog (null = veto); brief **World Weaver** prefers weave and strips SERENDIPITY labels. Tests + eval:fast 16/16. Evidence: `wp-4.7-serendipity-weave-2026-07-17.md`. Preserve: `preserve/roadmap-wp47-serendipity-weave-20260717`. |
 | 4.8 | **done** | L3 `eval:llm` + duplex pair + 31 goldens. Evidence: `wp-4.8-eval-l3-2026-07-17.md`. Live L3 needs valid API key. |
+| **FOLLOW-UP (UX)** | backlog | Dashboard revamp under 7.5: legend/hover popups for meta pollution, duplex, correction, latency; serendipity panel when tier fields land |
 | 5.1–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
