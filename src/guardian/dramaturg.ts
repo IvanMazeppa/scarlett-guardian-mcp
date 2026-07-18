@@ -1,13 +1,19 @@
 /**
  * WP-5.2 — Dramaturg P0 (LLM-free): parse arc plans, deterministic beat-diff, mechanical momentum line.
- * Spec: docs/fable-5-roadmaps-audits/guardian-dramaturg-design-2026-07.md §2.1–2.2, §4 P0
+ * WP-5.3 — Dramaturg P1: runDramaturgPass (LLM) + disk cache + background refresh triggers.
+ * Spec: docs/fable-5-roadmaps-audits/guardian-dramaturg-design-2026-07.md §2–4
  *
  * Design law: propose pressure, never outcomes. No field here can express how a beat resolves.
+ * Hot path: never await the dramaturg LLM — current turn uses cache/deterministic only.
  */
 
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import OpenAI from "openai";
+import type { GuardianConfig } from "./config.js";
 import { extractCues, type LiveBeat } from "./recency.js";
+import type { Intrusiveness } from "./serendipity-weaver.js";
 
 export type BeatKind = "fixed" | "open" | "conditional";
 export type BeatStatus = "done" | "live" | "next" | "dormant";
@@ -48,19 +54,76 @@ export type DramaturgSnapshot = {
   arcSlug: string;
   planStatus: string;
   beats: BeatState[];
-  /** Single brief/auditor line — mechanical, no LLM */
+  /** Single brief/auditor line — mechanical or cached LLM */
   momentumLine: string;
   planWarnings: string[];
   sourcePath?: string;
+  /** WP-5.3 provenance for the hot-path snapshot */
+  source?: "deterministic" | "llm_cache";
+  npcIntersections?: NpcIntersection[];
+  generatedAtTurn?: number;
 };
+
+/** NPC agenda intersection (filled by LLM pass; consumed fully in WP-5.4). */
+export type NpcIntersection = {
+  npc: string;
+  agenda: string;
+  suggestedTier: Intrusiveness;
+};
+
+/** Cached dramaturg context (D7 §3.2). */
+export type DramaturgContext = {
+  arcSlug: string;
+  beats: BeatState[];
+  momentumLine: string;
+  npcIntersections: NpcIntersection[];
+  planWarnings: string[];
+  generatedAtTurn: number;
+  source: "llm" | "deterministic";
+  planHash: string;
+  refreshedAt: string;
+};
+
+export type DramaturgCacheFile = {
+  version: 1;
+  /** Monotonic preflight counter (incremented each hot-path resolve). */
+  turnCounter: number;
+  context: DramaturgContext;
+};
+
+export type DramaturgRefreshReason =
+  | "no_cache"
+  | "plan_changed"
+  | "scene_transition"
+  | "staleness"
+  | "force";
+
+export type DramaturgPassConfig = Pick<
+  GuardianConfig,
+  | "GUARDIAN_LLM_ENABLED"
+  | "OPENAI_API_KEY"
+  | "GUARDIAN_MODEL"
+  | "GUARDIAN_LLM_VERBOSITY"
+  | "GUARDIAN_DRAMATURG_ENABLED"
+  | "GUARDIAN_DRAMATURG_STALENESS_TURNS"
+  | "GUARDIAN_DRAMATURG_REASONING_EFFORT"
+>;
 
 const EMPTY_SNAPSHOT: DramaturgSnapshot = {
   arcSlug: "",
   planStatus: "",
   beats: [],
   momentumLine: "",
-  planWarnings: ["no active arc plan"]
+  planWarnings: ["no active arc plan"],
+  source: "deterministic"
 };
+
+const TIERS: Intrusiveness[] = ["ambient", "peripheral", "engaging", "disruptive"];
+const BEAT_STATUSES: BeatStatus[] = ["done", "live", "next", "dormant"];
+const BEAT_KINDS: BeatKind[] = ["fixed", "open", "conditional"];
+
+/** In-flight guard so concurrent preflights don't stack dramaturg LLM calls. */
+let dramaturgRefreshInFlight: Promise<void> | null = null;
 
 function extractBoldField(body: string, label: string): string {
   const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -335,11 +398,24 @@ export function formatStoryMomentumBlock(
     "Day/arc schedule pressure only. Never invent outcomes for open beats. LIVE BEAT still wins for present location/time."
   ];
   if (snapshot.arcSlug) lines.push(`- Arc: ${snapshot.arcSlug} (${snapshot.planStatus || "unknown"})`);
+  if (snapshot.source === "llm_cache") {
+    lines.push("- Source: cached dramaturg pass (scene-level; not re-run this turn)");
+  } else {
+    lines.push("- Source: deterministic beat-diff (LLM pass may refresh in background)");
+  }
   lines.push(`- ${snapshot.momentumLine}`);
   const live = snapshot.beats.find((b) => b.status === "live");
   const next = snapshot.beats.find((b) => b.status === "next");
   if (live?.pressure) lines.push(`- Live pressure: ${trimPressure(live.pressure)}`);
   if (next?.pressure) lines.push(`- Next pressure: ${trimPressure(next.pressure)}`);
+  if (snapshot.npcIntersections?.length) {
+    lines.push(
+      `- NPC pressure: ${snapshot.npcIntersections
+        .slice(0, 3)
+        .map((n) => `${n.npc} (${n.suggestedTier})`)
+        .join("; ")}`
+    );
+  }
   if (snapshot.planWarnings.length) {
     lines.push(`- Warnings: ${snapshot.planWarnings.join("; ")}`);
   }
@@ -404,4 +480,531 @@ export function loadDramaturgSnapshot(
   const loaded = loadActiveArcPlan(cwd);
   if (!loaded) return { ...EMPTY_SNAPSHOT };
   return buildDramaturgSnapshot(loaded.markdown, liveBeat, loaded.sourcePath);
+}
+
+// ─── WP-5.3: cache + LLM pass + background refresh ───────────────────────────
+
+export function hashArcPlanMarkdown(markdown: string): string {
+  return createHash("sha256").update(markdown ?? "", "utf8").digest("hex").slice(0, 16);
+}
+
+export function dramaturgCachePath(rootDir: string = process.cwd()): string {
+  return path.resolve(rootDir, ".guardian/dramaturg-context.json");
+}
+
+export function readDramaturgCache(
+  rootDir: string = process.cwd()
+): DramaturgCacheFile | null {
+  const p = dramaturgCachePath(rootDir);
+  try {
+    if (!fs.existsSync(p)) return null;
+    const raw = JSON.parse(fs.readFileSync(p, "utf8")) as DramaturgCacheFile;
+    if (!raw || raw.version !== 1 || !raw.context?.momentumLine) return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+export function writeDramaturgCache(
+  file: DramaturgCacheFile,
+  rootDir: string = process.cwd()
+): void {
+  const p = dramaturgCachePath(rootDir);
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(file, null, 2), "utf8");
+}
+
+/**
+ * Resolve the snapshot for *this* turn: prefer valid LLM cache (same plan hash),
+ * else deterministic beat-diff. Never calls the network.
+ */
+export function resolveHotPathDramaturg(args: {
+  deterministic: DramaturgSnapshot;
+  cache: DramaturgCacheFile | null;
+  planHash: string;
+  /** When true, bump turnCounter on the returned cache view (persisted lightly). */
+  bumpTurn?: boolean;
+  rootDir?: string;
+}): {
+  snapshot: DramaturgSnapshot;
+  cache: DramaturgCacheFile | null;
+  turnCounter: number;
+} {
+  const rootDir = args.rootDir ?? process.cwd();
+  let cache = args.cache;
+  let turnCounter = cache?.turnCounter ?? 0;
+  if (args.bumpTurn !== false) {
+    turnCounter += 1;
+    if (cache) {
+      cache = { ...cache, turnCounter };
+      try {
+        writeDramaturgCache(cache, rootDir);
+      } catch {
+        /* non-fatal */
+      }
+    } else {
+      // Persist turn counter alone so staleness can start even before first LLM pass.
+      try {
+        const seed: DramaturgCacheFile = {
+          version: 1,
+          turnCounter,
+          context: {
+            arcSlug: args.deterministic.arcSlug,
+            beats: args.deterministic.beats,
+            momentumLine: args.deterministic.momentumLine,
+            npcIntersections: [],
+            planWarnings: args.deterministic.planWarnings,
+            generatedAtTurn: 0,
+            source: "deterministic",
+            planHash: args.planHash,
+            refreshedAt: new Date().toISOString()
+          }
+        };
+        writeDramaturgCache(seed, rootDir);
+        cache = seed;
+      } catch {
+        /* non-fatal */
+      }
+    }
+  }
+
+  const ctx = cache?.context;
+  const cacheUsable =
+    Boolean(ctx?.momentumLine) &&
+    Boolean(args.planHash) &&
+    ctx!.planHash === args.planHash &&
+    ctx!.source === "llm";
+
+  if (cacheUsable && ctx) {
+    return {
+      turnCounter,
+      cache,
+      snapshot: {
+        arcSlug: ctx.arcSlug || args.deterministic.arcSlug,
+        planStatus: args.deterministic.planStatus,
+        beats: ctx.beats.length ? ctx.beats : args.deterministic.beats,
+        momentumLine: ctx.momentumLine,
+        planWarnings: uniqueWarn([
+          ...args.deterministic.planWarnings,
+          ...ctx.planWarnings
+        ]),
+        sourcePath: args.deterministic.sourcePath,
+        source: "llm_cache",
+        npcIntersections: ctx.npcIntersections,
+        generatedAtTurn: ctx.generatedAtTurn
+      }
+    };
+  }
+
+  return {
+    turnCounter,
+    cache,
+    snapshot: {
+      ...args.deterministic,
+      source: "deterministic"
+    }
+  };
+}
+
+export function shouldRefreshDramaturg(args: {
+  enabled: boolean;
+  llmEnabled: boolean;
+  hasApiKey: boolean;
+  hasPlan: boolean;
+  /** Skip network during frozen/hermetic eval */
+  skipForEval?: boolean;
+  cache: DramaturgCacheFile | null;
+  planHash: string;
+  turnCounter: number;
+  stalenessTurns: number;
+  sceneTransitionOccurred: boolean;
+  force?: boolean;
+}): { refresh: boolean; reason: DramaturgRefreshReason | null } {
+  if (args.skipForEval) return { refresh: false, reason: null };
+  if (!args.enabled || !args.llmEnabled || !args.hasApiKey || !args.hasPlan) {
+    return { refresh: false, reason: null };
+  }
+  if (args.force) return { refresh: true, reason: "force" };
+  if (!args.cache?.context || args.cache.context.source !== "llm") {
+    return { refresh: true, reason: "no_cache" };
+  }
+  if (args.planHash && args.cache.context.planHash !== args.planHash) {
+    return { refresh: true, reason: "plan_changed" };
+  }
+  if (args.sceneTransitionOccurred) {
+    return { refresh: true, reason: "scene_transition" };
+  }
+  const age = args.turnCounter - (args.cache.context.generatedAtTurn || 0);
+  if (age >= args.stalenessTurns) {
+    return { refresh: true, reason: "staleness" };
+  }
+  return { refresh: false, reason: null };
+}
+
+const dramaturgPassSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    beats: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          index: { type: "integer" },
+          name: { type: "string" },
+          kind: { type: "string", enum: BEAT_KINDS },
+          status: { type: "string", enum: BEAT_STATUSES },
+          pressure: { type: "string" }
+        },
+        required: ["index", "name", "kind", "status", "pressure"]
+      }
+    },
+    momentum_line: {
+      type: "string",
+      description:
+        "One sentence: which beat is live, what remains today, schedule pressure only — never outcomes."
+    },
+    npc_intersections: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          npc: { type: "string" },
+          agenda: { type: "string" },
+          suggested_tier: { type: "string", enum: TIERS }
+        },
+        required: ["npc", "agenda", "suggested_tier"]
+      }
+    },
+    plan_warnings: {
+      type: "array",
+      items: { type: "string" }
+    }
+  },
+  required: ["beats", "momentum_line", "npc_intersections", "plan_warnings"]
+} as const;
+
+function buildDramaturgPassSystemPrompt(): string {
+  return [
+    "You are the Scarlett & Benjamin dramaturg (scene-level, not the per-turn continuity auditor).",
+    "Classify plan beats as done | live | next | dormant against the LIVE BEAT snapshot.",
+    "Write one momentum_line of schedule pressure only.",
+    "CRITICAL DESIGN LAW: You propose pressure and possibility. You NEVER decide outcomes, dialogue, lap results, who wins, or how open beats resolve.",
+    "Open beats stay open. Conditional beats stay conditional unless LIVE BEAT already shows them done.",
+    "npc_intersections: only list NPCs whose agendas clearly intersect the live scene now; usually empty. suggested_tier must be ambient|peripheral|engaging|disruptive.",
+    "plan_warnings: e.g. two active plans, no live beat match — or empty array.",
+    "Do not invent story facts beyond the plan + LIVE BEAT."
+  ].join(" ");
+}
+
+function buildDramaturgPassUserMessage(input: {
+  plan: ParsedArcPlan;
+  liveBeat: LiveBeat;
+  npcAgendas: string;
+  deterministic: DramaturgSnapshot;
+}): string {
+  const planBeats = input.plan.beats.map((b) => ({
+    index: b.index,
+    name: b.name,
+    kind: b.kind,
+    setting: b.setting,
+    cast: b.cast,
+    pressure: b.pressure,
+    condition: b.condition ?? null
+  }));
+  const payload = {
+    arc_slug: input.plan.slug,
+    plan_status: input.plan.status,
+    plan_beats: planBeats,
+    live_beat: {
+      lastUpdated: input.liveBeat.lastUpdated,
+      locationLine: input.liveBeat.locationLine,
+      timeLine: input.liveBeat.timeLine,
+      liveCues: input.liveBeat.liveCues.slice(0, 16),
+      supersededCues: input.liveBeat.supersededCues.slice(0, 16)
+    },
+    deterministic_diff: {
+      momentumLine: input.deterministic.momentumLine,
+      beats: input.deterministic.beats.map((b) => ({
+        index: b.index,
+        name: b.name,
+        status: b.status,
+        pressure: b.pressure
+      }))
+    },
+    npc_agendas_markdown: input.npcAgendas?.trim()
+      ? input.npcAgendas.slice(0, 6000)
+      : "(none loaded — return empty npc_intersections)"
+  };
+  return [
+    "### DRAMATURG PASS INPUT",
+    "Return JSON only per schema. momentum_line must not invent outcomes.",
+    JSON.stringify(payload, null, 2)
+  ].join("\n");
+}
+
+/**
+ * One terra call (medium effort by default). Schema enforces pressure-only fields.
+ */
+export async function runDramaturgPass(input: {
+  plan: ParsedArcPlan;
+  liveBeat: LiveBeat;
+  npcAgendas?: string;
+  deterministic: DramaturgSnapshot;
+  planHash: string;
+  turnCounter: number;
+  config: DramaturgPassConfig;
+}): Promise<DramaturgContext> {
+  const { config } = input;
+  if (!config.GUARDIAN_DRAMATURG_ENABLED) {
+    throw new Error("GUARDIAN_DRAMATURG_ENABLED is false");
+  }
+  if (!config.GUARDIAN_LLM_ENABLED || !config.OPENAI_API_KEY) {
+    throw new Error("Dramaturg pass requires GUARDIAN_LLM_ENABLED and OPENAI_API_KEY");
+  }
+
+  const client = new OpenAI({ apiKey: config.OPENAI_API_KEY });
+  const response = await client.responses.create({
+    model: config.GUARDIAN_MODEL,
+    reasoning: {
+      effort: config.GUARDIAN_DRAMATURG_REASONING_EFFORT ?? "medium"
+    },
+    input: [
+      {
+        role: "system",
+        content: [{ type: "input_text", text: buildDramaturgPassSystemPrompt() }]
+      },
+      {
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: buildDramaturgPassUserMessage({
+              plan: input.plan,
+              liveBeat: input.liveBeat,
+              npcAgendas: input.npcAgendas ?? "",
+              deterministic: input.deterministic
+            })
+          }
+        ]
+      }
+    ],
+    text: {
+      verbosity: config.GUARDIAN_LLM_VERBOSITY ?? "medium",
+      format: {
+        type: "json_schema",
+        name: "dramaturg_context",
+        strict: true,
+        schema: dramaturgPassSchema
+      }
+    }
+  } as never);
+
+  const outputText =
+    (response as unknown as { output_text?: string }).output_text ??
+    extractOutputText(response);
+  if (!outputText) throw new Error("Dramaturg pass returned empty output_text");
+
+  const parsed = JSON.parse(outputText) as Record<string, unknown>;
+  return normalizeDramaturgPassResult(parsed, input);
+}
+
+export function normalizeDramaturgPassResult(
+  raw: Record<string, unknown>,
+  input: {
+    plan: ParsedArcPlan;
+    deterministic: DramaturgSnapshot;
+    planHash: string;
+    turnCounter: number;
+  }
+): DramaturgContext {
+  const beatsRaw = Array.isArray(raw.beats) ? raw.beats : [];
+  const beats: BeatState[] = beatsRaw
+    .map((b, i) => {
+      if (!b || typeof b !== "object") return null;
+      const o = b as Record<string, unknown>;
+      const kind = BEAT_KINDS.includes(o.kind as BeatKind)
+        ? (o.kind as BeatKind)
+        : "fixed";
+      const status = BEAT_STATUSES.includes(o.status as BeatStatus)
+        ? (o.status as BeatStatus)
+        : "dormant";
+      const index =
+        typeof o.index === "number" && Number.isFinite(o.index)
+          ? o.index
+          : i + 1;
+      const name =
+        typeof o.name === "string" && o.name.trim()
+          ? o.name.trim()
+          : input.plan.beats[i]?.name ?? `Beat ${index}`;
+      const pressure =
+        typeof o.pressure === "string" ? o.pressure.trim() : "";
+      // Refuse outcome-y pressure language lightly: still accept string; tests check momentum
+      return {
+        index,
+        name,
+        kind,
+        status,
+        pressure: pressure || input.deterministic.beats[i]?.pressure || "",
+        cues: input.plan.beats.find((pb) => pb.index === index)?.cues ?? []
+      } satisfies BeatState;
+    })
+    .filter((b): b is BeatState => b !== null);
+
+  const finalBeats = beats.length ? beats : input.deterministic.beats;
+
+  let momentumLine =
+    typeof raw.momentum_line === "string" ? raw.momentum_line.trim() : "";
+  if (!momentumLine || /she will (win|crash|succeed)|must succeed/i.test(momentumLine)) {
+    momentumLine = input.deterministic.momentumLine;
+  }
+
+  const npcRaw = Array.isArray(raw.npc_intersections) ? raw.npc_intersections : [];
+  const npcIntersections: NpcIntersection[] = npcRaw
+    .map((n) => {
+      if (!n || typeof n !== "object") return null;
+      const o = n as Record<string, unknown>;
+      const tier = TIERS.includes(o.suggested_tier as Intrusiveness)
+        ? (o.suggested_tier as Intrusiveness)
+        : "ambient";
+      const npc = typeof o.npc === "string" ? o.npc.trim() : "";
+      const agenda = typeof o.agenda === "string" ? o.agenda.trim() : "";
+      if (!npc || !agenda) return null;
+      return { npc, agenda, suggestedTier: tier };
+    })
+    .filter((n): n is NpcIntersection => n !== null);
+
+  const warningsRaw = Array.isArray(raw.plan_warnings) ? raw.plan_warnings : [];
+  const planWarnings = warningsRaw
+    .filter((w): w is string => typeof w === "string" && w.trim().length > 0)
+    .map((w) => w.trim())
+    .slice(0, 8);
+
+  return {
+    arcSlug: input.plan.slug,
+    beats: finalBeats,
+    momentumLine,
+    npcIntersections,
+    planWarnings,
+    generatedAtTurn: input.turnCounter,
+    source: "llm",
+    planHash: input.planHash,
+    refreshedAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Fire-and-forget dramaturg refresh. Never awaited on the hot path.
+ * Concurrent calls coalesce into one in-flight promise.
+ */
+export function scheduleDramaturgRefresh(args: {
+  planMarkdown: string;
+  sourcePath?: string;
+  liveBeat: LiveBeat;
+  deterministic: DramaturgSnapshot;
+  planHash: string;
+  turnCounter: number;
+  npcAgendas?: string;
+  config: DramaturgPassConfig;
+  rootDir?: string;
+  reason: DramaturgRefreshReason;
+}): void {
+  if (dramaturgRefreshInFlight) {
+    console.log(
+      `${Date.now()} Dramaturg refresh already in flight; skip schedule (${args.reason})`
+    );
+    return;
+  }
+
+  const rootDir = args.rootDir ?? process.cwd();
+  const plan = parseArcPlan(args.planMarkdown, args.sourcePath);
+
+  dramaturgRefreshInFlight = (async () => {
+    console.log(
+      `${Date.now()} Dramaturg pass starting (reason=${args.reason}, turn=${args.turnCounter})…`
+    );
+    try {
+      const ctx = await runDramaturgPass({
+        plan,
+        liveBeat: args.liveBeat,
+        npcAgendas: args.npcAgendas ?? "",
+        deterministic: args.deterministic,
+        planHash: args.planHash,
+        turnCounter: args.turnCounter,
+        config: args.config
+      });
+      const prev = readDramaturgCache(rootDir);
+      writeDramaturgCache(
+        {
+          version: 1,
+          turnCounter: Math.max(prev?.turnCounter ?? 0, args.turnCounter),
+          context: ctx
+        },
+        rootDir
+      );
+      console.log(
+        `${Date.now()} Dramaturg pass cached: ${ctx.momentumLine.slice(0, 120)}${
+          ctx.momentumLine.length > 120 ? "…" : ""
+        }`
+      );
+    } catch (err) {
+      console.warn(
+        `${Date.now()} Dramaturg pass failed:`,
+        err instanceof Error ? err.message : String(err)
+      );
+    } finally {
+      dramaturgRefreshInFlight = null;
+    }
+  })();
+
+  // Prevent unhandled rejection noise
+  void dramaturgRefreshInFlight;
+}
+
+/** Test helper: clear in-flight lock. */
+export function _resetDramaturgRefreshLockForTests(): void {
+  dramaturgRefreshInFlight = null;
+}
+
+/** Optional: load npc-agendas.md if present (WP-5.4 authors content). */
+export function loadNpcAgendasMarkdown(cwd: string = process.cwd()): string {
+  const candidates = [
+    process.env.GUARDIAN_NPC_AGENDAS_PATH?.trim(),
+    path.resolve(cwd, "project_source_files/npc-agendas.md"),
+    path.resolve(cwd, "../rag-memory-mcp/project_source_files/npc-agendas.md")
+  ].filter(Boolean) as string[];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) return fs.readFileSync(p, "utf8");
+    } catch {
+      /* continue */
+    }
+  }
+  return "";
+}
+
+function uniqueWarn(xs: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const x of xs) {
+    const k = x.toLowerCase();
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    out.push(x);
+  }
+  return out;
+}
+
+function extractOutputText(response: unknown): string | undefined {
+  const output =
+    (response as { output?: Array<{ content?: Array<{ text?: string }> }> }).output ??
+    [];
+  for (const item of output) {
+    const textPart = item.content?.find((c) => typeof c.text === "string");
+    if (textPart?.text) return textPart.text;
+  }
+  return undefined;
 }

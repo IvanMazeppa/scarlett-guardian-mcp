@@ -17,7 +17,16 @@ import type {
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
-import { loadDramaturgSnapshot } from "../dramaturg.js";
+import {
+  buildDramaturgSnapshot,
+  hashArcPlanMarkdown,
+  loadActiveArcPlan,
+  loadNpcAgendasMarkdown,
+  readDramaturgCache,
+  resolveHotPathDramaturg,
+  scheduleDramaturgRefresh,
+  shouldRefreshDramaturg
+} from "../dramaturg.js";
 import {
   parseLiveBeat,
   scoreRecency,
@@ -195,6 +204,9 @@ export async function runGuardianPreflight(
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
     GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
+    GUARDIAN_DRAMATURG_ENABLED?: boolean;
+    GUARDIAN_DRAMATURG_STALENESS_TURNS?: number;
+    GUARDIAN_DRAMATURG_REASONING_EFFORT?: GuardianConfig["GUARDIAN_DRAMATURG_REASONING_EFFORT"];
     OPENAI_API_KEY?: string;
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
@@ -226,6 +238,9 @@ async function runGuardianPreflightInner(
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
     GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
+    GUARDIAN_DRAMATURG_ENABLED?: boolean;
+    GUARDIAN_DRAMATURG_STALENESS_TURNS?: number;
+    GUARDIAN_DRAMATURG_REASONING_EFFORT?: GuardianConfig["GUARDIAN_DRAMATURG_REASONING_EFFORT"];
     OPENAI_API_KEY?: string;
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
@@ -312,11 +327,22 @@ async function runGuardianPreflightInner(
     );
   }
 
-  // WP-5.2: LLM-free arc-plan momentum (plan on disk + LIVE BEAT diff).
-  const dramaturg = loadDramaturgSnapshot(liveBeat);
+  // WP-5.2/5.3: hot path uses deterministic diff + optional LLM cache (never awaits dramaturg LLM).
+  const arcPlanLoaded = loadActiveArcPlan();
+  const deterministicDramaturg = arcPlanLoaded
+    ? buildDramaturgSnapshot(arcPlanLoaded.markdown, liveBeat, arcPlanLoaded.sourcePath)
+    : buildDramaturgSnapshot(null, liveBeat);
+  const planHash = arcPlanLoaded ? hashArcPlanMarkdown(arcPlanLoaded.markdown) : "";
+  const dramaturgCache = readDramaturgCache();
+  const { snapshot: dramaturg, turnCounter: dramaturgTurn } = resolveHotPathDramaturg({
+    deterministic: deterministicDramaturg,
+    cache: dramaturgCache,
+    planHash,
+    bumpTurn: true
+  });
   if (dramaturg.momentumLine) {
     console.log(
-      `${Date.now()} Story momentum: ${dramaturg.momentumLine.slice(0, 160)}${
+      `${Date.now()} Story momentum [${dramaturg.source ?? "deterministic"}]: ${dramaturg.momentumLine.slice(0, 160)}${
         dramaturg.momentumLine.length > 160 ? "…" : ""
       }`
     );
@@ -401,6 +427,48 @@ async function runGuardianPreflightInner(
     `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
   );
   collector.mark("llm_assessment");
+
+  // WP-5.3: schedule background dramaturg pass when triggered — never blocks this turn.
+  // Frozen cassette eval skips network; production uses cache on the *next* turn.
+  const refreshDecision = shouldRefreshDramaturg({
+    enabled: config.GUARDIAN_DRAMATURG_ENABLED !== false,
+    llmEnabled: Boolean(config.GUARDIAN_LLM_ENABLED),
+    hasApiKey: Boolean(config.OPENAI_API_KEY),
+    hasPlan: Boolean(arcPlanLoaded),
+    // frozen cassette + hermetic/eval runners (disableTelemetry) never schedule network dramaturg
+    skipForEval:
+      Boolean(options?.frozenLlmAssessment) || Boolean(options?.disableTelemetry),
+    cache: readDramaturgCache(),
+    planHash,
+    turnCounter: dramaturgTurn,
+    stalenessTurns: config.GUARDIAN_DRAMATURG_STALENESS_TURNS ?? 12,
+    sceneTransitionOccurred: llmAssessment.scene_transition?.occurred === true
+  });
+  if (refreshDecision.refresh && arcPlanLoaded && refreshDecision.reason) {
+    scheduleDramaturgRefresh({
+      planMarkdown: arcPlanLoaded.markdown,
+      sourcePath: arcPlanLoaded.sourcePath,
+      liveBeat,
+      deterministic: deterministicDramaturg,
+      planHash,
+      turnCounter: dramaturgTurn,
+      npcAgendas: loadNpcAgendasMarkdown(),
+      reason: refreshDecision.reason,
+      config: {
+        GUARDIAN_LLM_ENABLED: Boolean(config.GUARDIAN_LLM_ENABLED),
+        OPENAI_API_KEY: config.OPENAI_API_KEY,
+        GUARDIAN_MODEL: config.GUARDIAN_MODEL,
+        GUARDIAN_LLM_VERBOSITY: config.GUARDIAN_LLM_VERBOSITY ?? "medium",
+        GUARDIAN_DRAMATURG_ENABLED: config.GUARDIAN_DRAMATURG_ENABLED !== false,
+        GUARDIAN_DRAMATURG_STALENESS_TURNS: config.GUARDIAN_DRAMATURG_STALENESS_TURNS ?? 12,
+        GUARDIAN_DRAMATURG_REASONING_EFFORT:
+          config.GUARDIAN_DRAMATURG_REASONING_EFFORT ?? "medium"
+      }
+    });
+    console.log(
+      `${Date.now()} Dramaturg refresh scheduled (reason=${refreshDecision.reason}); hot path unchanged`
+    );
+  }
 
   // Prefer auditor weave; fall back to deterministic catalog nudge (WP-4.7).
   const serendipityNudge = resolveSerendipityNudge(llmAssessment, serendipityPick);

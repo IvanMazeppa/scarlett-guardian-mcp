@@ -4,13 +4,22 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import * as os from "node:os";
 import {
   buildDramaturgSnapshot,
   composeMomentumLine,
   diffBeatsAgainstLive,
   formatStoryMomentumBlock,
+  hashArcPlanMarkdown,
   loadActiveArcPlan,
-  parseArcPlan
+  normalizeDramaturgPassResult,
+  parseArcPlan,
+  readDramaturgCache,
+  resolveHotPathDramaturg,
+  shouldRefreshDramaturg,
+  writeDramaturgCache,
+  _resetDramaturgRefreshLockForTests,
+  type DramaturgCacheFile
 } from "../src/guardian/dramaturg.js";
 import {
   buildAuditorSystemPrompt,
@@ -194,9 +203,209 @@ function testLoadActiveFromSibling() {
   console.log("ok loadActiveArcPlan", path.basename(loaded!.sourcePath));
 }
 
+function testShouldRefreshTriggers() {
+  const planHash = "abc123";
+  const baseCache: DramaturgCacheFile = {
+    version: 1,
+    turnCounter: 20,
+    context: {
+      arcSlug: "arc-09",
+      beats: [],
+      momentumLine: "Beat 2 of 4 is live.",
+      npcIntersections: [],
+      planWarnings: [],
+      generatedAtTurn: 10,
+      source: "llm",
+      planHash,
+      refreshedAt: new Date().toISOString()
+    }
+  };
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      cache: null,
+      planHash,
+      turnCounter: 1,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: false
+    }).reason,
+    "no_cache"
+  );
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      cache: baseCache,
+      planHash: "other",
+      turnCounter: 20,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: false
+    }).reason,
+    "plan_changed"
+  );
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      cache: baseCache,
+      planHash,
+      turnCounter: 20,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: true
+    }).reason,
+    "scene_transition"
+  );
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      cache: baseCache,
+      planHash,
+      turnCounter: 30,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: false
+    }).reason,
+    "staleness"
+  );
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      cache: baseCache,
+      planHash,
+      turnCounter: 15,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: false
+    }).refresh,
+    false
+  );
+
+  assert.equal(
+    shouldRefreshDramaturg({
+      enabled: true,
+      llmEnabled: true,
+      hasApiKey: true,
+      hasPlan: true,
+      skipForEval: true,
+      cache: null,
+      planHash,
+      turnCounter: 1,
+      stalenessTurns: 12,
+      sceneTransitionOccurred: true
+    }).refresh,
+    false
+  );
+  console.log("ok shouldRefreshDramaturg triggers");
+}
+
+function testHotPathPrefersLlmCache() {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "wp53-dramaturg-"));
+  _resetDramaturgRefreshLockForTests();
+  const det = buildDramaturgSnapshot(samplePlan, {
+    lastUpdated: "x",
+    locationLine: "pit box debrief",
+    timeLine: "late",
+    liveCues: ["debrief", "pit box"],
+    supersededCues: ["out lap"],
+    antiResetNotes: []
+  });
+  const planHash = hashArcPlanMarkdown(samplePlan);
+  const cache: DramaturgCacheFile = {
+    version: 1,
+    turnCounter: 5,
+    context: {
+      arcSlug: det.arcSlug,
+      beats: det.beats,
+      momentumLine: "LLM refined: Beat 3 of 4 is live; engineers wait on telemetry.",
+      npcIntersections: [
+        { npc: "Shevchenko", agenda: "wants heat-soak data", suggestedTier: "engaging" }
+      ],
+      planWarnings: [],
+      generatedAtTurn: 5,
+      source: "llm",
+      planHash,
+      refreshedAt: new Date().toISOString()
+    }
+  };
+  writeDramaturgCache(cache, tmp);
+  const resolved = resolveHotPathDramaturg({
+    deterministic: det,
+    cache: readDramaturgCache(tmp),
+    planHash,
+    bumpTurn: true,
+    rootDir: tmp
+  });
+  assert.equal(resolved.snapshot.source, "llm_cache");
+  assert.match(resolved.snapshot.momentumLine, /LLM refined/);
+  assert.ok((resolved.snapshot.npcIntersections?.length ?? 0) >= 1);
+
+  const block = formatStoryMomentumBlock(resolved.snapshot);
+  assert.match(block, /cached dramaturg pass/i);
+
+  // plan hash change → fall back to deterministic
+  const detOnly = resolveHotPathDramaturg({
+    deterministic: det,
+    cache: readDramaturgCache(tmp),
+    planHash: "nope",
+    bumpTurn: false,
+    rootDir: tmp
+  });
+  assert.equal(detOnly.snapshot.source, "deterministic");
+  console.log("ok hot path LLM cache preference");
+}
+
+function testNormalizePassRejectsOutcomeMomentum() {
+  const plan = parseArcPlan(samplePlan);
+  const det = buildDramaturgSnapshot(samplePlan, {
+    lastUpdated: "",
+    locationLine: "track",
+    timeLine: "",
+    liveCues: ["nordschleife", "pit wall"],
+    supersededCues: [],
+    antiResetNotes: []
+  });
+  const ctx = normalizeDramaturgPassResult(
+    {
+      beats: det.beats.map((b) => ({
+        index: b.index,
+        name: b.name,
+        kind: b.kind,
+        status: b.status,
+        pressure: b.pressure
+      })),
+      momentum_line: "She will win the lap and must succeed at Flugplatz.",
+      npc_intersections: [],
+      plan_warnings: []
+    },
+    { plan, deterministic: det, planHash: "h", turnCounter: 3 }
+  );
+  assert.equal(ctx.source, "llm");
+  assert.equal(ctx.momentumLine, det.momentumLine, "outcome-y momentum replaced by deterministic");
+  console.log("ok normalize rejects outcome momentum");
+}
+
 testParseArcPlan();
 testDiffOnTrackIsBeat2();
 testDiffDebriefIsBeat3();
 testSnapshotAndBlocks();
 testLoadActiveFromSibling();
-console.log("All WP-5.2 dramaturg tests passed.");
+testShouldRefreshTriggers();
+testHotPathPrefersLlmCache();
+testNormalizePassRejectsOutcomeMomentum();
+console.log("All WP-5.2/5.3 dramaturg tests passed.");

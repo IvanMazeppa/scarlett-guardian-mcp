@@ -55,7 +55,25 @@ const EnvSchema = z.object({
    */
   GUARDIAN_AUTO_APPROVE: z
     .enum(["none", "beats", "beats_and_valid_transitions"])
-    .default("beats")
+    .default("beats"),
+  /**
+   * WP-5.3: background LLM dramaturg pass (scene-level). Hot path still one auditor call;
+   * dramaturg runs async after the turn when triggers fire and never blocks the response.
+   */
+  GUARDIAN_DRAMATURG_ENABLED: z.preprocess(
+    (value) => {
+      if (value === "false" || value === false) return false;
+      if (value === "true" || value === true) return true;
+      return true; // default on once shipped
+    },
+    z.boolean().default(true)
+  ),
+  /** Turns since last dramaturg pass before background refresh (default 12). */
+  GUARDIAN_DRAMATURG_STALENESS_TURNS: z.coerce.number().int().positive().default(12),
+  /** Reasoning effort for runDramaturgPass (scene-level; default medium). */
+  GUARDIAN_DRAMATURG_REASONING_EFFORT: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh", "max"])
+    .default("medium")
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;
