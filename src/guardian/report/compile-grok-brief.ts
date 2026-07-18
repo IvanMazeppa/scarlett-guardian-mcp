@@ -3,6 +3,7 @@
  * Full JSON (with tool_calls) remains for debug; this is what the novelist sees.
  */
 
+import { enforceResonanceEchoBudget } from "../llm-assessment.js";
 import type { CriticalPrecedent, GuardianReport } from "./models.js";
 import { isRagMetaText, stripRagMeta, truncate, truncateAtSentence } from "./text-clean.js";
 
@@ -116,6 +117,22 @@ function pickAvoid(report: GuardianReport): string[] {
   return [...DEFAULT_AVOID, ...extras].slice(0, 6);
 }
 
+function pickScarlettIntention(report: GuardianReport): string | undefined {
+  const raw = report.llm_assessment?.scarlett_next_intention;
+  if (typeof raw !== "string") return undefined;
+  const t = raw.trim();
+  if (!t || t === "null" || isRagMetaText(t)) return undefined;
+  return stripRagMeta(t) || t;
+}
+
+/** Code-enforced ≤1 echo line (WP-5.5). */
+function pickResonanceEcho(report: GuardianReport): string | undefined {
+  const enforced = enforceResonanceEchoBudget(report.llm_assessment?.resonance_echo);
+  if (!enforced || isRagMetaText(enforced)) return undefined;
+  const cleaned = stripRagMeta(enforced) || enforced;
+  return cleaned || undefined;
+}
+
 /**
  * Build the streamlined markdown brief Grok reads before writing Scarlett.
  * Never includes tool_calls, RAG coaching, or raw retrieval dialect.
@@ -195,11 +212,25 @@ export function compileGrokBrief(report: GuardianReport): string {
     parts.push("");
   }
 
+  // WP-5.5: intention beside Qualified Autonomy; echo is scarce optional texture.
+  const intention = pickScarlettIntention(report);
+  if (intention) {
+    parts.push(`**Scarlett's Intention:** ${truncateAtSentence(intention, 280)}`);
+    parts.push("");
+  }
+
   parts.push("**QUALIFIED AUTONOMY PROTOCOL (CRITICAL):**");
   for (const line of QUALIFIED_AUTONOMY_LINES) {
     parts.push(`- ${line}`);
   }
   parts.push("");
+
+  const echo = pickResonanceEcho(report);
+  if (echo) {
+    parts.push("**Echo (optional texture):**");
+    parts.push(`- ${truncateAtSentence(echo, 220)}`);
+    parts.push("");
+  }
 
   const correction = report.llm_assessment?.grok_performance_correction;
   if (correction && typeof correction === "string" && correction.trim() && correction !== "null") {

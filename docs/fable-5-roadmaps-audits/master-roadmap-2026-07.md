@@ -302,7 +302,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 5.2 | **done** | NEW `dramaturg.ts`: `parseArcPlan` + deterministic beat-diff + mechanical momentum; auditor STORY MOMENTUM block; brief **Story Momentum:**; `report.story_momentum`. LLM-free. Tests + eval:fast 31/31. Evidence: `wp-5.2-dramaturg-momentum-2026-07-18.md`. |
 | 5.3 | **done** | `runDramaturgPass` + `.guardian/dramaturg-context.json` cache; hot path uses cache/deterministic only; background refresh on no_cache / plan_changed / scene_transition / staleness(12); config DRAMATURG_*; never blocks turn. Tests + eval:fast 31/31. Evidence: `wp-5.3-dramaturg-pass-cache-2026-07-18.md`. |
 | 5.4 | **done** | `npc-agendas.md` (Shevchenko, AMG engineers, Ryan, Chris&Deb); `npc-agendas.ts` intersect; weaver agenda path outranks catalog + defer-on-over-tier; preflight merge det+dramaturg; RAG prio 85 + reindex. Evidence: `wp-5.4-npc-agendas-serendipity-2026-07-18.md`. |
-| 5.5–5.10 | pending | |
+| 5.5 | **done** | Auditor `scarlett_next_intention` + `resonance_echo`; normalize + echo budget ≤1; brief Intention before QA + optional Echo; `resonanceEchoRate` scorecard helper. Tests + eval:fast 31/31. Evidence: `wp-5.5-intention-resonance-echo-2026-07-18.md`. |
+| 5.6–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
 

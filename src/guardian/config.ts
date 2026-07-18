@@ -73,7 +73,9 @@ const EnvSchema = z.object({
   /** Reasoning effort for runDramaturgPass (scene-level; default medium). */
   GUARDIAN_DRAMATURG_REASONING_EFFORT: z
     .enum(["none", "minimal", "low", "medium", "high", "xhigh", "max"])
-    .default("medium")
+    .default("medium"),
+  /** WP-5.5: max resonance echoes rendered per turn (code-enforced; design default 1). */
+  GUARDIAN_ECHO_MAX_PER_TURN: z.coerce.number().int().min(0).max(1).default(1)
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;

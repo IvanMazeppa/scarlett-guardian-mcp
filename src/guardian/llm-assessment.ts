@@ -81,6 +81,17 @@ const assessmentSchema = {
       type: ["string", "null"],
       description:
         "When a SERENDIPITY WORLD EVENT is provided in the user message: ONE sentence weaving it into the scene background at its tier. Ambient must not demand a response. Null if it cannot be woven without disrupting the scene. Null when no event was provided."
+    },
+    // WP-5.5 / D7 §2.4 — intention + scarce resonance (null most turns for echo).
+    scarlett_next_intention: {
+      type: ["string", "null"],
+      description:
+        "ONE concrete thing Scarlett would initiate given any opening (from live state + plan pressure + her wants). Short clause or sentence. Pressure/possibility only — never a forced outcome or scripted dialogue. Prefer a real intention most turns when LIVE BEAT is clear."
+    },
+    resonance_echo: {
+      type: ["string", "null"],
+      description:
+        "At most ONE optional corpus echo as available texture when thematically apt (e.g. 'harness tension echoes South Cerney passenger-seat trust — available; don't force it'). Most turns MUST be null. Never a quota of callbacks. Never invent new history."
     }
   },
   required: [
@@ -94,7 +105,9 @@ const assessmentSchema = {
     "candidate_memory_update",
     "grok_performance_correction",
     "scene_transition",
-    "serendipity_weave"
+    "serendipity_weave",
+    "scarlett_next_intention",
+    "resonance_echo"
   ]
 } as const;
 
@@ -187,6 +200,10 @@ export function buildAuditorSystemPrompt(): string {
     "When scene_transition.occurred is true, fill from/to as short human snapshots and kind as location|time_jump|both; also set a non-null candidate_memory_update summarizing the durable move.",
     "When a SERENDIPITY WORLD EVENT block is present: set serendipity_weave to exactly ONE grounded background sentence at the event's tier (or null to veto). Never invent a different event. Never put tool names or 'SERENDIPITY EVENT' labels in the weave.",
     "When no serendipity event is provided: serendipity_weave must be null.",
+    // WP-5.5
+    "scarlett_next_intention: one concrete thing Scarlett would initiate if she gets an opening — grounded in LIVE BEAT, STORY MOMENTUM pressure, and established wants. Not dialogue to speak; not an outcome. Prefer non-null when the scene is clear so she can lead (Qualified Autonomy).",
+    "resonance_echo: at most one optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). Most turns the correct value is null. Never invent history. Never stack multiple echoes.",
+    "You describe pressure and possibility. You never decide outcomes, dialogue, or results of open beats.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
   ].join(" ");
 }
@@ -219,11 +236,66 @@ export function normalizeAssessmentFields(
     serendipity_weave = w === "null" ? null : w;
   }
 
+  const scarlett_next_intention = normalizeNullableProseField(
+    raw.scarlett_next_intention,
+    { maxChars: 280, rejectOutcomeLanguage: true }
+  );
+  // Echo budget enforced again at brief compile; normalize to single optional string.
+  const resonance_echo = enforceResonanceEchoBudget(
+    normalizeNullableProseField(raw.resonance_echo, {
+      maxChars: 220,
+      rejectOutcomeLanguage: false
+    })
+  );
+
   return {
     ...(raw as object),
     scene_transition,
-    serendipity_weave
+    serendipity_weave,
+    scarlett_next_intention,
+    resonance_echo
   } as Partial<import("./report/models.js").GuardianLlmAssessment>;
+}
+
+/** Null / "null" / empty → null; optional outcome-language guard for intention. */
+export function normalizeNullableProseField(
+  value: unknown,
+  opts?: { maxChars?: number; rejectOutcomeLanguage?: boolean }
+): string | null {
+  if (typeof value !== "string") return null;
+  const t = value.trim();
+  if (!t || t === "null" || t === "undefined") return null;
+  if (opts?.rejectOutcomeLanguage && /she will (win|crash|succeed)|must succeed|guaranteed/i.test(t)) {
+    return null;
+  }
+  const max = opts?.maxChars ?? 400;
+  return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
+}
+
+/**
+ * WP-5.5 code-enforced echo budget: at most one echo string (never an array).
+ * Design target: echoes/turn ≤ 0.5 on scorecards (scarcity, not zero).
+ */
+export function enforceResonanceEchoBudget(
+  echo: string | null | undefined,
+  maxPerTurn: number = 1
+): string | null {
+  if (maxPerTurn <= 0) return null;
+  if (typeof echo !== "string") return null;
+  const t = echo.trim();
+  if (!t || t === "null") return null;
+  // Single field — budget is presence, not multi-line spam: keep first sentence-ish chunk
+  const one = t.split(/\n+/).map((l) => l.trim()).filter(Boolean)[0] ?? t;
+  return one.length > 220 ? `${one.slice(0, 219).trimEnd()}…` : one;
+}
+
+/** Scorecard helper: fraction of turns with a non-null echo (alert if > 0.5). */
+export function resonanceEchoRate(
+  echoes: Array<string | null | undefined>
+): number {
+  if (!echoes.length) return 0;
+  const present = echoes.filter((e) => typeof e === "string" && e.trim() && e !== "null").length;
+  return present / echoes.length;
 }
 
 export async function assessGuardianEvidence(

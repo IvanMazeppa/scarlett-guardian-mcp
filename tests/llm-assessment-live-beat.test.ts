@@ -72,6 +72,8 @@ function testSystemPromptSupersession() {
   assert.match(sys, /LIVE BEAT wins/i);
   assert.match(sys, /Never describe superseded beats as current/i);
   assert.match(sys, /serendipity_weave/i);
+  assert.match(sys, /scarlett_next_intention/i);
+  assert.match(sys, /resonance_echo/i);
 }
 
 function testSerendipityBlockInUserMessage() {

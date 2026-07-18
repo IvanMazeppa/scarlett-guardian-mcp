@@ -119,6 +119,16 @@ export type GuardianLlmAssessment = {
    * into the background (null = veto / cannot weave without disruption).
    */
   serendipity_weave?: string | null;
+  /**
+   * WP-5.5: one concrete thing Scarlett would initiate given an opening
+   * (pressure/possibility — not scripted dialogue or outcomes).
+   */
+  scarlett_next_intention?: string | null;
+  /**
+   * WP-5.5: at most one optional corpus echo as available texture; null most turns.
+   * Brief compile enforces ≤1; scorecard target echoes/turn ≤ 0.5.
+   */
+  resonance_echo?: string | null;
   error?: string;
   /** P1: what Guardian did with candidate_memory_update (stage/live/skip). */
   memory_write?: {
