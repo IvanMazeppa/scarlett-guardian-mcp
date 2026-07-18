@@ -11,7 +11,13 @@ import {
   SERENDIPITY_CATALOG,
   tierAdmissible
 } from "../src/guardian/serendipity-weaver.js";
+import {
+  intersectAgendasWithLiveScene,
+  parseNpcAgendas
+} from "../src/guardian/npc-agendas.js";
 import type { LiveBeat } from "../src/guardian/recency.js";
+import fs from "node:fs";
+import path from "node:path";
 
 const emptyBeat: LiveBeat = {
   lastUpdated: "",
@@ -196,6 +202,90 @@ console.log("ok classify + tiers");
     `fire rate ${rate} outside 15–50% band for 50-turn sim`
   );
   console.log(`ok 50-turn sim fire rate=${(rate * 100).toFixed(1)}% fires=${fires}`);
+}
+
+// --- WP-5.4: agenda intersections outrank catalog ---
+{
+  const state = emptySerendipityState();
+  // rng would always fire catalog; agenda should win without roll
+  const r = selectSerendipity(
+    state,
+    "professional",
+    ["AMG"],
+    () => 0.99, // would suppress catalog fireChance
+    {
+      npcIntersections: [
+        {
+          npc: "Mr. Shevchenko",
+          agenda: "Wants heat-soak telemetry before Monday board sync.",
+          suggestedTier: "engaging"
+        }
+      ]
+    }
+  );
+  assert.ok(r.event, "agenda should fire");
+  assert.equal(r.agendaDriven, true);
+  assert.match(r.event!.id, /^agenda_/);
+  assert.equal(r.event!.tier, "engaging");
+  assert.match(r.event!.text, /telemetry|board/i);
+  console.log("ok agenda outranks catalog");
+}
+
+// --- WP-5.4: over-tier agenda defers (intimate max ambient) ---
+{
+  const state = emptySerendipityState();
+  const r = selectSerendipity(
+    state,
+    "intimate",
+    ["Intimacy"],
+    () => 0,
+    {
+      npcIntersections: [
+        {
+          npc: "Mr. Shevchenko",
+          agenda: "Status check at the pit box.",
+          suggestedTier: "engaging"
+        }
+      ]
+    }
+  );
+  assert.equal(r.event, undefined);
+  assert.ok(r.deferredInstead, "engaging agenda should defer in intimate");
+  assert.equal(r.agendaDriven, true);
+  assert.equal(r.deferredInstead!.tier, "engaging");
+  console.log("ok agenda defers when over max tier");
+}
+
+// --- WP-5.4: parse + deterministic intersect on track-day cues ---
+{
+  const agendaPath = path.resolve(
+    process.cwd(),
+    "../rag-memory-mcp/project_source_files/npc-agendas.md"
+  );
+  assert.ok(fs.existsSync(agendaPath), "npc-agendas.md should exist");
+  const agendas = parseNpcAgendas(fs.readFileSync(agendaPath, "utf8"));
+  assert.ok(agendas.length >= 4, `expected ≥4 NPCs, got ${agendas.length}`);
+  const live: LiveBeat = {
+    lastUpdated: "Friday late afternoon",
+    locationLine: "Nordschleife industry paddock pit box — debrief",
+    timeLine: "late afternoon",
+    liveCues: ["pit box", "telemetry", "debrief", "paddock"],
+    supersededCues: ["out lap"],
+    antiResetNotes: []
+  };
+  const ix = intersectAgendasWithLiveScene(
+    agendas,
+    live,
+    "Shevchenko is waiting by the screens for the data package."
+  );
+  assert.ok(ix.length >= 1, "Shevchenko/AMG should intersect pit debrief");
+  assert.ok(
+    ix.some((i) => /shevchenko|amg|engineer/i.test(i.npc)),
+    `unexpected intersections: ${ix.map((i) => i.npc).join(", ")}`
+  );
+  // Ryan should not fire on pure track cues without brother cues
+  assert.ok(!ix.some((i) => /ryan/i.test(i.npc)), "Ryan must not spam track-day scene");
+  console.log("ok parse agendas + deterministic intersect");
 }
 
 console.log("\nserendipity-weaver tests passed");

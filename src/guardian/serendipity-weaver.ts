@@ -61,11 +61,20 @@ export type SelectSerendipityResult = {
   event?: SerendipityEvent;
   deferredInstead?: SerendipityEvent;
   surfacedFromDeferral?: boolean;
+  /** WP-5.4: event came from dramaturg/NPC agenda intersection (outranked catalog). */
+  agendaDriven?: boolean;
   mode: SceneMode;
   maxTier: Intrusiveness;
   fireChance: number;
   rolled: number;
   state: SerendipityState;
+};
+
+/** Minimal intersection shape (avoids circular import with dramaturg). */
+export type AgendaIntersectionInput = {
+  npc: string;
+  agenda: string;
+  suggestedTier: Intrusiveness;
 };
 
 const TIER_RANK: Record<Intrusiveness, number> = {
@@ -259,6 +268,31 @@ export const SERENDIPITY_CATALOG: SerendipityEvent[] = [
 
 const CATALOG_BY_ID = new Map(SERENDIPITY_CATALOG.map((e) => [e.id, e]));
 
+/** Runtime stash for deferred agenda events (not in static catalog). */
+const AGENDA_EVENT_BY_ID = new Map<string, SerendipityEvent>();
+
+function rememberAgendaEvent(ev: SerendipityEvent): void {
+  if (ev.id.startsWith("agenda_")) AGENDA_EVENT_BY_ID.set(ev.id, ev);
+}
+
+function syntheticAgendaFromId(
+  eventId: string,
+  intersections?: AgendaIntersectionInput[]
+): SerendipityEvent | undefined {
+  if (AGENDA_EVENT_BY_ID.has(eventId)) return AGENDA_EVENT_BY_ID.get(eventId);
+  if (!eventId.startsWith("agenda_") || !intersections?.length) return undefined;
+  const slug = eventId.slice("agenda_".length);
+  const match = intersections.find((ix) => {
+    const s = ix.npc
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_|_$/g, "")
+      .slice(0, 40);
+    return s === slug;
+  });
+  return match ? agendaIntersectionToEvent(match) : undefined;
+}
+
 export function tierAdmissible(eventTier: Intrusiveness, maxTier: Intrusiveness): boolean {
   return TIER_RANK[eventTier] <= TIER_RANK[maxTier];
 }
@@ -412,13 +446,59 @@ function markFired(state: SerendipityState, event: SerendipityEvent): void {
 }
 
 /**
+ * Map an NPC agenda intersection to a synthetic serendipity event (WP-5.4).
+ * Stable id per NPC for cooldowns; no arcStage (does not advance Ryan stages).
+ */
+export function agendaIntersectionToEvent(
+  ix: AgendaIntersectionInput
+): SerendipityEvent {
+  const slug = ix.npc
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 40);
+  const tier = TIERS_SAFE.includes(ix.suggestedTier) ? ix.suggestedTier : "peripheral";
+  const category = categoryForAgendaNpc(ix.npc);
+  const text =
+    ix.agenda.trim().length > 12
+      ? ix.agenda.trim()
+      : `${ix.npc} exerts background schedule pressure.`;
+  return {
+    id: `agenda_${slug || "npc"}`,
+    category,
+    tier,
+    text,
+    grokNote:
+      "Agenda-driven world pressure (NPC agendas / dramaturg). Pressure only — do not invent outcomes or force a plot resolution." +
+      (/chris|deb|lynn|family/i.test(ix.npc)
+        ? " Stealth: family does NOT know Scarlett is trans."
+        : ""),
+    cooldownTurns: tier === "disruptive" ? 16 : tier === "engaging" ? 10 : 8,
+    weight: 8
+  };
+}
+
+const TIERS_SAFE: Intrusiveness[] = ["ambient", "peripheral", "engaging", "disruptive"];
+
+function categoryForAgendaNpc(npc: string): SerendipityCategory {
+  const n = npc.toLowerCase();
+  if (n.includes("ryan")) return "network_shadow";
+  if (n.includes("shevchenko") || n.includes("albion")) return "work_albion";
+  if (n.includes("chris") || n.includes("deb") || n.includes("lynn")) return "phone_family";
+  if (n.includes("engineer") || n.includes("amg") || n.includes("telemetry")) return "tech";
+  return "environment";
+}
+
+/**
  * Core selector. Pass `rng` for tests (returns [0,1)).
+ * WP-5.4: `npcIntersections` outrank the random catalog (after deferred queue).
  */
 export function selectSerendipity(
   stateIn: SerendipityState,
   mode: SceneMode,
   _triggers: string[],
-  rng: () => number = Math.random
+  rng: () => number = Math.random,
+  options?: { npcIntersections?: AgendaIntersectionInput[] }
 ): SelectSerendipityResult {
   const state = cloneState(stateIn);
   state.turnCounter += 1;
@@ -428,9 +508,9 @@ export function selectSerendipity(
   // Expire deferred
   state.deferred = state.deferred.filter((d) => d.expiresAtTurn >= turn);
 
-  // 1) Deferred queue first
+  // 1) Deferred queue first (includes previously deferred agenda events)
   for (const d of [...state.deferred]) {
-    const ev = CATALOG_BY_ID.get(d.eventId);
+    const ev = CATALOG_BY_ID.get(d.eventId) ?? syntheticAgendaFromId(d.eventId, options?.npcIntersections);
     if (!ev) continue;
     if (isOnCooldown(state, ev, turn)) continue;
     if (!tierAdmissible(ev.tier, maxTier)) continue;
@@ -442,6 +522,46 @@ export function selectSerendipity(
     return {
       event: ev,
       surfacedFromDeferral: true,
+      agendaDriven: ev.id.startsWith("agenda_"),
+      mode,
+      maxTier,
+      fireChance: 1,
+      rolled: 0,
+      state
+    };
+  }
+
+  // 2) WP-5.4 agenda intersections — outrank catalog (no drought roll)
+  const intersections = options?.npcIntersections ?? [];
+  for (const ix of intersections) {
+    if (!ix?.npc?.trim() || !ix.agenda?.trim()) continue;
+    const ev = agendaIntersectionToEvent(ix);
+    if (isOnCooldown(state, ev, turn)) continue;
+    if (!tierAdmissible(ev.tier, maxTier)) {
+      if (!state.deferred.some((d) => d.eventId === ev.id)) {
+        state.deferred.push({
+          eventId: ev.id,
+          queuedAtTurn: turn,
+          expiresAtTurn: turn + DEFER_EXPIRY_TURNS
+        });
+        // Stash payload so deferral can rehydrate without catalog
+        rememberAgendaEvent(ev);
+      }
+      return {
+        deferredInstead: ev,
+        agendaDriven: true,
+        mode,
+        maxTier,
+        fireChance: 1,
+        rolled: 0,
+        state
+      };
+    }
+    markFired(state, ev);
+    rememberAgendaEvent(ev);
+    return {
+      event: ev,
+      agendaDriven: true,
       mode,
       maxTier,
       fireChance: 1,
@@ -590,6 +710,8 @@ export function runSerendipityTurn(input: {
   highRiskTriggers: string[];
   userMessage: string;
   liveBeat?: LiveBeat | null;
+  /** WP-5.4: dramaturg/deterministic NPC agenda intersections (outrank catalog). */
+  npcIntersections?: AgendaIntersectionInput[];
   rng?: () => number;
   rootDir?: string;
   persist?: boolean;
@@ -597,7 +719,13 @@ export function runSerendipityTurn(input: {
   const root = input.rootDir ?? process.cwd();
   const state = loadSerendipityState(root);
   const mode = classifySceneMode(input.highRiskTriggers, input.userMessage, input.liveBeat);
-  const result = selectSerendipity(state, mode, input.highRiskTriggers, input.rng ?? Math.random);
+  const result = selectSerendipity(
+    state,
+    mode,
+    input.highRiskTriggers,
+    input.rng ?? Math.random,
+    { npcIntersections: input.npcIntersections }
+  );
   if (input.persist !== false) {
     saveSerendipityState(result.state, root);
   } else {

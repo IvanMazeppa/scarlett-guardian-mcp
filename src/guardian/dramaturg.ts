@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import OpenAI from "openai";
 import type { GuardianConfig } from "./config.js";
+import type { NpcIntersection } from "./npc-agendas.js";
 import { extractCues, type LiveBeat } from "./recency.js";
 import type { Intrusiveness } from "./serendipity-weaver.js";
 
@@ -60,16 +61,12 @@ export type DramaturgSnapshot = {
   sourcePath?: string;
   /** WP-5.3 provenance for the hot-path snapshot */
   source?: "deterministic" | "llm_cache";
+  /** WP-5.4: from LLM dramaturg pass when cache is warm */
   npcIntersections?: NpcIntersection[];
   generatedAtTurn?: number;
 };
 
-/** NPC agenda intersection (filled by LLM pass; consumed fully in WP-5.4). */
-export type NpcIntersection = {
-  npc: string;
-  agenda: string;
-  suggestedTier: Intrusiveness;
-};
+export type { NpcIntersection };
 
 /** Cached dramaturg context (D7 §3.2). */
 export type DramaturgContext = {

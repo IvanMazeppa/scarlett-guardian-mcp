@@ -72,6 +72,11 @@ import {
   truncateAtSentence
 } from "../report/text-clean.js";
 import {
+  intersectAgendasWithLiveScene,
+  loadAndParseNpcAgendas,
+  mergeNpcIntersections
+} from "../npc-agendas.js";
+import {
   formatSerendipityNudge,
   runSerendipityTurn
 } from "../serendipity-weaver.js";
@@ -378,19 +383,39 @@ async function runGuardianPreflightInner(
     : confidenceScore >= config.GUARDIAN_CONFIDENCE_THRESHOLD && retrievalStatus === "success"
       ? "proceed"
       : "proceed_with_caution";
+  // WP-5.4: NPC agenda intersections (deterministic + cached dramaturg) → weaver outranks catalog.
+  const detIntersections = intersectAgendasWithLiveScene(
+    loadAndParseNpcAgendas(),
+    liveBeat,
+    input.user_message,
+    input.recent_context
+  );
+  const npcIntersections = mergeNpcIntersections(
+    detIntersections,
+    dramaturg.npcIntersections
+  );
+  if (npcIntersections.length) {
+    console.log(
+      `${Date.now()} NPC agendas intersecting: ${npcIntersections
+        .map((i) => `${i.npc}[${i.suggestedTier}]`)
+        .join(", ")}`
+    );
+  }
+
   // WP-4.6/4.7: pick serendipity before auditor so terra can weave (or veto).
   const serendipityPick = runSerendipityTurn({
     highRiskTriggers,
     userMessage: input.user_message,
-    liveBeat
+    liveBeat,
+    npcIntersections
   });
   if (serendipityPick.event) {
     console.log(
-      `${Date.now()} Serendipity pick: id=${serendipityPick.event.id} tier=${serendipityPick.event.tier} mode=${serendipityPick.mode}${serendipityPick.surfacedFromDeferral ? " (deferred)" : ""}`
+      `${Date.now()} Serendipity pick: id=${serendipityPick.event.id} tier=${serendipityPick.event.tier} mode=${serendipityPick.mode}${serendipityPick.surfacedFromDeferral ? " (deferred)" : ""}${serendipityPick.agendaDriven ? " (agenda)" : ""}`
     );
   } else if (serendipityPick.deferredInstead) {
     console.log(
-      `${Date.now()} Serendipity deferred: id=${serendipityPick.deferredInstead.id} tier=${serendipityPick.deferredInstead.tier} (mode=${serendipityPick.mode})`
+      `${Date.now()} Serendipity deferred: id=${serendipityPick.deferredInstead.id} tier=${serendipityPick.deferredInstead.tier} (mode=${serendipityPick.mode})${serendipityPick.agendaDriven ? " (agenda)" : ""}`
     );
   }
 
