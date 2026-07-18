@@ -299,7 +299,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 4.8 | **done** | L3 `eval:llm` + duplex pair + 31 goldens. Evidence: `wp-4.8-eval-l3-2026-07-17.md`. Live L3 needs valid API key. |
 | **FOLLOW-UP (UX)** | backlog | Dashboard revamp under 7.5: legend/hover popups for meta pollution, duplex, correction, latency; serendipity panel when tier fields land |
 | 5.1 | **done** | Nürburgring plan retro-fit → `arc-plans/arc-09-nurburgring-track-day.md` (active, beat kinds + pressure); `arc_plan` role priority 88 / boost 0.05; enum + retriever importance; legacy stub; live reindex. Query top hit `source_role: arc_plan` rank ~0.90. Evidence: `wp-5.1-arc-plan-source-role-2026-07-18.md`. |
-| 5.2–5.10 | pending | |
+| 5.2 | **done** | NEW `dramaturg.ts`: `parseArcPlan` + deterministic beat-diff + mechanical momentum; auditor STORY MOMENTUM block; brief **Story Momentum:**; `report.story_momentum`. LLM-free. Tests + eval:fast 31/31. Evidence: `wp-5.2-dramaturg-momentum-2026-07-18.md`. |
+| 5.3–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
 

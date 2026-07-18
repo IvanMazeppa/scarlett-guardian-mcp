@@ -17,6 +17,7 @@ import type {
   RagRetrieveResponse,
   RagToolCall
 } from "../report/models.js";
+import { loadDramaturgSnapshot } from "../dramaturg.js";
 import {
   parseLiveBeat,
   scoreRecency,
@@ -311,6 +312,18 @@ async function runGuardianPreflightInner(
     );
   }
 
+  // WP-5.2: LLM-free arc-plan momentum (plan on disk + LIVE BEAT diff).
+  const dramaturg = loadDramaturgSnapshot(liveBeat);
+  if (dramaturg.momentumLine) {
+    console.log(
+      `${Date.now()} Story momentum: ${dramaturg.momentumLine.slice(0, 160)}${
+        dramaturg.momentumLine.length > 160 ? "…" : ""
+      }`
+    );
+  } else if (dramaturg.planWarnings.length) {
+    console.log(`${Date.now()} Story momentum: ${dramaturg.planWarnings.join("; ")}`);
+  }
+
   // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
   console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
   const expandedContexts =
@@ -372,6 +385,7 @@ async function runGuardianPreflightInner(
         factChecks,
         highRiskTriggers,
         liveBeat,
+        dramaturg,
         serendipity: serendipityPick.event
           ? {
               event: serendipityPick.event,
@@ -539,6 +553,7 @@ async function runGuardianPreflightInner(
     serendipity_nudge: serendipityNudge,
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
+    story_momentum: dramaturg.momentumLine || undefined,
     grok_scene_summary: currentStateSummary,
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,

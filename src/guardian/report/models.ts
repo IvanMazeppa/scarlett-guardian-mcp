@@ -179,6 +179,11 @@ export type GuardianReport = {
   };
   /** WP-4.1: copy of auditor scene_transition for consumers (dramaturg, compression). */
   scene_transition?: SceneTransition | null;
+  /**
+   * WP-5.2: mechanical Story Momentum line from active arc plan + LIVE BEAT diff.
+   * Pressure/schedule only — never outcomes. Empty/absent when no active plan.
+   */
+  story_momentum?: string;
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

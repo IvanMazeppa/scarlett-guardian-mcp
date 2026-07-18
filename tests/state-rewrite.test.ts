@@ -13,47 +13,64 @@ import {
 } from "../src/guardian/state-rewrite.js";
 
 const root = process.cwd();
-const currentStatePath = path.resolve(
-  root,
-  "../rag-memory-mcp/project_source_files/current-state.md"
-);
 
-function loadCurrentState(): string {
-  if (fs.existsSync(currentStatePath)) return fs.readFileSync(currentStatePath, "utf8");
-  return `# Current Story State — Scarlett & Benjamin
+/**
+ * Use a stable embedded OLD snapshot (not live current-state.md).
+ * Live corpus length drifts after operator-approved rewrites (Phase 4 turn 5),
+ * which breaks the synthetic rewrite length-ratio mutant. Sized so the
+ * Affalterbach synthetic rewrite stays within the 0.5×–2.0× gate.
+ */
+const oldMd = `# Current Story State — Scarlett & Benjamin
 
-**Last Updated:** Friday afternoon at Nordschleife
+**Last Updated:** Friday afternoon, Mid/Late October 2026 (Nürburgring Nordschleife — post out lap / shakedown)
+
+**Primary Reference:** story-bible.md + event-log.md + emotional-milestones.md
 
 ## Where We Are Right Now (High-Level Snapshot)
 
-- On track at Nürburgring; Benjamin on pit wall.
+- **Location / Setting:** Nürburgring Nordschleife Industry Pool — Scarlett on track / Benjamin on pit wall with private radio.
+- **Time in Story:** Friday afternoon.
+- **Overall Mood/Atmosphere:** Professional track-day focus after morning B-road caretaking; Black Panther aero under evaluation.
 
 ## Scarlett's Current Emotional & Relational State
 
-- Focused; Qualified Autonomy; pre-op Swedish trans woman.
+- **Dominant feelings right now:** Focused, slightly adrenaline-high; still warm toward Benjamin.
+- **Qualified Autonomy:** She leads the stint and technical feedback; agency in service of partnership.
+- Pre-op Swedish trans woman continuity unchanged; body and identity facts intact.
 
 ## Benjamin's Observable State (What Scarlett Sees / Hears)
 
-- Pit wall, private radio.
+- On the pit wall beside Shevchenko; private radio open; residual morning motion-sickness possible.
+- Partner and aero author watching live telemetry.
 
 ## Open Story Threads & Pending Elements
 
 - **Active storylines / arcs:**
-  - **Industry Pool track day:** Out lap complete; further laps open.
+  - **Industry Pool track day:** Out lap complete; further evaluation laps open.
+  - **Aero package performance confirmation:** front load, canards, diffuser, cooling under heat.
+  - **Mr. Shevchenko + AMG engineers:** on site.
+  - **Emotional afterglow:** motion-sickness care + paddock intimacy + public claim + private radio.
+  - **Next after track day:** Affalterbach / AMG HQ presentation; later private Gulfstream return.
   - **Affalterbach presentation:** planned next.
   - **Private Gulfstream return:** planned later.
 
+- **Things Scarlett wants to do or say next (autonomous plans):**
+  - Complete evaluation laps; give engineers clear driver-led impressions.
+  - Check Benjamin before formal debrief.
+
 ## Recent Key Events (Last 1–3 Sessions — Brief)
 
-- Out lap completed.
+- Nordschleife Industry Pool: out lap / shakedown; dual radio with Benjamin on pit wall.
+- Friday Eifel drive; Benjamin motion-sick; Swedish aftercare; paddock changing-room intimacy + public send-off.
+- Black Panther AMG Industry Pool continuity anchors held.
 
 ## Notes for Next Response
 
-- Do not reset location. Scarlett Benjamin Black Panther AMG.
+- **Tone/energy:** Professional track focus + private couple warmth; Qualified Autonomy.
+- Do not reset location to Luxembourg suite or tourist gates.
+- Preserve: pre-op, trans woman, Swedish, Benjamin partnership, Black Panther, AMG.
 `;
-}
 
-const oldMd = loadCurrentState();
 const good = buildSyntheticAffalterbachRewrite(oldMd);
 const facts = loadProtectedFacts(root);
 

@@ -6,6 +6,10 @@ import type {
   GuardianLlmAssessment,
   RagRetrieveResponse
 } from "./report/models.js";
+import {
+  formatStoryMomentumBlock,
+  type DramaturgSnapshot
+} from "./dramaturg.js";
 import { formatLiveBeatBlock, type LiveBeat } from "./recency.js";
 import type { GuardianPreflightInput } from "./tools/preflight.js";
 import type { Intrusiveness, SceneMode, SerendipityEvent } from "./serendipity-weaver.js";
@@ -111,6 +115,8 @@ export type AssessGuardianEvidenceInput = {
   highRiskTriggers: string[];
   /** Parsed current-state snapshot (WP-2.2/2.3). Optional for OOC paths. */
   liveBeat?: LiveBeat;
+  /** WP-5.2: mechanical arc-plan momentum (LLM-free). */
+  dramaturg?: DramaturgSnapshot;
   /** WP-4.7: selected world event for one-sentence weave (optional). */
   serendipity?: SerendipityForAuditor;
   config: AssessmentConfig;
@@ -125,9 +131,12 @@ export function buildAuditorUserMessage(
   maxEvidenceChars: number
 ): string {
   const liveBlock = formatLiveBeatBlock(input.liveBeat);
+  const momentumBlock = formatStoryMomentumBlock(input.dramaturg);
   const evidenceJson = buildEvidencePayload(input, maxEvidenceChars);
   const parts = [
     liveBlock,
+    "",
+    momentumBlock,
     "",
     "### RETRIEVED EVIDENCE (JSON)",
     "Use for support and history. Do not treat older same-day beats as the present if they conflict with LIVE BEAT.",
@@ -162,6 +171,7 @@ export function buildAuditorSystemPrompt(): string {
     "You are a silent database auditor, not the creative director. Do NOT prescribe tone, pacing, or POV.",
     "Use only the provided retrieved evidence and the LIVE BEAT block. Do not invent canon.",
     LIVE_BEAT_SUPERSESSION_INSTRUCTION,
+    "When STORY MOMENTUM is present: it is day/arc schedule pressure only. You describe pressure and possibility — never outcomes, dialogue, or results of open beats. LIVE BEAT still wins for present location and story-time.",
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
     "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
     "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",

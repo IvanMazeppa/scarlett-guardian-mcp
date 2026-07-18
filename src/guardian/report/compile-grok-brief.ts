@@ -127,6 +127,14 @@ export function compileGrokBrief(report: GuardianReport): string {
   parts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
   parts.push("");
 
+  // WP-5.2: mechanical day/arc schedule pressure (no outcomes).
+  const momentum =
+    typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
+  if (momentum && !isRagMetaText(momentum)) {
+    parts.push(`**Story Momentum:** ${truncateAtSentence(momentum, 520)}`);
+    parts.push("");
+  }
+
   parts.push("**Recent Emotional & Relational Context:**");
   parts.push(`- ${truncateAtSentence(pickEmotionalContext(report), 520)}`);
   parts.push("");
