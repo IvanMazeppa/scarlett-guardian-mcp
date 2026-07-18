@@ -298,7 +298,8 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | 4.7 | **done** | Auditor `serendipity_weave` schema field; pick before assess; user-message SERENDIPITY block; preflight prefers weave over catalog (null = veto); brief **World Weaver** prefers weave and strips SERENDIPITY labels. Tests + eval:fast 16/16. Evidence: `wp-4.7-serendipity-weave-2026-07-17.md`. Preserve: `preserve/roadmap-wp47-serendipity-weave-20260717`. |
 | 4.8 | **done** | L3 `eval:llm` + duplex pair + 31 goldens. Evidence: `wp-4.8-eval-l3-2026-07-17.md`. Live L3 needs valid API key. |
 | **FOLLOW-UP (UX)** | backlog | Dashboard revamp under 7.5: legend/hover popups for meta pollution, duplex, correction, latency; serendipity panel when tier fields land |
-| 5.1–5.10 | pending | |
+| 5.1 | **done** | Nürburgring plan retro-fit → `arc-plans/arc-09-nurburgring-track-day.md` (active, beat kinds + pressure); `arc_plan` role priority 88 / boost 0.05; enum + retriever importance; legacy stub; live reindex. Query top hit `source_role: arc_plan` rank ~0.90. Evidence: `wp-5.1-arc-plan-source-role-2026-07-18.md`. |
+| 5.2–5.10 | pending | |
 | 6.1–6.8 | pending | |
 | 7.1–7.7 | pending | |
 
