@@ -130,6 +130,8 @@ export type AssessGuardianEvidenceInput = {
   liveBeat?: LiveBeat;
   /** WP-5.2: mechanical arc-plan momentum (LLM-free). */
   dramaturg?: DramaturgSnapshot;
+  /** WP-5.7/5.8: active supporting cast for ensemble dilution critique. */
+  sceneRosterSummary?: string;
   /** WP-4.7: selected world event for one-sentence weave (optional). */
   serendipity?: SerendipityForAuditor;
   config: AssessmentConfig;
@@ -175,6 +177,14 @@ export function buildAuditorUserMessage(
       "None selected this turn. Set serendipity_weave to null."
     );
   }
+  if (input.sceneRosterSummary?.trim()) {
+    parts.push(
+      "",
+      "### SCENE ROSTER (supporting cast)",
+      input.sceneRosterSummary.trim(),
+      "Scarlett remains the lens and lead. Supporting NPCs have wants/pressure only — never pre-written dialogue. Respect ⚠ knowledge boundaries from the brief."
+    );
+  }
   return parts.join("\n");
 }
 
@@ -188,6 +198,8 @@ export function buildAuditorSystemPrompt(): string {
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
     "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
     "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",
+    // WP-5.8 ensemble dilution (duplex path)
+    "ENSEMBLE DILUTION: When scarlett_previous_message is provided and the scene has supporting NPCs, if Scarlett's turn reduced her to only reacting, translating, or interpreting for others while NPCs carried the scene in her POV, issue a harsh 1-sentence grok_performance_correction that restores her as lens and lead. Do not lecture every ensemble scene — only when dilution is observed.",
     "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
     "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
     "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",

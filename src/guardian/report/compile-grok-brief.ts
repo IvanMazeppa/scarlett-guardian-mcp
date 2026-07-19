@@ -4,11 +4,18 @@
  */
 
 import { enforceResonanceEchoBudget } from "../llm-assessment.js";
+import {
+  formatSceneCastBlock,
+  loadRegistryTailMap
+} from "../npc-registry.js";
 import type { CriticalPrecedent, GuardianReport } from "./models.js";
 import { isRagMetaText, stripRagMeta, truncate, truncateAtSentence } from "./text-clean.js";
 
 /** Soft cap for the streamlined markdown Grok receives. Cost is fine to grow for quality. */
 export const GROK_BRIEF_MAX_CHARS = 6500;
+
+/** WP-5.8 design budget for Scene Cast block. */
+export const SCENE_CAST_MAX_WORDS = 90;
 
 const QUALIFIED_AUTONOMY_LINES = [
   "Scarlett must NOT passively parrot or simply agree with Benjamin.",
@@ -133,6 +140,21 @@ function pickResonanceEcho(report: GuardianReport): string | undefined {
   return cleaned || undefined;
 }
 
+/** WP-5.8 Scene Cast from report.scene_roster + on-disk registry tails. */
+function pickSceneCastBlock(report: GuardianReport): string | undefined {
+  const roster = report.scene_roster;
+  if (!roster?.active?.length) return undefined;
+  try {
+    const tails = loadRegistryTailMap();
+    const block = formatSceneCastBlock(roster, tails, SCENE_CAST_MAX_WORDS);
+    return block.trim() || undefined;
+  } catch {
+    // Fallback without tails
+    const block = formatSceneCastBlock(roster, new Map(), SCENE_CAST_MAX_WORDS);
+    return block.trim() || undefined;
+  }
+}
+
 /**
  * Build the streamlined markdown brief Grok reads before writing Scarlett.
  * Never includes tool_calls, RAG coaching, or raw retrieval dialect.
@@ -149,6 +171,13 @@ export function compileGrokBrief(report: GuardianReport): string {
     typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
   if (momentum && !isRagMetaText(momentum)) {
     parts.push(`**Story Momentum:** ${truncateAtSentence(momentum, 520)}`);
+    parts.push("");
+  }
+
+  // WP-5.8: supporting cast pressure + mandatory stealth ⚠ lines (≤90 words).
+  const castBlock = pickSceneCastBlock(report);
+  if (castBlock) {
+    parts.push(castBlock);
     parts.push("");
   }
 

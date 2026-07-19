@@ -466,6 +466,7 @@ async function runGuardianPreflightInner(
         highRiskTriggers,
         liveBeat,
         dramaturg,
+        sceneRosterSummary: sceneRoster.summary || undefined,
         serendipity: serendipityPick.event
           ? {
               event: serendipityPick.event,
