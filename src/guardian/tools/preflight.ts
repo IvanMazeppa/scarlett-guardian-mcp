@@ -1,10 +1,18 @@
 import { performance } from "node:perf_hooks";
 import type { GuardianConfig } from "../config.js";
-import { assessGuardianEvidence } from "../llm-assessment.js";
 import {
+  assessGuardianEvidence,
+  normalizeNpcStateChanges,
+  type GuardianLlmAssessmentWithNpcState
+} from "../llm-assessment.js";
+import {
+  applyNpcStateChangesToRegistryMarkdown,
+  decideNpcStateWrite,
   decideMemoryWrite,
-  formatBeatAdvanceSessionContent
+  formatBeatAdvanceSessionContent,
+  type NpcStateWriteDecision
 } from "../memory-writeback.js";
+import { loadSecondaryCharactersBible } from "../npc-registry.js";
 import { generateStateRewrite, validateStateRewrite } from "../state-rewrite.js";
 import type { RagToolCaller } from "../rag-client.js";
 import type {
@@ -48,7 +56,7 @@ export type GuardianPreflightOptions = {
    * When set, skip the live auditor and use this assessment instead
    * (`eval:fast --llm-mode frozen`). Zero network.
    */
-  frozenLlmAssessment?: GuardianLlmAssessment;
+  frozenLlmAssessment?: GuardianLlmAssessmentWithNpcState;
   /** Optional telemetry sink (tests). Default: NDJSON under .guardian/telemetry/. */
   telemetrySink?: TelemetrySink;
   /** When true, skip telemetry emit entirely (default false). */
@@ -450,7 +458,7 @@ async function runGuardianPreflightInner(
 
   console.log(`${Date.now()} Starting assessGuardianEvidence...`);
   const llmT0 = performance.now();
-  const llmAssessment: GuardianLlmAssessment = options?.frozenLlmAssessment
+  const llmAssessment: GuardianLlmAssessmentWithNpcState = options?.frozenLlmAssessment
     ? {
         ...options.frozenLlmAssessment,
         // Frozen path is intentionally offline; mark enabled so assembly/write gates use fields.
@@ -478,6 +486,10 @@ async function runGuardianPreflightInner(
         config
       });
   const llmAssessmentMs = Math.round(performance.now() - llmT0);
+  const npcStateChanges = normalizeNpcStateChanges(
+    llmAssessment.npc_state_changes
+  );
+  llmAssessment.npc_state_changes = npcStateChanges;
   console.log(
     `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
   );
@@ -601,6 +613,38 @@ async function runGuardianPreflightInner(
       error: err instanceof Error ? err.message : String(err)
     };
     console.warn(`${Date.now()} Memory write-branch error: ${memoryWrite.error}`);
+  }
+
+  const npcWriteDecision = decideNpcStateWrite({
+    changes: npcStateChanges,
+    sceneTransitionOccurred: llmAssessment.scene_transition?.occurred === true,
+    proceedRecommendation,
+    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE
+  });
+  if (npcWriteDecision.action === "stage_npc") {
+    try {
+      const npcWrite = await applyNpcStateChangeWrites({
+        writeDecision: npcWriteDecision,
+        ragClient,
+        toolCalls,
+        preflightQuery,
+        autoApprove: config.GUARDIAN_AUTO_APPROVE ?? "beats"
+      });
+      memoryWrite = mergeNpcStateWriteOutcome(memoryWrite, npcWrite);
+    } catch (err) {
+      memoryWrite = {
+        ...memoryWrite,
+        action: "failed",
+        reason: `${memoryWrite.reason}; NPC write-branch exception`,
+        error: err instanceof Error ? err.message : String(err)
+      };
+      console.warn(`${Date.now()} NPC state write-branch error: ${memoryWrite.error}`);
+    }
+  } else if (npcStateChanges?.length) {
+    memoryWrite = {
+      ...memoryWrite,
+      reason: `${memoryWrite.reason}; ${npcWriteDecision.reason}`
+    };
   }
 
   // Always mirror onto assessment when present (even if LLM disabled).
@@ -738,6 +782,167 @@ function resolveSerendipityNudge(
     fromDeferral: pick.surfacedFromDeferral,
     mode: pick.mode
   });
+}
+
+/**
+ * WP-5.9 NPC path: stage one bounded full-registry rewrite.
+ * Knowledge-containing batches are never sent to the approval tool.
+ */
+export async function applyNpcStateChangeWrites(input: {
+  writeDecision: Extract<NpcStateWriteDecision, { action: "stage_npc" }>;
+  ragClient: RagToolCaller;
+  toolCalls: RagToolCall[];
+  preflightQuery: string;
+  autoApprove: "none" | "beats" | "beats_and_valid_transitions";
+  /** Test seam; production reads the same on-disk registry used by Scene Cast. */
+  registryMarkdown?: string;
+}): Promise<NonNullable<GuardianReport["memory_write"]>> {
+  const {
+    writeDecision,
+    ragClient,
+    toolCalls,
+    preflightQuery,
+    autoApprove
+  } = input;
+  const registryMarkdown =
+    input.registryMarkdown ?? loadSecondaryCharactersBible();
+  if (!registryMarkdown.trim()) {
+    return {
+      action: "failed",
+      reason: "npc_state_changes could not load secondary-characters-bible.md",
+      error: "NPC registry unavailable; no canon proposal staged"
+    };
+  }
+
+  const rewrite = applyNpcStateChangesToRegistryMarkdown(
+    registryMarkdown,
+    writeDecision.changes
+  );
+  if (!rewrite.applied.length) {
+    return {
+      action: "none",
+      reason: `npc_state_changes produced no registry diff (${rewrite.skipped
+        .map((item) => item.reason)
+        .join("; ") || "all no-op"})`
+    };
+  }
+
+  const changeSummary = rewrite.applied
+    .map((change) => `${change.npc}:${change.kind}`)
+    .join(",");
+  const citations = [
+    `preflight_query:${preflightQuery.slice(0, 200)}`,
+    "write_class:npc_state_change",
+    ...rewrite.applied.flatMap((change) => [
+      `npc:${change.npc}`,
+      `kind:${change.kind}`,
+      `evidence:${change.evidence.slice(0, 220)}`
+    ])
+  ];
+  const stageResult = await callJson<{ staged_update?: { id?: string } }>(
+    toolCalls,
+    ragClient,
+    "stage_story_update",
+    {
+      target_source_file: "project_source_files/secondary-characters-bible.md",
+      proposed_content: rewrite.markdown,
+      mode: "overwrite",
+      rationale:
+        `Guardian scene-close NPC registry rewrite (${writeDecision.reason}); changes=${changeSummary}` +
+        (rewrite.skipped.length
+          ? `; skipped=${rewrite.skipped.map((item) => item.reason).join("|")}`
+          : ""),
+      citations
+    }
+  );
+  const stagedId = stageResult.response?.staged_update?.id;
+  if (!stageResult.ok || !stagedId) {
+    return {
+      action: "failed",
+      reason: "npc_state_changes registry overwrite could not be staged",
+      error: stageResult.error ?? "stage_story_update returned no NPC staged_update id"
+    };
+  }
+
+  if (writeDecision.requiresHumanReview) {
+    console.warn(
+      `${Date.now()} NPC knowledge delta staged HUMAN-ALWAYS (never auto-approved): ${stagedId}`
+    );
+    return {
+      action: "held_for_review",
+      reason: `NPC KNOWLEDGE HUMAN REVIEW REQUIRED; staged=${stagedId}; changes=${changeSummary}`,
+      staged_update_id: stagedId
+    };
+  }
+
+  // Reuse the transition burn-in graduation: volatile deltas only auto-apply after it.
+  if (autoApprove !== "beats_and_valid_transitions") {
+    console.log(
+      `${Date.now()} NPC volatile deltas staged for review (GUARDIAN_AUTO_APPROVE=${autoApprove}): ${stagedId}`
+    );
+    return {
+      action: "held_for_review",
+      reason: `NPC volatile deltas staged for review; staged=${stagedId}; changes=${changeSummary}`,
+      staged_update_id: stagedId
+    };
+  }
+
+  const dry = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+    staged_update_id: stagedId,
+    dry_run: true
+  });
+  if (!dry.ok) {
+    return {
+      action: "held_for_review",
+      reason: "NPC volatile delta dry-run approval failed; left staged",
+      staged_update_id: stagedId,
+      error: dry.error
+    };
+  }
+  const approved = await callJson(toolCalls, ragClient, "approve_staged_story_update", {
+    staged_update_id: stagedId,
+    dry_run: false,
+    delete_after_approval: true
+  });
+  if (!approved.ok) {
+    return {
+      action: "held_for_review",
+      reason: "NPC volatile delta approval failed; left staged",
+      staged_update_id: stagedId,
+      error: approved.error
+    };
+  }
+
+  console.log(`${Date.now()} NPC volatile deltas auto-approved: ${stagedId}`);
+  return {
+    action: "staged",
+    reason: `NPC volatile deltas staged+auto-approved; staged=${stagedId}; changes=${changeSummary}`,
+    staged_update_id: stagedId
+  };
+}
+
+function mergeNpcStateWriteOutcome(
+  base: NonNullable<GuardianReport["memory_write"]>,
+  npc: NonNullable<GuardianReport["memory_write"]>
+): NonNullable<GuardianReport["memory_write"]> {
+  const action =
+    base.action === "failed" || npc.action === "failed"
+      ? "failed"
+      : npc.action === "held_for_review" || base.action === "held_for_review"
+        ? "held_for_review"
+        : base.action === "none"
+          ? npc.action
+          : base.action;
+  return {
+    ...base,
+    action,
+    reason: `${base.reason}; ${npc.reason}`,
+    staged_update_id:
+      npc.action === "held_for_review"
+        ? npc.staged_update_id ?? base.staged_update_id
+        : base.staged_update_id ?? npc.staged_update_id,
+    error: base.error ?? npc.error
+  };
 }
 
 /**

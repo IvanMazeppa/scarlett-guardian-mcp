@@ -5,7 +5,9 @@ import assert from "node:assert/strict";
 import {
   LIVE_BEAT_SUPERSESSION_INSTRUCTION,
   buildAuditorSystemPrompt,
-  buildAuditorUserMessage
+  buildAuditorUserMessage,
+  normalizeAssessmentFields,
+  normalizeNpcStateChanges
 } from "../src/guardian/llm-assessment.js";
 import { formatLiveBeatBlock, parseLiveBeat, type LiveBeat } from "../src/guardian/recency.js";
 
@@ -74,6 +76,39 @@ function testSystemPromptSupersession() {
   assert.match(sys, /serendipity_weave/i);
   assert.match(sys, /scarlett_next_intention/i);
   assert.match(sys, /resonance_echo/i);
+  assert.match(sys, /npc_state_changes/i);
+  assert.match(sys, /knowledge proposals are always human-reviewed/i);
+}
+
+function testNpcStateChangeNormalization() {
+  const normalized = normalizeNpcStateChanges([
+    {
+      npc: "  Karin ",
+      kind: "disposition",
+      change: " Skepticism resolved after telemetry review. ",
+      evidence: " She signed the thermal sheet. "
+    },
+    {
+      npc: "Karin",
+      kind: "knowledge",
+      change: "Learned the complete aero package",
+      evidence: "Benjamin handed her the export"
+    },
+    { npc: "Karin", kind: "invented_kind", change: "bad", evidence: "none" },
+    { npc: "", kind: "wants", change: "bad", evidence: "none" }
+  ]);
+  assert.equal(normalized?.length, 2);
+  assert.deepEqual(normalized?.map((change) => change.kind), [
+    "disposition",
+    "knowledge"
+  ]);
+  assert.equal(normalized?.[0]?.npc, "Karin");
+
+  const fields = normalizeAssessmentFields({
+    scene_transition: null,
+    npc_state_changes: "malformed"
+  });
+  assert.equal(fields.npc_state_changes, null);
 }
 
 function testSerendipityBlockInUserMessage() {
@@ -148,6 +183,7 @@ function testParseThenFormatRoundTrip() {
 testFormatLiveBeatBlock();
 testUserMessageOrder();
 testSystemPromptSupersession();
+testNpcStateChangeNormalization();
 testSerendipityBlockInUserMessage();
 testParseThenFormatRoundTrip();
 console.log("llm-assessment-live-beat.test.ts: all passed");

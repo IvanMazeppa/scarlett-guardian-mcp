@@ -1,12 +1,22 @@
 import assert from "node:assert/strict";
 import {
+  applyNpcStateChangesToRegistryMarkdown,
+  decideNpcStateWrite,
   decideMemoryWrite,
   formatBeatAdvanceSessionContent,
   hasLiveBeatDelta,
   isMaterialMemoryUpdate,
   isNoOpMemoryUpdate
 } from "../src/guardian/memory-writeback.js";
+import type { NpcStateChange } from "../src/guardian/llm-assessment.js";
+import {
+  formatSceneCastBlock,
+  parseRegistryTails
+} from "../src/guardian/npc-registry.js";
+import type { RagToolCaller } from "../src/guardian/rag-client.js";
+import type { RagToolCall } from "../src/guardian/report/models.js";
 import type { LiveBeat } from "../src/guardian/recency.js";
+import { applyNpcStateChangeWrites } from "../src/guardian/tools/preflight.js";
 
 const trackBeat: LiveBeat = {
   lastUpdated: "Friday afternoon — post out lap / shakedown",
@@ -211,5 +221,140 @@ const sessionBody = formatBeatAdvanceSessionContent(
 assert.match(sessionBody, /^## Session — /);
 assert.match(sessionBody, /Friday/);
 assert.match(sessionBody, /thermal lap/);
+
+// WP-5.9: NPC deltas only route at scene close; knowledge is human-always.
+const dispositionChange: NpcStateChange = {
+  npc: "Karin",
+  kind: "disposition",
+  change: "Professional skepticism resolved after reviewing the full telemetry",
+  evidence: "Karin signed the thermal sheet and called the aero result proven."
+};
+const knowledgeChange: NpcStateChange = {
+  npc: "Karin",
+  kind: "knowledge",
+  change: "Saw Benjamin's complete adaptive-aero telemetry package",
+  evidence: "Benjamin handed Karin the unredacted telemetry export."
+};
+
+const sameSceneNpc = decideNpcStateWrite({
+  changes: [dispositionChange],
+  sceneTransitionOccurred: false,
+  proceedRecommendation: "proceed",
+  writeMode: "stage"
+});
+assert.equal(sameSceneNpc.action, "none");
+assert.match(sameSceneNpc.reason, /scene not closed/);
+
+const knowledgeDecision = decideNpcStateWrite({
+  changes: [dispositionChange, knowledgeChange],
+  sceneTransitionOccurred: true,
+  proceedRecommendation: "proceed",
+  writeMode: "stage"
+});
+assert.equal(knowledgeDecision.action, "stage_npc");
+if (knowledgeDecision.action !== "stage_npc") {
+  throw new Error("expected scene-close NPC write decision");
+}
+assert.equal(knowledgeDecision.requiresHumanReview, true);
+
+const registryFixture = `# Secondary Characters
+
+### Karin
+Existing stable character prose.
+
+**Disposition (couple):** Professionally skeptical (VOLATILE)
+**Wants now:** Tire-temperature deltas before sign-off (VOLATILE)
+**Knows:** Scarlett is the test driver (STABLE)
+**Must not accidentally learn:** Scarlett is trans (STABLE)
+**Last seen:** Affalterbach presentation bay, morning (VOLATILE)
+
+### Dr Berg (Swedish Doctor)
+**Disposition (couple):** Trusted medical contact (VOLATILE)
+`;
+
+const rewritten = applyNpcStateChangesToRegistryMarkdown(
+  registryFixture,
+  knowledgeDecision.changes
+);
+assert.equal(rewritten.applied.length, 2);
+assert.match(
+  rewritten.markdown,
+  /Professional skepticism resolved after reviewing the full telemetry \(VOLATILE\)/
+);
+assert.match(
+  rewritten.markdown,
+  /Scarlett is the test driver; Saw Benjamin's complete adaptive-aero telemetry package \(STABLE\)/
+);
+
+// The rewritten registry feeds the existing Scene Cast parser/compiler path next session.
+const nextBriefCast = formatSceneCastBlock(
+  {
+    active: [{ id: "karin", displayName: "Karin", activation: "present_cast" }],
+    background: [],
+    summary: "Active: Karin"
+  },
+  parseRegistryTails(rewritten.markdown)
+);
+assert.match(nextBriefCast, /skepticism resolved/i);
+assert.match(nextBriefCast, /⚠/);
+
+const ragCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
+const fakeRag: RagToolCaller = {
+  async callJsonTool<T>(name: string, args: Record<string, unknown>): Promise<T> {
+    ragCalls.push({ name, args });
+    if (name === "stage_story_update") {
+      return { staged_update: { id: "npc-stage-1" } } as T;
+    }
+    return { success: true } as T;
+  },
+  async callTextTool(): Promise<string> {
+    return "";
+  }
+};
+const npcToolCalls: RagToolCall[] = [];
+const knowledgeStage = await applyNpcStateChangeWrites({
+  writeDecision: knowledgeDecision,
+  ragClient: fakeRag,
+  toolCalls: npcToolCalls,
+  preflightQuery: "Karin telemetry scene close",
+  autoApprove: "beats_and_valid_transitions",
+  registryMarkdown: registryFixture
+});
+assert.equal(knowledgeStage.action, "held_for_review");
+assert.match(knowledgeStage.reason, /KNOWLEDGE HUMAN REVIEW REQUIRED/);
+assert.deepEqual(
+  ragCalls.map((call) => call.name),
+  ["stage_story_update"],
+  "knowledge batch must never call approval tools"
+);
+assert.equal(ragCalls[0]?.args.mode, "overwrite");
+
+ragCalls.length = 0;
+const volatileDecision = decideNpcStateWrite({
+  changes: [dispositionChange],
+  sceneTransitionOccurred: true,
+  proceedRecommendation: "proceed",
+  writeMode: "stage"
+});
+if (volatileDecision.action !== "stage_npc") {
+  throw new Error("expected volatile NPC stage decision");
+}
+const volatileStage = await applyNpcStateChangeWrites({
+  writeDecision: volatileDecision,
+  ragClient: fakeRag,
+  toolCalls: [],
+  preflightQuery: "Karin telemetry scene close",
+  autoApprove: "beats_and_valid_transitions",
+  registryMarkdown: registryFixture
+});
+assert.equal(volatileStage.action, "staged");
+assert.deepEqual(
+  ragCalls.map((call) => call.name),
+  [
+    "stage_story_update",
+    "approve_staged_story_update",
+    "approve_staged_story_update"
+  ]
+);
 
 console.log("memory-writeback tests passed");

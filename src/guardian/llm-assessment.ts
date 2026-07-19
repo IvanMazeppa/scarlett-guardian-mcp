@@ -24,6 +24,23 @@ type AssessmentConfig = Pick<
   | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
 >;
 
+export type NpcStateChangeKind =
+  | "disposition"
+  | "wants"
+  | "last_seen"
+  | "knowledge";
+
+export type NpcStateChange = {
+  npc: string;
+  kind: NpcStateChangeKind;
+  change: string;
+  evidence: string;
+};
+
+export type GuardianLlmAssessmentWithNpcState = GuardianLlmAssessment & {
+  npc_state_changes?: NpcStateChange[] | null;
+};
+
 /** Shared supersession rule for system prompt (WP-2.3 / D4 §A.3 point B). */
 export const LIVE_BEAT_SUPERSESSION_INSTRUCTION =
   "LIVE BEAT (below, above retrieved evidence) is ground truth for the present moment. " +
@@ -76,6 +93,36 @@ const assessmentSchema = {
       },
       required: ["occurred", "from", "to", "kind"]
     },
+    // WP-5.9 / D9 §7 — durable supporting-NPC deltas, persisted only at scene close.
+    npc_state_changes: {
+      type: ["array", "null"],
+      description:
+        "Durable played changes for active supporting NPCs at scene close. Null on continuous same-scene turns. Knowledge changes are proposals only and always require human review.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          npc: {
+            type: "string",
+            description: "Exact NPC registry name, e.g. Karin or Mr Shevchenko."
+          },
+          kind: {
+            type: "string",
+            enum: ["disposition", "wants", "last_seen", "knowledge"]
+          },
+          change: {
+            type: "string",
+            description:
+              "Replacement value for a volatile field, or the newly learned fact for knowledge; grounded in played evidence."
+          },
+          evidence: {
+            type: "string",
+            description: "Short quote or beat from this turn proving the change."
+          }
+        },
+        required: ["npc", "kind", "change", "evidence"]
+      }
+    },
     // WP-4.7 / D4 §B point C — auditor weave of selected world event (null = veto).
     serendipity_weave: {
       type: ["string", "null"],
@@ -105,6 +152,7 @@ const assessmentSchema = {
     "candidate_memory_update",
     "grok_performance_correction",
     "scene_transition",
+    "npc_state_changes",
     "serendipity_weave",
     "scarlett_next_intention",
     "resonance_echo"
@@ -210,6 +258,7 @@ export function buildAuditorSystemPrompt(): string {
     "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
     "Set scene_transition only when the scene's location or story-time has durably changed versus the LIVE BEAT block. Continuous action in the same place and hour is not a transition — use null.",
     "When scene_transition.occurred is true, fill from/to as short human snapshots and kind as location|time_jump|both; also set a non-null candidate_memory_update summarizing the durable move.",
+    "npc_state_changes: set only at scene close, when scene_transition.occurred is true, and only for a durable change a named active supporting NPC demonstrably played on screen. Do not emit groups or crowds. Use the exact registry NPC name and one kind: disposition, wants, last_seen, or knowledge. For volatile kinds, change is the complete replacement field value; for knowledge, change is only the newly learned fact. Include a short evidence quote/beat. Never infer a knowledge change; knowledge proposals are always human-reviewed. Otherwise return null.",
     "When a SERENDIPITY WORLD EVENT block is present: set serendipity_weave to exactly ONE grounded background sentence at the event's tier (or null to veto). Never invent a different event. Never put tool names or 'SERENDIPITY EVENT' labels in the weave.",
     "When no serendipity event is provided: serendipity_weave must be null.",
     // WP-5.5
@@ -225,7 +274,9 @@ export function buildAuditorSystemPrompt(): string {
  */
 export function normalizeAssessmentFields(
   raw: Record<string, unknown>
-): Partial<import("./report/models.js").GuardianLlmAssessment> {
+): Partial<GuardianLlmAssessmentWithNpcState> & {
+  npc_state_changes: NpcStateChange[] | null;
+} {
   const st = raw.scene_transition;
   let scene_transition: import("./report/models.js").SceneTransition | null = null;
   if (st && typeof st === "object" && !Array.isArray(st)) {
@@ -259,14 +310,56 @@ export function normalizeAssessmentFields(
       rejectOutcomeLanguage: false
     })
   );
+  const npc_state_changes = normalizeNpcStateChanges(raw.npc_state_changes);
 
   return {
     ...(raw as object),
     scene_transition,
+    npc_state_changes,
     serendipity_weave,
     scarlett_next_intention,
     resonance_echo
-  } as Partial<import("./report/models.js").GuardianLlmAssessment>;
+  } as Partial<GuardianLlmAssessmentWithNpcState> & {
+    npc_state_changes: NpcStateChange[] | null;
+  };
+}
+
+/** Normalize live/frozen auditor deltas before any canon-adjacent routing. */
+export function normalizeNpcStateChanges(value: unknown): NpcStateChange[] | null {
+  if (!Array.isArray(value)) return null;
+  const normalized = new Map<string, NpcStateChange>();
+  for (const item of value.slice(0, 12)) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const raw = item as Record<string, unknown>;
+    const kind = raw.kind;
+    if (
+      kind !== "disposition" &&
+      kind !== "wants" &&
+      kind !== "last_seen" &&
+      kind !== "knowledge"
+    ) {
+      continue;
+    }
+    const npc = normalizeNpcDeltaText(raw.npc, 120);
+    const change = normalizeNpcDeltaText(raw.change, 600);
+    const evidence = normalizeNpcDeltaText(raw.evidence, 600);
+    if (!npc || !change || !evidence) continue;
+    normalized.set(`${npc.toLowerCase()}:${kind}`, {
+      npc,
+      kind,
+      change,
+      evidence
+    });
+    if (normalized.size >= 8) break;
+  }
+  return normalized.size ? [...normalized.values()] : null;
+}
+
+function normalizeNpcDeltaText(value: unknown, maxChars: number): string {
+  if (typeof value !== "string") return "";
+  const text = value.replace(/\s+/g, " ").trim();
+  if (!text || text === "null" || text === "undefined") return "";
+  return text.slice(0, maxChars);
 }
 
 /** Null / "null" / empty → null; optional outcome-language guard for intention. */
@@ -312,7 +405,7 @@ export function resonanceEchoRate(
 
 export async function assessGuardianEvidence(
   input: AssessGuardianEvidenceInput
-): Promise<GuardianLlmAssessment> {
+): Promise<GuardianLlmAssessmentWithNpcState> {
   const { config } = input;
   if (!config.GUARDIAN_LLM_ENABLED) {
     return { enabled: false, model: config.GUARDIAN_MODEL };

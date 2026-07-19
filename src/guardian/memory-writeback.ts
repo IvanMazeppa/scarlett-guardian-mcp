@@ -9,6 +9,7 @@ import {
   isStrongCue,
   type LiveBeat
 } from "./recency.js";
+import type { NpcStateChange } from "./llm-assessment.js";
 import type { GuardianLlmAssessment } from "./report/models.js";
 
 export type MemoryWriteMode = "stage" | "live" | "off";
@@ -29,6 +30,195 @@ export type MemoryWriteDecision =
       };
     }
   | { action: "live_append"; content: string; reason: string };
+
+export type NpcStateWriteDecision =
+  | { action: "none"; reason: string }
+  | {
+      action: "stage_npc";
+      changes: NpcStateChange[];
+      requiresHumanReview: boolean;
+      reason: string;
+    };
+
+export type NpcRegistryRewriteResult = {
+  markdown: string;
+  applied: NpcStateChange[];
+  skipped: Array<{ change: NpcStateChange; reason: string }>;
+};
+
+const NPC_FIELD_LABELS: Record<NpcStateChange["kind"], string> = {
+  disposition: "Disposition (couple)",
+  wants: "Wants now",
+  last_seen: "Last seen",
+  knowledge: "Knows"
+};
+
+/**
+ * D9 §7 gate: NPC deltas are bundled with a durable scene close and always use staging.
+ * `live` mode does not bypass staging; knowledge is marked human-always.
+ */
+export function decideNpcStateWrite(input: {
+  changes: NpcStateChange[] | null | undefined;
+  sceneTransitionOccurred: boolean;
+  proceedRecommendation: "proceed" | "proceed_with_caution" | "do_not_proceed";
+  writeMode?: MemoryWriteMode;
+}): NpcStateWriteDecision {
+  if (!input.changes?.length) {
+    return { action: "none", reason: "no npc_state_changes" };
+  }
+  if ((input.writeMode ?? "stage") === "off") {
+    return { action: "none", reason: "GUARDIAN_MEMORY_WRITE_MODE=off" };
+  }
+  if (input.proceedRecommendation === "do_not_proceed") {
+    return { action: "none", reason: "prose blocked; no NPC write-back" };
+  }
+  if (!input.sceneTransitionOccurred) {
+    return {
+      action: "none",
+      reason: "npc_state_changes deferred: scene not closed (prevents same-scene last_seen churn)"
+    };
+  }
+  const requiresHumanReview = input.changes.some((change) => change.kind === "knowledge");
+  return {
+    action: "stage_npc",
+    changes: input.changes,
+    requiresHumanReview,
+    reason: requiresHumanReview
+      ? "NPC registry delta contains knowledge: HUMAN REVIEW REQUIRED"
+      : "NPC volatile registry deltas eligible for staged review"
+  };
+}
+
+/**
+ * Build a full-file overwrite proposal for the NPC registry.
+ * The caller stages this markdown; this helper never writes canon directly.
+ */
+export function applyNpcStateChangesToRegistryMarkdown(
+  markdown: string,
+  changes: NpcStateChange[]
+): NpcRegistryRewriteResult {
+  const lines = (markdown ?? "").replace(/\r\n/g, "\n").split("\n");
+  const applied: NpcStateChange[] = [];
+  const skipped: Array<{ change: NpcStateChange; reason: string }> = [];
+
+  for (const change of changes) {
+    const section = findNpcRegistrySection(lines, change.npc);
+    if (!section) {
+      skipped.push({ change, reason: `NPC registry section not found: ${change.npc}` });
+      continue;
+    }
+
+    const label = NPC_FIELD_LABELS[change.kind];
+    const labelPattern = new RegExp(
+      `^\\*\\*${escapeRegex(label)}:\\*\\*\\s*(.*?)(?:\\s+\\((?:VOLATILE|STABLE)\\))?\\s*$`,
+      "i"
+    );
+    const incomingValue = cleanNpcRegistryValue(change.change);
+    let fieldIndex = -1;
+    let currentValue = "";
+    for (let i = section.start + 1; i < section.end; i++) {
+      const match = lines[i]?.trimEnd().match(labelPattern);
+      if (!match) continue;
+      fieldIndex = i;
+      currentValue = cleanNpcRegistryValue(match[1] ?? "");
+      break;
+    }
+
+    const normalizedCurrent = currentValue.toLocaleLowerCase();
+    const normalizedIncoming = incomingValue.toLocaleLowerCase();
+    const unchanged =
+      change.kind === "knowledge"
+        ? normalizedCurrent
+            .split(/\s*;\s*/)
+            .some((fact) => fact === normalizedIncoming)
+        : currentValue.localeCompare(incomingValue, undefined, {
+            sensitivity: "accent"
+          }) === 0;
+    if (currentValue && unchanged) {
+      skipped.push({ change, reason: `${change.npc} ${change.kind} is unchanged` });
+      continue;
+    }
+
+    // Knowledge is cumulative: append the reviewed fact rather than erasing prior STABLE knowledge.
+    const value =
+      change.kind === "knowledge" && currentValue
+        ? `${currentValue}; ${incomingValue}`
+        : incomingValue;
+    const tier = change.kind === "knowledge" ? "STABLE" : "VOLATILE";
+    const replacement = `**${label}:** ${value} (${tier})  `;
+    if (fieldIndex >= 0) {
+      lines[fieldIndex] = replacement;
+    } else {
+      lines.splice(section.end, 0, replacement);
+    }
+    applied.push(change);
+  }
+
+  return {
+    markdown: lines.join("\n"),
+    applied,
+    skipped
+  };
+}
+
+function findNpcRegistrySection(
+  lines: string[],
+  npc: string
+): { start: number; end: number } | null {
+  const needle = normalizeNpcRegistryName(npc);
+  if (!needle) return null;
+  let best: { start: number; level: number; score: number } | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const heading = lines[i]?.match(/^(#{3,4})\s+(.+?)\s*$/);
+    if (!heading) continue;
+    const candidate = normalizeNpcRegistryName(heading[2] ?? "");
+    const score = scoreNpcRegistryName(needle, candidate);
+    if (score <= (best?.score ?? 0)) continue;
+    best = { start: i, level: heading[1]?.length ?? 3, score };
+  }
+  if (!best) return null;
+
+  let end = lines.length;
+  for (let i = best.start + 1; i < lines.length; i++) {
+    const heading = lines[i]?.match(/^(#{1,4})\s+/);
+    if (heading && (heading[1]?.length ?? 5) <= best.level) {
+      end = i;
+      break;
+    }
+  }
+  return { start: best.start, end };
+}
+
+function normalizeNpcRegistryName(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/^(?:mr|mrs|ms|miss|dr)\.?\s+/, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function scoreNpcRegistryName(needle: string, candidate: string): number {
+  if (!needle || !candidate) return 0;
+  if (needle === candidate) return 100;
+  if (candidate.startsWith(`${needle} `) || needle.startsWith(`${candidate} `)) return 80;
+  const needleFirst = needle.split(" ")[0] ?? "";
+  const candidateFirst = candidate.split(" ")[0] ?? "";
+  return needleFirst.length >= 4 && needleFirst === candidateFirst ? 60 : 0;
+}
+
+function cleanNpcRegistryValue(value: string): string {
+  return value
+    .replace(/\s+\((?:VOLATILE|STABLE)\)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 const NOOP_PATTERNS = [
   /^(no durable|none|n\/?a|null|no change|scene stays aligned|no update needed|nothing to update)/i,
