@@ -14,7 +14,12 @@ import {
 } from "./telemetry-aggregate.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
-import { duplexCache, storeDuplexMessage } from "./duplex-cache.js";
+import {
+  DEFAULT_DUPLEX_MIN_CHARS,
+  duplexCache,
+  isSubstantialDuplexMessage,
+  storeDuplexMessage
+} from "./duplex-cache.js";
 
 const config = getConfig();
 const ragClient = new RagMcpClient(config);
@@ -54,7 +59,10 @@ const PreflightInputSchema = z.object({
 });
 
 const DuplexCacheBodySchema = z.object({
-  scarlett_message: z.string().min(1).describe("Full Scarlett IC reply scraped from the browser."),
+  scarlett_message: z
+    .string()
+    .min(1)
+    .describe("Full Scarlett IC reply scraped from the browser (WP-R1: substantial narrative only)."),
   thread_key: z.string().optional().describe("Grok conversation id or 'default'."),
   content_hash: z.string().optional().describe("Optional sha256 of normalized text (server recomputes if omitted)."),
   captured_at: z.number().int().optional().describe("Optional epoch ms capture time.")
@@ -273,13 +281,29 @@ app.post("/duplex-cache", (req, res) => {
     return;
   }
 
+  // WP-R1: early structure check so clients get a clear 422 (not a generic 400).
+  const floor = isSubstantialDuplexMessage(parsed.data.scarlett_message, DEFAULT_DUPLEX_MIN_CHARS);
+  if (!floor.ok) {
+    console.warn(
+      `${Date.now()} Duplex cache reject: ${floor.reason} chars=${parsed.data.scarlett_message.trim().length}`
+    );
+    res.status(422).json({
+      ok: false,
+      error: "scarlett_message rejected (WP-R1 substantial floor)",
+      reason: floor.reason,
+      min_chars: DEFAULT_DUPLEX_MIN_CHARS
+    });
+    return;
+  }
+
   try {
     const entry = storeDuplexMessage({
       scarlettMessage: parsed.data.scarlett_message,
       threadKey: parsed.data.thread_key,
       contentHash: parsed.data.content_hash,
       nowMs: parsed.data.captured_at,
-      minChars: 20
+      minChars: DEFAULT_DUPLEX_MIN_CHARS,
+      requireStructure: true
     });
     console.log(
       `${Date.now()} Duplex cache set: thread=${entry.threadKey} chars=${entry.scarlettMessage.length} hash=${entry.contentHash.slice(0, 12)}`

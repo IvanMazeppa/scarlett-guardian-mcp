@@ -18,6 +18,12 @@ export type DuplexSource = "caller" | "bridge_cache" | "absent";
 /** Default TTL: 45 minutes (D6). */
 export const DEFAULT_DUPLEX_CACHE_TTL_MS = 45 * 60 * 1000;
 
+/**
+ * WP-R1: reject short OOC acks ("Understood") that poison corrections.
+ * Real IC Scarlett turns are almost always well above this.
+ */
+export const DEFAULT_DUPLEX_MIN_CHARS = 200;
+
 export function normalizeDuplexText(text: string): string {
   return text
     .replace(/\r\n/g, "\n")
@@ -25,6 +31,37 @@ export function normalizeDuplexText(text: string): string {
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+/**
+ * WP-R1 — substantial narrative floor for bridge POSTs.
+ * Requires min length AND weak structure (sentence end, multi-line, or dialogue).
+ */
+export function isSubstantialDuplexMessage(
+  text: string,
+  minChars: number = DEFAULT_DUPLEX_MIN_CHARS
+): { ok: true } | { ok: false; reason: string } {
+  const normalized = normalizeDuplexText(text);
+  if (normalized.length < minChars) {
+    return {
+      ok: false,
+      reason: `too short (${normalized.length} < ${minChars} chars after normalize)`
+    };
+  }
+  // Reject pure meta/OOC one-liners even if padded with spaces
+  if (/^(understood|got it|ok(?:ay)?|thanks?|acknowledged|noted|will do|sure|yes|no)[.!]?$/i.test(normalized)) {
+    return { ok: false, reason: "non-narrative acknowledgment" };
+  }
+  const hasSentenceEnd = /[.!?]["']?(\s|$)/.test(normalized);
+  const multiLine = normalized.includes("\n");
+  const hasDialogue = /["“”]/.test(normalized) || /\b(I|I'm|I've|my|me)\b/i.test(normalized);
+  if (!hasSentenceEnd && !multiLine && !hasDialogue) {
+    return {
+      ok: false,
+      reason: "lacks narrative structure (no sentence end, multi-line, or first-person dialogue)"
+    };
+  }
+  return { ok: true };
 }
 
 export function hashDuplexContent(normalized: string): string {
@@ -148,13 +185,24 @@ export function storeDuplexMessage(options: {
   contentHash?: string;
   cache?: DuplexCache;
   nowMs?: number;
+  /** Default DEFAULT_DUPLEX_MIN_CHARS (WP-R1). Pass a lower floor only in unit tests. */
   minChars?: number;
+  /** When true (default), also require narrative structure. Tests may disable. */
+  requireStructure?: boolean;
 }): DuplexCacheEntry {
-  const minChars = options.minChars ?? 20;
+  const minChars = options.minChars ?? DEFAULT_DUPLEX_MIN_CHARS;
+  const requireStructure = options.requireStructure !== false;
   const normalized = normalizeDuplexText(options.scarlettMessage);
-  if (normalized.length < minChars) {
+
+  if (requireStructure) {
+    const gate = isSubstantialDuplexMessage(normalized, minChars);
+    if (!gate.ok) {
+      throw new Error(`scarlett_message rejected: ${gate.reason}`);
+    }
+  } else if (normalized.length < minChars) {
     throw new Error(`scarlett_message too short (min ${minChars} chars after normalize)`);
   }
+
   const contentHash = options.contentHash?.trim() || hashDuplexContent(normalized);
   const entry: DuplexCacheEntry = {
     scarlettMessage: normalized,

@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Scarlett Guardian Bridge v2 (Shadow Duplex)
 // @namespace    http://tampermonkey.net/
-// @version      2.0.0
-// @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. Optional legacy interceptor mode.
-// @author       Grok Build (WP-3.2)
+// @version      2.1.0
+// @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. WP-R1 smart scrape + GM snapshot seed.
+// @author       Grok Build (WP-3.2 / WP-R1)
 // @match        *://grok.com/*
 // @match        *://*.x.ai/*
 // @grant        GM_xmlhttpRequest
@@ -17,18 +17,22 @@
 // ==/UserScript==
 
 /**
- * WP-3.2 — Userscript v2
+ * WP-3.2 / WP-R1 — Userscript v2.1
  *
  * Modes (Tampermonkey menu or GM storage key guardian_mode):
  *   shadow      (default) — watch DOM, POST /duplex-cache; never touches composer/send
  *   interceptor — legacy: intercept send → POST /preflight → inject context (fail-open)
  *   calibrate   — stub: click-to-pin selector (full UX lands in WP-3.3)
  *
+ * WP-R1: ignore short non-narrative bubbles; select last substantial RP block;
+ *        GM-storage last-good snapshot seeds new threads after URL change.
+ *
  * Secrets / tunnel URL: set via Tampermonkey menu or GM_setValue — do not hardcode tokens.
  *
  * Install: Tampermonkey → Create new script → paste this file → save.
  * Local Guardian: guardian_base_url = http://127.0.0.1:8790
  * Remote: guardian_base_url = https://your-tunnel.example  (no trailing path)
+ * After upgrade: re-paste this file into Tampermonkey (or update the existing script).
  */
 
 (function () {
@@ -63,10 +67,28 @@
     threadKeyFromUrl: gmGet("guardian_thread_key_from_url", true) !== false,
     quietMs: Number(gmGet("guardian_quiet_ms", 1500)) || 1500,
     maxChars: Number(gmGet("guardian_max_chars", 12000)) || 12000,
+    /** WP-R1: match server DEFAULT_DUPLEX_MIN_CHARS */
+    minChars: Number(gmGet("guardian_duplex_min_chars", 200)) || 200,
     forceFullRetrieval: gmGet("guardian_force_full_retrieval", false) === true,
     autoSubmitAfterPreflight: gmGet("guardian_auto_submit", false) === true,
     failClosed: gmGet("guardian_fail_closed", false) === true
   };
+
+  /**
+   * WP-R1: substantial narrative only (aligned with server isSubstantialDuplexMessage).
+   * @param {string} text
+   */
+  function isSubstantialNarrative(text) {
+    const t = normalizeText(text || "");
+    if (t.length < CONFIG.minChars) return false;
+    if (/^(understood|got it|ok(?:ay)?|thanks?|acknowledged|noted|will do|sure|yes|no)[.!]?$/i.test(t)) {
+      return false;
+    }
+    const hasSentenceEnd = /[.!?]["']?(\s|$)/.test(t);
+    const multiLine = t.includes("\n");
+    const hasDialogue = /["“”]/.test(t) || /\b(I|I'm|I've|my|me)\b/i.test(t);
+    return hasSentenceEnd || multiLine || hasDialogue;
+  }
 
   // ---------------------------------------------------------------------------
   // Status pill
@@ -211,7 +233,8 @@
   }
 
   /**
-   * Find the last assistant-authored bubble text.
+   * Find the last *substantial* assistant-authored bubble (WP-R1).
+   * Walks from end; skips user bubbles, UI chrome, and short OOC acks.
    * @returns {{ text: string, el: Element|null, layer: string }}
    */
   function scrapeLastAssistant() {
@@ -223,32 +246,30 @@
         continue;
       }
       if (!nodes.length) continue;
-      // Walk from end; skip user bubbles and our UI
       for (let i = nodes.length - 1; i >= 0; i--) {
         const el = nodes[i];
         if (el.closest && el.closest("[data-guardian-ui]")) continue;
         if (looksLikeUserBubble(el)) continue;
-        const text = extractCleanText(el);
-        if (text.length >= 20) {
-          return { text: text.slice(0, CONFIG.maxChars), el, layer: sel };
+        const text = extractCleanText(el).slice(0, CONFIG.maxChars);
+        if (isSubstantialNarrative(text)) {
+          return { text, el, layer: sel };
         }
       }
     }
 
-    // Structural fallback: large text blocks in main, last non-textarea block
+    // Structural fallback: prefer longest substantial block near end of main
     const main = document.querySelector("main") || document.body;
     const candidates = Array.from(main.querySelectorAll("div, article, section")).filter((el) => {
       if (el.closest("[data-guardian-ui]")) return false;
       if (el.querySelector("textarea")) return false;
-      const t = (el.innerText || "").trim();
-      return t.length >= 40 && t.length < 50000;
+      if (looksLikeUserBubble(el)) return false;
+      const t = extractCleanText(el);
+      return isSubstantialNarrative(t) && t.length < 50000;
     });
     if (candidates.length) {
       const el = candidates[candidates.length - 1];
-      if (!looksLikeUserBubble(el)) {
-        const text = extractCleanText(el).slice(0, CONFIG.maxChars);
-        if (text.length >= 20) return { text, el, layer: "structural-heuristic" };
-      }
+      const text = extractCleanText(el).slice(0, CONFIG.maxChars);
+      if (isSubstantialNarrative(text)) return { text, el, layer: "structural-heuristic" };
     }
     return { text: "", el: null, layer: "none" };
   }
@@ -292,7 +313,7 @@
           return;
         }
         const text = snapshot();
-        if (!text || text.length < 20) return;
+        if (!text || !isSubstantialNarrative(text)) return;
         if (text === lastSnapshot) return;
         // Require stability: re-check once more after quietMs
         const frozen = text;
@@ -300,7 +321,7 @@
           if (!armed) return;
           if (isProbablyStreaming()) return;
           const again = snapshot();
-          if (again === frozen && frozen.length >= 20) {
+          if (again === frozen && isSubstantialNarrative(frozen)) {
             lastSnapshot = frozen;
             onComplete(frozen);
           }
@@ -328,13 +349,14 @@
         subtree: true,
         characterData: true
       });
-      // SPA URL changes
+      // SPA URL changes — WP-R1: seed duplex from last-good GM snapshot
       setInterval(() => {
         if (location.href !== lastUrl) {
           lastUrl = location.href;
           lastSnapshot = "";
           armed = true;
           showPill("🛡 thread changed — re-armed", "info");
+          seedFromLastGoodSnapshot();
         }
       }, 1000);
     }
@@ -402,7 +424,13 @@
 
   async function onScarlettComplete(text) {
     const normalized = normalizeText(text).slice(0, CONFIG.maxChars);
-    if (normalized.length < 20) return;
+    if (!isSubstantialNarrative(normalized)) {
+      console.log("[Guardian Bridge] skip non-substantial scrape", {
+        chars: normalized.length,
+        preview: normalized.slice(0, 80)
+      });
+      return;
+    }
 
     let hash;
     try {
@@ -421,6 +449,10 @@
       const res = await postDuplexCache(normalized, hash);
       lastPostedHash = hash;
       gmSet("guardian_last_duplex_hash", hash);
+      // WP-R1: durable last-good snapshot for new-thread seed
+      gmSet("guardian_last_good_scarlett", normalized);
+      gmSet("guardian_last_good_thread", extractThreadKey());
+      gmSet("guardian_last_good_at", Date.now());
       const chars = res.chars || normalized.length;
       const k = chars >= 1000 ? `${(chars / 1000).toFixed(1)}k` : String(chars);
       showPill(`🛡 duplex ✓ ${k} chars`, "ok");
@@ -435,12 +467,41 @@
     }
   }
 
+  /**
+   * WP-R1: after SPA thread change, POST last known-good RP block so preflight
+   * is not stuck on absent until the first new Scarlett turn completes.
+   */
+  async function seedFromLastGoodSnapshot() {
+    const snap = String(gmGet("guardian_last_good_scarlett", "") || "");
+    if (!isSubstantialNarrative(snap)) return;
+    let hash;
+    try {
+      hash = await sha256Hex(snap);
+    } catch {
+      hash = `seed-${snap.length}`;
+    }
+    if (hash === lastPostedHash) return;
+    showPill("🛡 seeding duplex from last-good…", "info");
+    try {
+      await postDuplexCache(snap, hash);
+      lastPostedHash = hash;
+      gmSet("guardian_last_duplex_hash", hash);
+      showPill(`🛡 seed ✓ ${snap.length}c`, "ok");
+      console.log("[Guardian Bridge] seeded duplex from last-good snapshot", {
+        thread: extractThreadKey(),
+        chars: snap.length
+      });
+    } catch (e) {
+      console.warn("[Guardian Bridge] seed failed", e);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Shadow mode
   // ---------------------------------------------------------------------------
   function startShadowMode() {
     console.log(
-      `[Guardian Bridge v2] shadow mode → ${CONFIG.guardianBaseUrl}/duplex-cache (thread=${extractThreadKey()})`
+      `[Guardian Bridge v2.1] shadow mode → ${CONFIG.guardianBaseUrl}/duplex-cache minChars=${CONFIG.minChars} (thread=${extractThreadKey()})`
     );
     showPill("🛡 shadow duplex armed", "info");
     const detector = createCompletionDetector((text) => {
@@ -449,6 +510,11 @@
     detector.start();
     // Warm baseline so we don't re-post an already-visible old message immediately
     setTimeout(() => detector.resetBaseline(), 800);
+    // If this is a fresh tab with empty DOM, still try last-good seed once
+    setTimeout(() => {
+      const { text } = scrapeLastAssistant();
+      if (!text) seedFromLastGoodSnapshot();
+    }, 1200);
   }
 
   // ---------------------------------------------------------------------------

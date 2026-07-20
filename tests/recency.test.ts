@@ -11,19 +11,20 @@ import {
 } from "../src/guardian/recency.js";
 import { selectPrecedents } from "../src/guardian/tools/preflight.js";
 
+// Prefer hermetic fixture — live current-state.md moves with play and must not break unit tests.
 const fixturePath = path.join(
   process.cwd(),
-  "../rag-memory-mcp/project_source_files/current-state.md"
-);
-const altFixture = path.join(
-  process.cwd(),
   "tests/fixtures/current-state-sample.md"
+);
+const livePath = path.join(
+  process.cwd(),
+  "../rag-memory-mcp/project_source_files/current-state.md"
 );
 
 const sampleCurrentState = fs.existsSync(fixturePath)
   ? fs.readFileSync(fixturePath, "utf8")
-  : fs.existsSync(altFixture)
-    ? fs.readFileSync(altFixture, "utf8")
+  : fs.existsSync(livePath)
+    ? fs.readFileSync(livePath, "utf8")
     : `
 # Current Story State — Scarlett & Benjamin
 

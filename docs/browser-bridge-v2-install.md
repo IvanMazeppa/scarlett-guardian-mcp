@@ -1,6 +1,6 @@
 # Guardian Browser Bridge v2 — install & smoke (WP-3.2)
 
-**Script:** `scripts/guardian-browser-bridge.user.js` (v2.0.0)  
+**Script:** `scripts/guardian-browser-bridge.user.js` (v2.1.0 — WP-R1 smart scrape + last-good seed)  
 **Server:** WP-3.1 `POST /duplex-cache` on Guardian (`:8790`)
 
 ## What it does (default = shadow)
