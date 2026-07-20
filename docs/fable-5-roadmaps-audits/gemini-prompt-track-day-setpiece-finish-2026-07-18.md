@@ -42,7 +42,7 @@ AI/Guardian **guides** pressure. Operator chooses when to lean in or hold. Open 
 1. **Beat 1 — Arrival** (fixed) — mostly done.  
 2. **Beat 2 — Green Hell** (open) — real track time; **outcomes not preordained**. First shakedown done; more stints still allowed.  
 3. **Beat 3 — Adrenaline crash & debrief** (open) — return → telemetry/feel debrief → grounding. **Live now.**  
-4. **Beat 4 — Hotel / Affalterbach runway** (conditional) — only when track-day obligations can wind down. **Do not force mid-debrief.**
+4. **Beat 4 — Luxury hotel recovery** (conditional) — only when track-day obligations can wind down. **Not** same-day Affalterbach. **Do not force mid-debrief.** Affalterbach board is **Monday**.
 
 ---
 
@@ -62,7 +62,7 @@ Use this unless a newer Guardian report / `current-state.md` supersedes it:
 - Short debrief → possible **second evaluation stint** (heat/pace).  
 - Deeper telemetry review with Benjamin + engineers.  
 - Private grounding beats that stay plausible in a working pit box.  
-- Eventually wind down toward hotel / Affalterbach runway (Beat 4) when the day can close.
+- Eventually wind down toward **luxury hotel recovery** (Beat 4) when the day can close — weekend rest, car release, Autobahn later; **Monday** Affalterbach.
 
 **Not decided by the plan:** Exact lap time, whether aero fully “proves” the sim for Monday, whether she goes out again.
 
@@ -74,7 +74,7 @@ Use this unless a newer Guardian report / `current-state.md` supersedes it:
 2. **Soon:** First data look with Benjamin (feel vs plots); cooling/next-run question stays alive.  
 3. **Fork (player choice in IC):**  
    - **A)** Another evaluation run → still in track-day loop (Beats 2↔3).  
-   - **B)** Enough for today → fuller debrief → pack toward hotel (edge of Beat 4).
+   - **B)** Enough for today → fuller debrief → pack toward **hotel recovery** (Beat 4) — not Affalterbach tonight.
 
 Scarlett’s established wants already favor: **exit + lead debrief + then decide** whether the next stint stresses cooling under harder load.
 
@@ -150,7 +150,7 @@ Help the Operator **finish the Industry Pool track-day sequence** with emotional
 
 - Clear debrief color (feel + early telemetry),  
 - An honest open call on second stint vs wind-down,  
-- Canon ready for **Affalterbach** later (not forced today),  
+- Canon ready for **Monday Affalterbach** later (hotel + weekend first; not forced Friday), 
 - No continuity resets.
 
 Grok continues Phase 5 engineering (NPC ensemble 5.6+) in parallel; do not block RP on code.

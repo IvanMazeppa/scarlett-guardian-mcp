@@ -1,8 +1,8 @@
-# Story status — Nürburgring → Thread 9 (2026-07-19 evening)
+# Story status — Nürburgring → Thread 9 (2026-07-19 evening; itinerary update 2026-07-20)
 
 **Sources:** Operator report; Guardian streamlined/full preflights through `2026-07-19T22-12-50-798Z`  
 **Arc plan:** `arc-09-nurburgring-track-day`  
-**Engineering handoff:** track-day **testing basically complete** → move to **RP Thread 9** / Affalterbach runway.
+**Engineering handoff:** track-day **testing basically complete** → RP **Thread 9** recovery path (not same-day Affalterbach).
 
 ---
 
@@ -10,7 +10,8 @@
 
 - Thorough Nürburgring test / track-day run is **basically complete**.  
 - Driving finished earlier; debrief / pit-box work ran through the evening.  
-- Narrative attention shifts to **new RP thread (Thread 9)** and onward travel / Affalterbach.  
+- Narrative attention shifts to **new RP thread (Thread 9)** and **recovery itinerary**.  
+- **Itinerary (2026-07-20):** Affalterbach is **Monday**, not Friday after the circuit. Luxury hotel recovery, weekend rest, engineer **car release**, Autobahn drive, then Monday HQ.  
 - Duplex cache: **mixed** results across the day (see § Duplex).
 
 ---
@@ -22,7 +23,7 @@
 | 1 Arrival | Done |
 | 2 Green Hell (driving) | Done |
 | 3 Debrief / telemetry / pit handoff | Substantially played; day can wind down |
-| 4 Hotel / Affalterbach runway | **Next story phase** (Thread 9) |
+| 4 Leave circuit → **luxury hotel recovery** (Fri evening) | **Next story phase** (Thread 9) — **not** Affalterbach tonight |
 
 ### Live frame (late reports still showed)
 
@@ -31,7 +32,17 @@
 - Shevchenko / AMG / Albion present during debrief window.  
 - Scarlett exhausted / exacting technical lead; Benjamin support.
 
-**For Thread 9 RP:** do not reset to “still preparing first lap.” Treat track day as **done or winding down** unless Operator re-opens a final paddock beat.
+**For Thread 9 RP:** do not reset to “still preparing first lap.” Treat track day as **done or winding down** unless Operator re-opens a final paddock beat. Do **not** railroad a Friday night drive to Affalterbach.
+
+### Post-track itinerary (canon pressure)
+
+| When | Intent |
+|------|--------|
+| Fri evening | Luxury hotel near Nürburg/Eifel; recover |
+| Weekend | Rest; engineers finish data + **release Black Panther** |
+| Sun / Mon morning | Autobahn toward Stuttgart region (enjoy the road) |
+| **Monday** | AMG HQ presentation at Affalterbach |
+| Later | Private Gulfstream return (open timing) |
 
 ---
 
@@ -56,12 +67,11 @@ Sample of `duplex_source` on 2026-07-19 full reports:
 
 ## Next story-scheduled joint
 
-- **WP-5.10** Affalterbach presentation = live ensemble stress (after WP-5.9 code if possible).  
-- Thread 9 RP can proceed without 5.9; ensemble quality will improve once 5.9 lands.
+- Thread 9: hotel recovery / weekend / Autobahn (play).  
+- **WP-5.10** = **Monday** Affalterbach presentation as live ensemble stress (story-scheduled; after recovery itinerary).  
 
 ---
 
 ## Co-pilot
 
-Gemini play prompts: treat Nürburgring as **complete**; Affalterbach runway / travel / hotel as the open set piece.  
-Do not use old “second evaluation stint still open” framing unless Operator reopens it.
+Gemini play prompts: treat Nürburgring as **complete or winding down**; next pressure is **hotel recovery**, not HQ. Affalterbach is **Monday**.
