@@ -25,3 +25,18 @@ Keep collecting: features, integration, scope, limitations. No implementation un
 1. **Roadmap code** (priority now): 5.6 → 5.9 → 5.10 Affalterbach  
 2. **Docs / seeds** (parallel, cheap): conflict charter, campaign-seeds  
 3. **Play:** finish track day without blocking engineering  
+
+## Related parking
+
+- **Raw Grok thread export / anti-truncation** (Thread 7 platform loss): `ideas-parking-raw-thread-export-2026-07-21.md`
+
+## Explicitly rejected (adopted from Sol review 2026-07-20 — reasoning verbatim-adjacent)
+
+These are **rejected**, not parked; do not resurrect without a new operator decision:
+
+| Idea | Why rejected |
+|------|--------------|
+| **Outcome-tree / Monte Carlo pressure optimization** | Even *hidden* outcome optimization biases pressure toward the resolutions the optimizer scored well — the railroad returns wearing statistics. At most it belongs in an offline red-team harness whose branches never reach the novelist |
+| **Learned preference optimization from recent approvals** | Recent approvals reflect convenience, temporary mood, or one-off story needs, not enduring character truth. Optimizing toward them flattens Scarlett into recently-rewarded behavior |
+| **Every-turn flagship GM** | Already rejected in the feasibility doc; reaffirmed — competes with the one hot-path auditor, surrounds every Scarlett turn with authored intent |
+| **Autonomous offstage world simulation** | Unplayed events must not become facts; canon authority stays with play + staging |

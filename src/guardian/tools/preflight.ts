@@ -390,16 +390,16 @@ async function runGuardianPreflightInner(
       [] as ExpandedContext[],
       "expand_context_around_chunk"
     )) ?? [];
-  // WP-5.7: exact-section expand for active NPC registry chunks (address, not semantic).
-  const npcExpanded =
+  // WP-5.7 / WP-R2: exact-section expand for active NPC registry chunks (address, not semantic).
+  const npcExpandResult =
     (await raceBudget(
       expandActiveNpcSections(toolCalls, ragClient, sceneRoster),
       Math.min(config.GUARDIAN_EXPAND_BUDGET_MS, 4000),
-      [] as ExpandedContext[],
+      { contexts: [] as ExpandedContext[], failureNotes: [] as string[] },
       "expand_npc_registry_sections"
-    )) ?? [];
-  if (npcExpanded.length) {
-    expandedContexts.push(...npcExpanded);
+    )) ?? { contexts: [] as ExpandedContext[], failureNotes: [] as string[] };
+  if (npcExpandResult.contexts.length) {
+    expandedContexts.push(...npcExpandResult.contexts);
   }
   const factChecks =
     (await raceBudget(
@@ -409,7 +409,7 @@ async function runGuardianPreflightInner(
       "verify_story_fact"
     )) ?? [];
   console.log(
-    `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}, npc_sections=${npcExpanded.length}`
+    `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}, npc_sections=${npcExpandResult.contexts.length}`
   );
   collector.mark("expand_verify");
 
@@ -696,11 +696,21 @@ async function runGuardianPreflightInner(
         ? "Duplex: scarlett_previous_message provided (bridge_cache)."
         : "Duplex: scarlett_previous_message MISSING.";
 
+  const npcExpandNote =
+    npcExpandResult.failureNotes.length > 0
+      ? `NPC registry expand misses: ${npcExpandResult.failureNotes.join("; ")}.`
+      : npcExpandResult.contexts.length > 0
+        ? `NPC registry expand ok: ${npcExpandResult.contexts.length} section(s).`
+        : "";
+
   const retrievalNotes = [
     buildRetrievalNotes(indexStatus.response, preflight.response, memoryResponses, toolCalls),
     `Expand results: ${expandedContexts.length}; fact checks: ${factChecks.length}.`,
-    duplexNote
-  ].join(" ");
+    duplexNote,
+    npcExpandNote
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const report: GuardianReport = {
     retrieval_status: retrievalStatus,
@@ -1324,17 +1334,18 @@ async function raceBudget<T>(
 }
 
 /**
- * WP-5.7: fetch registry sections for active NPCs by address (not embedding search).
+ * WP-5.7 / WP-R2: fetch registry sections for active NPCs by address (not embedding search).
  * Uses expand_context_around_chunk with source_file + section needle; fails soft.
- * Cassette misses are **not** recorded as PLAN_DRIFT (optional fan-out).
+ * Failures are surfaced on retrieval_notes (not silent). Cassette misses stay non-PLAN_DRIFT.
  */
 async function expandActiveNpcSections(
   toolCalls: RagToolCall[],
   ragClient: RagToolCaller,
   roster: SceneRoster
-): Promise<ExpandedContext[]> {
-  if (!roster.active.length) return [];
-  const out: ExpandedContext[] = [];
+): Promise<{ contexts: ExpandedContext[]; failureNotes: string[] }> {
+  if (!roster.active.length) return { contexts: [], failureNotes: [] };
+  const contexts: ExpandedContext[] = [];
+  const failureNotes: string[] = [];
   const targets = roster.active.slice(0, 4);
   for (const npc of targets) {
     const args = {
@@ -1355,18 +1366,39 @@ async function expandActiveNpcSections(
         ok: true,
         response
       });
-      out.push({
+      const empty =
+        !response ||
+        (Array.isArray((response as { sections?: unknown }).sections) &&
+          !(response as { sections: unknown[] }).sections.length &&
+          !(response as { text?: string }).text);
+      // Some retrievers return { error } or empty expansion without throwing.
+      const errMsg =
+        response && typeof response === "object" && "error" in response
+          ? String((response as { error?: unknown }).error ?? "expand error")
+          : empty
+            ? "empty expansion"
+            : null;
+      if (errMsg) {
+        failureNotes.push(`${npc.displayName}[${npc.sectionNeedle}]: ${errMsg}`);
+        continue;
+      }
+      contexts.push({
         ...response,
         anchor: response.anchor ?? {
           source_file: npc.sourceFile,
           section: npc.sectionNeedle
         }
       });
-    } catch {
+    } catch (err) {
       // Optional path — hermetic cassettes may not include NPC expands.
+      const detail = err instanceof Error ? err.message : String(err);
+      failureNotes.push(`${npc.displayName}[${npc.sectionNeedle}]: ${detail}`);
+      console.warn(
+        `${Date.now()} NPC registry expand miss: ${npc.displayName} needle=${npc.sectionNeedle} — ${detail}`
+      );
     }
   }
-  return out;
+  return { contexts, failureNotes };
 }
 
 async function expandBestContext(
