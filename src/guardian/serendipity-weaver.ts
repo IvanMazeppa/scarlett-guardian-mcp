@@ -728,9 +728,9 @@ export function runSerendipityTurn(input: {
   );
   if (input.persist !== false) {
     saveSerendipityState(result.state, root);
-  } else {
-    memoryCache = cloneState(result.state);
   }
+  // WP-R3: when persist is false (hermetic eval), do not mutate process-global
+  // memoryCache or live .guardian/serendipity-state.json.
   const nudge = result.event
     ? formatSerendipityNudge(result.event, {
         fromDeferral: result.surfacedFromDeferral,

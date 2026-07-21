@@ -137,8 +137,19 @@ export async function runL1Case(
   const client = new CassetteRagClient(gc.cassette, { caseId: gc.id });
 
   try {
+    // WP-R4: hermetic `off` injects frozen_llm_assessment only for ensemble /
+    // negative-space cases so correction pairs score without live API or breaking
+    // legacy goldens that store frozen snapshots for --llm-mode frozen only.
+    const frozenFromFile = frozenFromCase(gc);
+    const hermeticFrozenCategories = new Set(["ensemble", "negative-space"]);
     const frozen =
-      options.llmMode === "frozen" ? frozenFromCase(gc) : undefined;
+      options.llmMode === "frozen"
+        ? frozenFromFile
+        : options.llmMode === "off" &&
+            frozenFromFile &&
+            hermeticFrozenCategories.has(gc.category)
+          ? frozenFromFile
+          : undefined;
     if (options.llmMode === "frozen" && !frozen) {
       const assertions: AssertionResult[] = [
         {

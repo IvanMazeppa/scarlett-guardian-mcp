@@ -23,8 +23,11 @@ export type PreflightTelemetryEvent = {
   ts: string;
   preflight_id?: string;
   report_path?: string;
-  /** live hot-path emit vs reconstructed from saved report (WP-1.7 backfill). */
-  source?: "live" | "backfill";
+  /**
+   * live hot-path emit vs reconstructed from saved report (WP-1.7 backfill)
+   * vs hermetic/eval harness emit (WP-R3 — excluded from dashboard defaults).
+   */
+  source?: "live" | "backfill" | "eval";
 
   latency_ms: {
     total: number;
@@ -234,6 +237,8 @@ export type BuildEventInput = {
   report_path?: string;
   brief_chars?: number;
   llm_assessment_ms?: number;
+  /** WP-R3: defaults to live; eval harness tags as eval when emitted. */
+  source?: "live" | "backfill" | "eval";
 };
 
 /**
@@ -316,7 +321,7 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
     ts: new Date().toISOString(),
     preflight_id: input.preflight_id,
     report_path: input.report_path,
-    source: "live",
+    source: input.source ?? "live",
     latency_ms: {
       total: collector.totalMs(),
       rag: {

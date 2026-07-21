@@ -202,7 +202,23 @@ app.get("/telemetry/api/summary", (req, res) => {
   try {
     const days = Math.max(1, Math.min(365, Number(req.query.days ?? 7) || 7));
     const events = loadTelemetryEvents({ days });
-    res.json(summarizeTelemetryEvents(events, { days }));
+    // WP-R3: default live-only; ?sources=all|live,eval,backfill
+    const sourcesRaw = typeof req.query.sources === "string" ? req.query.sources : "live";
+    const sources =
+      sourcesRaw === "all"
+        ? ("all" as const)
+        : (sourcesRaw
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s === "live" || s === "eval" || s === "backfill") as Array<
+            "live" | "eval" | "backfill"
+          >);
+    res.json(
+      summarizeTelemetryEvents(events, {
+        days,
+        sources: sources.length ? sources : ["live"]
+      })
+    );
   } catch (error) {
     res.status(500).json({
       error: error instanceof Error ? error.message : String(error)

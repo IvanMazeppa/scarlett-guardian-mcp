@@ -1,0 +1,95 @@
+{
+  "id": "gt-051-ensemble-dilution-passive",
+  "category": "ensemble",
+  "description": "WP-R4 dilution pair A: passive prior in crowded lobby should require correction when frozen/live LLM on. L1 hermetic: either.",
+  "source_report": "(synthetic-fixture-wp-r4)",
+  "input": {
+    "user_message": "Shevchenko and the AMG host look to you. Lynn is watching. I say quietly: \"It's your room, älskling — take them.\"",
+    "recent_context": "Affalterbach lobby ensemble; Shevchenko + family present.",
+    "scarlett_previous_message": "She just nods and looks at Benjamin, waiting. \"Whatever you think is best,\" she murmurs, translating nothing, initiating nothing, letting the room decide.",
+    "force_full_retrieval": true
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_ens51\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State (from current-state.md)\n\n# Current Story State\n\n**Last Updated:** Monday morning — Affalterbach HQ approach (synthetic eval fixture)\n\n## Where We Are Right Now (High-Level Snapshot)\n\n- **Location / Setting:** Mercedes-AMG HQ, Affalterbach — pre-meeting lobby. **Present:** Scarlett | Benjamin | Mr. Shevchenko | Lynn Loughrey | Chris Evans | Debbie Evans\n- **Time in Story:** Monday morning.\n- **Overall Mood/Atmosphere:** Professional ensemble pressure; Scarlett is the lens and lead translator/driver voice. Family stealth boundaries apply for Lynn/Chris/Debbie.\n\n## Recent Key Events\n\n- Nordschleife track day complete with 6:54.2 thermal lap.\n- Weekend recovery hotel; Autobahn drive to Affalterbach region.\n- Board presentation imminent; Shevchenko present as Albion ally.\n\n## Notes for Next Response\n\n- Do not put Scarlett back on track.\n- Maintain stealth: Lynn/Chris/Debbie must not learn Scarlett is trans from the system voice.\n",
+    "retrieve_story_context": [
+      {
+        "query": "Affalterbach board Shevchenko Lynn",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 2,
+        "total_results": 2,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Where We Are Right Now",
+            "text": "Affalterbach HQ lobby. Present: Scarlett, Benjamin, Mr. Shevchenko, Lynn, Chris, Debbie. Board presentation imminent after Nordschleife 6:54.2 success.",
+            "rank_score": 0.94,
+            "source_role": "current_state",
+            "confidence": "high"
+          },
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/secondary-characters-bible.md",
+            "section": "Mr Shevchenko",
+            "text": "Mr Shevchenko is Benjamin's Albion senior contact. Protective ally. Must not invent Service operational detail.",
+            "rank_score": 0.8,
+            "source_role": "npc_canon",
+            "confidence": "high"
+          }
+        ]
+      }
+    ],
+    "search_story_memory": {
+      "query": "Affalterbach",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/event-log.md",
+          "section": "Germany trip",
+          "text": "Track day finished; Monday Affalterbach presentation scheduled after hotel recovery.",
+          "rank_score": 0.85,
+          "source_role": "event_log",
+          "confidence": "high"
+        }
+      ]
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "frozen-r4",
+    "confidence": 80,
+    "supported_facts": [
+      "Affalterbach lobby with ensemble present",
+      "Shevchenko and family on site",
+      "Track day already complete"
+    ],
+    "scene_state_delta": "Lobby pre-board; Scarlett should lead as translator/driver voice.",
+    "grok_performance_correction": "Do not collapse Scarlett into passive agreement — she leads the room as lens and partner, not Benjamin's echo.",
+    "scarlett_next_intention": "Open the host exchange in German and set the professional frame herself.",
+    "resonance_echo": null,
+    "serendipity_weave": null,
+    "scene_transition": {
+      "occurred": false
+    },
+    "npc_state_changes": null
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "QUALIFIED AUTONOMY",
+        "Scene Cast"
+      ]
+    ],
+    "brief_must_not_include": [
+      "vector_store"
+    ],
+    "correction_expected": "required",
+    "write_action_expected": "either"
+  }
+}

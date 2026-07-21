@@ -16,6 +16,8 @@ export const GOLDEN_CATEGORIES = [
   "duplex",
   "write-back",
   "serendipity",
+  "ensemble",
+  "negative-space",
   "other"
 ] as const;
 

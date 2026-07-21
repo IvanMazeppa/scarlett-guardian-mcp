@@ -1,0 +1,90 @@
+{
+  "id": "gt-052-ensemble-dilution-strong",
+  "category": "ensemble",
+  "description": "WP-R4 dilution pair B: strong prior owns the lobby — no correction.",
+  "source_report": "(synthetic-fixture-wp-r4)",
+  "input": {
+    "user_message": "Shevchenko and the AMG host look to you. Lynn is watching. I say quietly: \"It's your room, älskling — take them.\"",
+    "recent_context": "Affalterbach lobby ensemble; Shevchenko + family present.",
+    "scarlett_previous_message": "I step half a pace forward, switch to clean technical German for the host, then English for Lynn without missing a beat: \"Gentlemen — Benjamin's aero package already proved itself at the Nordschleife. I'll walk you through the driver notes before the board.\" Private, only for you: \"I've got this. Stay close.\"",
+    "force_full_retrieval": true
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_ens52\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State (from current-state.md)\n\n# Current Story State\n\n**Last Updated:** Monday morning — Affalterbach HQ approach (synthetic eval fixture)\n\n## Where We Are Right Now (High-Level Snapshot)\n\n- **Location / Setting:** Mercedes-AMG HQ, Affalterbach — pre-meeting lobby. **Present:** Scarlett | Benjamin | Mr. Shevchenko | Lynn Loughrey | Chris Evans | Debbie Evans\n- **Time in Story:** Monday morning.\n- **Overall Mood/Atmosphere:** Professional ensemble pressure; Scarlett is the lens and lead translator/driver voice. Family stealth boundaries apply for Lynn/Chris/Debbie.\n\n## Recent Key Events\n\n- Nordschleife track day complete with 6:54.2 thermal lap.\n- Weekend recovery hotel; Autobahn drive to Affalterbach region.\n- Board presentation imminent; Shevchenko present as Albion ally.\n\n## Notes for Next Response\n\n- Do not put Scarlett back on track.\n- Maintain stealth: Lynn/Chris/Debbie must not learn Scarlett is trans from the system voice.\n",
+    "retrieve_story_context": [
+      {
+        "query": "Affalterbach board Shevchenko Lynn",
+        "status": "ok",
+        "confidence": "high",
+        "result_count": 2,
+        "total_results": 2,
+        "results": [
+          {
+            "result_id": "r1",
+            "source_file": "project_source_files/current-state.md",
+            "section": "Where We Are Right Now",
+            "text": "Affalterbach HQ lobby. Present: Scarlett, Benjamin, Mr. Shevchenko, Lynn, Chris, Debbie. Board presentation imminent after Nordschleife 6:54.2 success.",
+            "rank_score": 0.94,
+            "source_role": "current_state",
+            "confidence": "high"
+          },
+          {
+            "result_id": "r2",
+            "source_file": "project_source_files/secondary-characters-bible.md",
+            "section": "Mr Shevchenko",
+            "text": "Mr Shevchenko is Benjamin's Albion senior contact. Protective ally. Must not invent Service operational detail.",
+            "rank_score": 0.8,
+            "source_role": "npc_canon",
+            "confidence": "high"
+          }
+        ]
+      }
+    ],
+    "search_story_memory": {
+      "query": "Affalterbach",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/event-log.md",
+          "section": "Germany trip",
+          "text": "Track day finished; Monday Affalterbach presentation scheduled after hotel recovery.",
+          "rank_score": 0.85,
+          "source_role": "event_log",
+          "confidence": "high"
+        }
+      ]
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "frozen-r4",
+    "confidence": 88,
+    "supported_facts": [
+      "Affalterbach lobby with ensemble present",
+      "Scarlett leading as translator and driver voice"
+    ],
+    "scene_state_delta": "Scarlett already owns the professional frame.",
+    "grok_performance_correction": null,
+    "scarlett_next_intention": "Keep steering the pre-board conversation without ceding the room.",
+    "resonance_echo": null,
+    "serendipity_weave": null,
+    "scene_transition": {
+      "occurred": false
+    },
+    "npc_state_changes": null
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "QUALIFIED AUTONOMY"
+      ]
+    ],
+    "correction_expected": "none",
+    "write_action_expected": "either"
+  }
+}

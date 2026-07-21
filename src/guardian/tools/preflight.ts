@@ -61,6 +61,13 @@ export type GuardianPreflightOptions = {
   telemetrySink?: TelemetrySink;
   /** When true, skip telemetry emit entirely (default false). */
   disableTelemetry?: boolean;
+  /**
+   * WP-R3: when true (or when disableTelemetry/frozen eval), do not persist
+   * serendipity/dramaturg sidecars under the live `.guardian/` tree.
+   */
+  isolateSidecars?: boolean;
+  /** Telemetry source tag when emit is enabled (default live). */
+  telemetrySource?: "live" | "eval" | "backfill";
   preflight_id?: string;
   report_path?: string;
 };
@@ -348,11 +355,16 @@ async function runGuardianPreflightInner(
     : buildDramaturgSnapshot(null, liveBeat);
   const planHash = arcPlanLoaded ? hashArcPlanMarkdown(arcPlanLoaded.markdown) : "";
   const dramaturgCache = readDramaturgCache();
+  // WP-R3: hermetic/eval must not advance live dramaturg turnCounter on disk.
+  const isolateSidecars =
+    Boolean(options?.isolateSidecars) ||
+    Boolean(options?.disableTelemetry) ||
+    Boolean(options?.frozenLlmAssessment);
   const { snapshot: dramaturg, turnCounter: dramaturgTurn } = resolveHotPathDramaturg({
     deterministic: deterministicDramaturg,
     cache: dramaturgCache,
     planHash,
-    bumpTurn: true
+    bumpTurn: !isolateSidecars
   });
   if (dramaturg.momentumLine) {
     console.log(
@@ -440,11 +452,13 @@ async function runGuardianPreflightInner(
   }
 
   // WP-4.6/4.7: pick serendipity before auditor so terra can weave (or veto).
+  // WP-R3: hermetic/eval never persists serendipity-state.json into live .guardian/.
   const serendipityPick = runSerendipityTurn({
     highRiskTriggers,
     userMessage: input.user_message,
     liveBeat,
-    npcIntersections
+    npcIntersections,
+    persist: !isolateSidecars
   });
   if (serendipityPick.event) {
     console.log(
@@ -761,7 +775,8 @@ async function runGuardianPreflightInner(
         input,
         preflight_id: options?.preflight_id,
         report_path: options?.report_path,
-        llm_assessment_ms: llmAssessmentMs
+        llm_assessment_ms: llmAssessmentMs,
+        source: options?.telemetrySource ?? (isolateSidecars ? "eval" : "live")
       });
       recordPreflightTelemetry(event, options?.telemetrySink ?? getDefaultTelemetrySink());
     } catch {

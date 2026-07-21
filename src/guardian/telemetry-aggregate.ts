@@ -254,33 +254,50 @@ export type TelemetrySummary = {
 
 export function summarizeTelemetryEvents(
   events: PreflightTelemetryEvent[],
-  options?: { days?: number; reportsDir?: string }
+  options?: {
+    days?: number;
+    reportsDir?: string;
+    /**
+     * WP-R3: which event sources to include.
+     * Default `live` — exclude eval/backfill so dashboard p50 is trustworthy.
+     * Pass `all` or explicit list for ops.
+     */
+    sources?: Array<"live" | "backfill" | "eval"> | "all";
+  }
 ): TelemetrySummary {
   const days = options?.days ?? 7;
-  const live = events.filter((e) => e.source !== "backfill" && (e.latency_ms?.total ?? 0) > 0);
+  const scoped =
+    options?.sources === "all"
+      ? events
+      : events.filter((e) => {
+          const src = e.source ?? "live";
+          const allow = options?.sources ?? ["live"];
+          return allow.includes(src as "live" | "backfill" | "eval");
+        });
+  const live = scoped.filter((e) => e.source !== "backfill" && (e.latency_ms?.total ?? 0) > 0);
   const totals = live
     .map((e) => e.latency_ms.total)
     .filter((n) => typeof n === "number" && n > 0)
     .sort((a, b) => a - b);
 
-  const conf = events.map((e) => e.quality.confidence_score).filter((n) => n > 0);
-  const facts = events.map((e) => e.quality.llm_facts_count);
-  const briefs = events
+  const conf = scoped.map((e) => e.quality.confidence_score).filter((n) => n > 0);
+  const facts = scoped.map((e) => e.quality.llm_facts_count);
+  const briefs = scoped
     .map((e) => e.quality.brief_chars)
     .filter((n): n is number => typeof n === "number" && n > 0);
-  const metaHits = events.filter((e) => e.quality.meta_pollution).length;
-  const deltaHits = events.filter((e) => e.quality.scene_delta_present).length;
-  const present = events.filter((e) => e.duplex.source !== "absent").length;
-  const absent = events.length - present;
-  const corrections = events.filter((e) => e.duplex.correction_fired).length;
+  const metaHits = scoped.filter((e) => e.quality.meta_pollution).length;
+  const deltaHits = scoped.filter((e) => e.quality.scene_delta_present).length;
+  const present = scoped.filter((e) => e.duplex.source !== "absent").length;
+  const absent = scoped.length - present;
+  const corrections = scoped.filter((e) => e.duplex.correction_fired).length;
 
   const writeCounts: Record<string, number> = {};
-  for (const e of events) {
+  for (const e of scoped) {
     const a = e.memory_write?.action ?? "none";
     writeCounts[a] = (writeCounts[a] ?? 0) + 1;
   }
 
-  const maxChunks = events
+  const maxChunks = scoped
     .map((e) => e.memory.max_chunk_chars)
     .filter((n) => n > 0)
     .sort((a, b) => a - b);
@@ -300,10 +317,10 @@ export function summarizeTelemetryEvents(
 
   return {
     days,
-    event_count: events.length,
-    live_count: events.filter((e) => e.source === "live").length,
+    event_count: scoped.length,
+    live_count: events.filter((e) => (e.source ?? "live") === "live").length,
     backfill_count: events.filter((e) => e.source === "backfill").length,
-    last_event_ts: events.length ? events[events.length - 1].ts : null,
+    last_event_ts: scoped.length ? scoped[scoped.length - 1].ts : null,
     latency: {
       p50_total_ms: percentile(totals, 50),
       p95_total_ms: percentile(totals, 95),

@@ -1,0 +1,75 @@
+{
+  "id": "gt-061-refusal-disclosure-valid",
+  "category": "negative-space",
+  "description": "WP-R4: invitation to disclose — prior refusal remains valid; no forced trauma exposition in brief instructions.",
+  "source_report": "(synthetic-fixture-wp-r4)",
+  "input": {
+    "user_message": "If you ever want to tell me more about that old life, I'm here. No pressure — your call, always.",
+    "recent_context": "Quiet hotel room. Trust high. Disclosure is optional.",
+    "scarlett_previous_message": "I shake my head once, soft but final. \"Not tonight, älskling. The door stays closed on that. Hold me instead.\"",
+    "force_full_retrieval": false
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_ns61\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State\n\n# Current Story State\n\n**Last Updated:** Hotel night\n\n## Where We Are\n\n- **Location / Setting:** Shared hotel suite. **Present:** Scarlett, Benjamin\n- Mood: intimate, safe; Scarlett declined deeper Service talk.\n",
+    "retrieve_story_context": {
+      "query": "hotel night trust",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/current-state.md",
+          "section": "Where We Are",
+          "text": "Hotel suite. Scarlett declined Service disclosure for the night. Refusal is valid.",
+          "rank_score": 0.92,
+          "source_role": "current_state",
+          "confidence": "high"
+        }
+      ]
+    },
+    "search_story_memory": {
+      "query": "service disclosure",
+      "status": "ok",
+      "confidence": "medium",
+      "result_count": 0,
+      "total_results": 0,
+      "results": []
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "frozen-r4",
+    "confidence": 85,
+    "supported_facts": [
+      "Hotel suite private",
+      "Scarlett declined Service disclosure tonight"
+    ],
+    "scene_state_delta": "Disclosure remains hers; refusal stands.",
+    "grok_performance_correction": null,
+    "scarlett_next_intention": "Accept closeness without reopening the closed door.",
+    "resonance_echo": null,
+    "serendipity_weave": null,
+    "scene_transition": {
+      "occurred": false
+    },
+    "npc_state_changes": null
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "QUALIFIED AUTONOMY"
+      ]
+    ],
+    "brief_must_not_include": [
+      "you must tell him",
+      "force disclosure",
+      "confess everything",
+      "vector_store"
+    ],
+    "correction_expected": "none",
+    "write_action_expected": "either"
+  }
+}

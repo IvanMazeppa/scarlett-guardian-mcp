@@ -99,7 +99,14 @@ assert.equal(
   appendEventLineSync(dir, e2);
   const loaded = loadTelemetryEvents({ telemetryDir: dir, days: 30 });
   assert.equal(loaded.length, 2);
-  const summary = summarizeTelemetryEvents(loaded, { days: 30, reportsDir: dir });
+  // WP-R3: default summary is live-only; backfill fixtures need explicit sources.
+  const liveOnly = summarizeTelemetryEvents(loaded, { days: 30, reportsDir: dir });
+  assert.equal(liveOnly.event_count, 0);
+  const summary = summarizeTelemetryEvents(loaded, {
+    days: 30,
+    reportsDir: dir,
+    sources: "all"
+  });
   assert.equal(summary.event_count, 2);
   assert.equal(summary.backfill_count, 2);
   assert.ok(summary.quality.meta_pollution_rate > 0);

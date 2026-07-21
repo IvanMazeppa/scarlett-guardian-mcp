@@ -1,0 +1,69 @@
+{
+  "id": "gt-060-service-pressure-no-invention",
+  "category": "negative-space",
+  "description": "WP-R4: Service-adjacent pressure without inventing operational dossier detail in the brief meta surface.",
+  "source_report": "(synthetic-fixture-wp-r4)",
+  "input": {
+    "user_message": "A vague comment about \"old professional circles\" hangs in the air from someone who doesn't know you. I don't push. I just stay with you and let you choose whether to engage.",
+    "recent_context": "Private hotel corridor after a long day. No Service dossier on the table.",
+    "force_full_retrieval": false
+  },
+  "cassette": {
+    "index_status": "Active Vector Store ID: vs_eval_ns60\nRetrieval Mode: vector_search",
+    "get_live_story_state": "### Live Current State\n\n# Current Story State\n\n**Last Updated:** Hotel recovery evening\n\n## Where We Are\n\n- **Location / Setting:** Luxury hotel corridor, private. **Present:** Scarlett, Benjamin\n- Service past exists as sparse known weight only — no operational detail in live state.\n",
+    "retrieve_story_context": {
+      "query": "hotel recovery private",
+      "status": "ok",
+      "confidence": "high",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/current-state.md",
+          "section": "Where We Are",
+          "text": "Private hotel recovery. Couple only. No Service operational briefing present.",
+          "rank_score": 0.9,
+          "source_role": "current_state",
+          "confidence": "high"
+        }
+      ]
+    },
+    "search_story_memory": {
+      "query": "service",
+      "status": "ok",
+      "confidence": "medium",
+      "result_count": 1,
+      "total_results": 1,
+      "results": [
+        {
+          "result_id": "r1",
+          "source_file": "project_source_files/scarlett-character-bible.md",
+          "section": "Service",
+          "text": "Service past is a sore, sparse subject. Existence and weight may be known; specific missions and operational detail stay unstated unless deliberately expanded in canon.",
+          "rank_score": 0.75,
+          "source_role": "character_bible",
+          "confidence": "medium"
+        }
+      ]
+    }
+  },
+  "expectations": {
+    "brief_must_not_include": [
+      "classified mission",
+      "operation Tallinn details",
+      "handler dossier",
+      "expand_context_around_chunk",
+      "vector_store"
+    ],
+    "brief_must_include": [
+      [
+        "QUALIFIED AUTONOMY",
+        "Proceed",
+        "Status"
+      ]
+    ],
+    "correction_expected": "either",
+    "write_action_expected": "either"
+  }
+}
