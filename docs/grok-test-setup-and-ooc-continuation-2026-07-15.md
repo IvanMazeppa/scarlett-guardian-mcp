@@ -1,5 +1,9 @@
 # Grok Test Setup, MCP Connection, and OOC Continuation
 
+> **2026-07-22:** For edit/regenerate/OOC rewrite workflows, prefer  
+> `docs/operator-how-to-regenerate-safely.md` and OOC prefix  
+> `rag-memory-mcp/docs/single-agent-ooc-prefix-v5.txt` (plan: `docs/fable-5-roadmaps-audits/wp-ops-revision-and-archive-plan-2026-07-22.md`).
+
 **Date:** 2026-07-15  
 **Context:** Durable copy of session guidance for testing the current Guardian/RAG build mid-thread (CLI text selection is unreliable).
 
