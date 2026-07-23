@@ -140,6 +140,19 @@ function pickScarlettIntention(report: GuardianReport): string | undefined {
   return stripRagMeta(t) || t;
 }
 
+/**
+ * True when Present is couple-only / no supporting cast active and scene is private.
+ * Suppresses Story Momentum + Scene Cast so private Scarlett is not managed like a board meeting.
+ */
+export function isQuietPrivateCoupleScene(report: GuardianReport): boolean {
+  const active = report.scene_roster?.active ?? [];
+  if (active.length > 0) return false;
+  const summary = (report.scene_roster?.summary ?? "").toLowerCase();
+  if (summary.includes("couple-only")) return true;
+  const scene = `${report.grok_scene_summary ?? ""} ${report.current_state_summary ?? ""}`.toLowerCase();
+  return /suite|shower|towel|doorway|aftercare|bath|intimate|hotel|schloss/.test(scene);
+}
+
 /** Code-enforced ≤1 echo line (WP-5.5). */
 function pickResonanceEcho(report: GuardianReport): string | undefined {
   const enforced = enforceResonanceEchoBudget(report.llm_assessment?.resonance_echo);
@@ -174,16 +187,19 @@ export function compileGrokBrief(report: GuardianReport): string {
   parts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
   parts.push("");
 
+  // Quiet private couple scenes: omit schedule + cast clutter (2026-07-23).
+  const quietPrivate = isQuietPrivateCoupleScene(report);
+
   // WP-5.2: mechanical day/arc schedule pressure (no outcomes).
   const momentum =
     typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
-  if (momentum && !isRagMetaText(momentum)) {
+  if (momentum && !isRagMetaText(momentum) && !quietPrivate) {
     parts.push(`**Story Momentum:** ${truncateAtSentence(momentum, 520)}`);
     parts.push("");
   }
 
   // WP-5.8: supporting cast pressure + mandatory stealth ⚠ lines (≤90 words).
-  const castBlock = pickSceneCastBlock(report);
+  const castBlock = quietPrivate ? undefined : pickSceneCastBlock(report);
   if (castBlock) {
     parts.push(castBlock);
     parts.push("");

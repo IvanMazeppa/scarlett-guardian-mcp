@@ -59,6 +59,16 @@ export type PreflightTelemetryEvent = {
     correction_fired: boolean;
   };
 
+  /** Warmth restore: resonance_echo present on this turn (optional for older NDJSON) */
+  resonance_echo?: {
+    present: boolean;
+  };
+
+  /** Multi-scene save lag detection (optional for older NDJSON) */
+  save_lag?: {
+    suspected: boolean;
+  };
+
   serendipity: {
     fired: boolean;
     tier: string | null;
@@ -219,6 +229,7 @@ export type BuildEventInput = {
       supported_facts?: string[];
       scene_state_delta?: string | null;
       grok_performance_correction?: string | null;
+      resonance_echo?: string | null;
     };
     current_state_summary?: string;
     grok_scene_summary?: string;
@@ -348,6 +359,16 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
       source: duplexSource,
       previous_message_chars: prevChars,
       correction_fired: correctionFired
+    },
+    resonance_echo: {
+      present: Boolean(
+        typeof report.llm_assessment?.resonance_echo === "string" &&
+          report.llm_assessment.resonance_echo.trim() &&
+          report.llm_assessment.resonance_echo.trim() !== "null"
+      )
+    },
+    save_lag: {
+      suspected: (report.hard_flags ?? []).some((f) => /SAVE_LAG_SUSPECTED/i.test(f))
     },
     serendipity: {
       fired: Boolean(report.serendipity_nudge?.trim()),

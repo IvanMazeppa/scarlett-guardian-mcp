@@ -41,6 +41,7 @@ import {
   textMatchesLiveBeat,
   type LiveBeat
 } from "../recency.js";
+import { applySaveLagSoftening, detectSaveLag } from "../save-lag.js";
 import {
   PreflightTelemetryCollector,
   buildPreflightTelemetryEvent,
@@ -348,6 +349,18 @@ async function runGuardianPreflightInner(
     );
   }
 
+  const saveLag = detectSaveLag({
+    liveBeat,
+    userMessage: input.user_message,
+    scarlettPreviousMessage: input.scarlett_previous_message,
+    recentContext: input.recent_context
+  });
+  if (saveLag.suspected) {
+    console.log(
+      `${Date.now()} SAVE LAG suspected: live=${saveLag.liveCluster} played=${saveLag.playedCluster} (${saveLag.reason})`
+    );
+  }
+
   // WP-5.2/5.3: hot path uses deterministic diff + optional LLM cache (never awaits dramaturg LLM).
   const arcPlanLoaded = loadActiveArcPlan();
   const deterministicDramaturg = arcPlanLoaded
@@ -488,7 +501,10 @@ async function runGuardianPreflightInner(
         highRiskTriggers,
         liveBeat,
         dramaturg,
-        sceneRosterSummary: sceneRoster.summary || undefined,
+        sceneRosterSummary: sceneRoster.coupleOnlyPresent
+          ? undefined
+          : sceneRoster.summary || undefined,
+        saveLagSuspected: saveLag.suspected,
         serendipity: serendipityPick.event
           ? {
               event: serendipityPick.event,
@@ -504,6 +520,19 @@ async function runGuardianPreflightInner(
     llmAssessment.npc_state_changes
   );
   llmAssessment.npc_state_changes = npcStateChanges;
+
+  // Soften false location-rewind when multi-scene save lag is detected
+  const lagSoft = applySaveLagSoftening({
+    saveLag,
+    correction: llmAssessment.grok_performance_correction,
+    shouldBlockProse: Boolean(llmAssessment.should_block_prose)
+  });
+  if (lagSoft.softened) {
+    llmAssessment.grok_performance_correction = lagSoft.correction;
+    llmAssessment.should_block_prose = lagSoft.shouldBlockProse;
+    console.log(`${Date.now()} SAVE LAG: softened location-rewind Director's Correction`);
+  }
+
   console.log(
     `${Date.now()} Finished assessGuardianEvidence${options?.frozenLlmAssessment ? " (frozen)" : ""}.`
   );
@@ -679,6 +708,11 @@ async function runGuardianPreflightInner(
       "DUPLEX_INPUT_MISSING: Pass scarlett_previous_message (Scarlett's last IC reply) so Guardian can apply Director's Correction when needed — or run the browser shadow bridge to POST /duplex-cache."
     );
   }
+  if (saveLag.suspected) {
+    hardFlags.push(
+      `SAVE_LAG_SUSPECTED: LIVE BEAT cluster=${saveLag.liveCluster} vs played=${saveLag.playedCluster}. Update project_source_files/current-state.md (and reindex) so disk matches play. ${saveLag.reason}`
+    );
+  }
   const currentStateSummary = summarizeCurrentState(
     preflight.response,
     memoryResponses,
@@ -744,7 +778,10 @@ async function runGuardianPreflightInner(
     serendipity_nudge: serendipityNudge,
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
-    story_momentum: dramaturg.momentumLine || undefined,
+    // Couple-only private: omit schedule pressure from report so brief stays quiet
+    story_momentum: sceneRoster.coupleOnlyPresent
+      ? undefined
+      : dramaturg.momentumLine || undefined,
     scene_roster: {
       active: sceneRoster.active.map((a) => ({
         id: a.id,

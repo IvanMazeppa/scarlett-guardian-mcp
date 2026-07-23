@@ -39,6 +39,7 @@ type LooseReport = {
     supported_facts?: string[];
     scene_state_delta?: string | null;
     grok_performance_correction?: string | null;
+    resonance_echo?: string | null;
     enabled?: boolean;
   };
   current_state_summary?: string;
@@ -143,6 +144,16 @@ export function eventFromSavedReport(
       previous_message_chars: duplexSource === "caller" ? 1 : 0,
       correction_fired: correctionFired
     },
+    resonance_echo: {
+      present: Boolean(
+        typeof report.llm_assessment?.resonance_echo === "string" &&
+          report.llm_assessment.resonance_echo.trim() &&
+          report.llm_assessment.resonance_echo.trim() !== "null"
+      )
+    },
+    save_lag: {
+      suspected: (report.hard_flags ?? []).some((f) => /SAVE_LAG_SUSPECTED/i.test(f))
+    },
     serendipity: {
       fired: Boolean(report.serendipity_nudge?.trim()),
       tier: null,
@@ -244,6 +255,16 @@ export type TelemetrySummary = {
     present_count: number;
     correction_count: number;
   };
+  /** Share of turns with a non-null resonance_echo (warmth texture). */
+  resonance_echo: {
+    present_rate: number;
+    present_count: number;
+  };
+  /** Share of turns where multi-scene save lag was flagged. */
+  save_lag: {
+    suspected_rate: number;
+    suspected_count: number;
+  };
   memory_write: Record<string, number>;
   memory: {
     avg_max_chunk_chars: number | null;
@@ -290,6 +311,8 @@ export function summarizeTelemetryEvents(
   const present = scoped.filter((e) => e.duplex.source !== "absent").length;
   const absent = scoped.length - present;
   const corrections = scoped.filter((e) => e.duplex.correction_fired).length;
+  const echoPresent = scoped.filter((e) => e.resonance_echo?.present).length;
+  const saveLagSuspected = scoped.filter((e) => e.save_lag?.suspected).length;
 
   const writeCounts: Record<string, number> = {};
   for (const e of scoped) {
@@ -334,11 +357,19 @@ export function summarizeTelemetryEvents(
       avg_brief_chars: avg(briefs)
     },
     duplex: {
-      present_rate: events.length ? present / events.length : 0,
-      correction_rate: events.length ? corrections / events.length : 0,
+      present_rate: scoped.length ? present / scoped.length : 0,
+      correction_rate: scoped.length ? corrections / scoped.length : 0,
       absent_count: absent,
       present_count: present,
       correction_count: corrections
+    },
+    resonance_echo: {
+      present_rate: scoped.length ? echoPresent / scoped.length : 0,
+      present_count: echoPresent
+    },
+    save_lag: {
+      suspected_rate: scoped.length ? saveLagSuspected / scoped.length : 0,
+      suspected_count: saveLagSuspected
     },
     memory_write: writeCounts,
     memory: {

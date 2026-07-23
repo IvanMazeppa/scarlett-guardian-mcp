@@ -38,7 +38,31 @@ export type SceneRoster = {
   background: string[];
   /** Human-readable one-liner for logs / notes */
   summary: string;
+  /** True when LIVE BEAT Present is couple-only (no supporting NPCs). */
+  coupleOnlyPresent?: boolean;
 };
+
+/**
+ * True when Present cast is only Scarlett/Benjamin (optionally "only").
+ * Used to suppress arc-plan NPC bleed into private suite scenes.
+ */
+export function isCoupleOnlyPresent(presentCast?: string[] | null): boolean {
+  if (!presentCast?.length) return false;
+  const joined = presentCast.join(" ").toLowerCase();
+  if (!/scarlett|benjamin/.test(joined)) return false;
+  // Explicit "only"
+  if (/\bonly\b/.test(joined)) return true;
+  // Every token is couple-related or filler
+  const stripped = joined
+    .replace(/\bscarlett\b/g, " ")
+    .replace(/\bbenjamin\b/g, " ")
+    .replace(/\band\b/g, " ")
+    .replace(/\bonly\b/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return stripped.length === 0;
+}
 
 const ACTIVATION_RANK: Record<RosterActivation, number> = {
   addressed: 100,
@@ -195,14 +219,15 @@ export function resolveSceneRoster(input: {
 }): SceneRoster {
   const registry = input.registry ?? DEFAULT_NPC_REGISTRY;
   const maxActive = input.maxActive ?? MAX_ACTIVE;
+  const coupleOnly = isCoupleOnlyPresent(input.liveBeat?.presentCast);
   const userHay = normalizeHay(input.userMessage);
   const scarlettHay = normalizeHay(input.scarlettPreviousMessage ?? "");
   const presentHay = normalizeHay(...(input.liveBeat?.presentCast ?? []));
-  const arcHay = normalizeHay(input.arcCastText ?? "");
-  const cueHay = normalizeHay(
-    input.liveBeat?.locationLine ?? "",
-    ...(input.liveBeat?.liveCues ?? [])
-  );
+  // Private couple scenes: do not pull Shevchenko/AMG from arc-plan or location cues alone.
+  const arcHay = coupleOnly ? "" : normalizeHay(input.arcCastText ?? "");
+  const cueHay = coupleOnly
+    ? ""
+    : normalizeHay(input.liveBeat?.locationLine ?? "", ...(input.liveBeat?.liveCues ?? []));
   const combinedMention = normalizeHay(userHay, scarlettHay, presentHay, arcHay, cueHay);
 
   const hits: RosterMember[] = [];
@@ -212,11 +237,14 @@ export function resolveSceneRoster(input: {
       activation = "addressed";
     } else if (npc.aliases.some((a) => hayIncludesAlias(scarlettHay, a))) {
       activation = "speaker";
-    } else if (npc.aliases.some((a) => hayIncludesAlias(presentHay, a))) {
+    } else if (
+      !coupleOnly &&
+      npc.aliases.some((a) => hayIncludesAlias(presentHay, a))
+    ) {
       activation = "present_cast";
-    } else if (npc.aliases.some((a) => hayIncludesAlias(arcHay, a))) {
+    } else if (!coupleOnly && npc.aliases.some((a) => hayIncludesAlias(arcHay, a))) {
       activation = "arc_cast";
-    } else if (npc.aliases.some((a) => hayIncludesAlias(combinedMention, a))) {
+    } else if (!coupleOnly && npc.aliases.some((a) => hayIncludesAlias(combinedMention, a))) {
       // location/cue only — weaker
       if (npc.aliases.some((a) => hayIncludesAlias(cueHay, a))) {
         activation = "mentioned";
@@ -258,13 +286,20 @@ export function resolveSceneRoster(input: {
     }
   }
 
+  // Couple-only private scenes: no ambient paddock crowd from weak cues
+  if (coupleOnly) {
+    background.length = 0;
+  }
+
   const summary =
     active.length === 0
-      ? "No named supporting cast active"
+      ? coupleOnly
+        ? "Couple-only present (no supporting cast)"
+        : "No named supporting cast active"
       : `Active: ${active.map((a) => `${a.displayName}(${a.activation})`).join(", ")}` +
         (background.length ? `; background: ${background.slice(0, 3).join(", ")}` : "");
 
-  return { active, background, summary };
+  return { active, background, summary, coupleOnlyPresent: coupleOnly };
 }
 
 /**

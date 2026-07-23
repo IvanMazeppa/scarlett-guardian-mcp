@@ -181,6 +181,8 @@ export type AssessGuardianEvidenceInput = {
   dramaturg?: DramaturgSnapshot;
   /** WP-5.7/5.8: active supporting cast for ensemble dilution critique. */
   sceneRosterSummary?: string;
+  /** Multi-scene play ahead of disk LIVE BEAT — soften location-rewind. */
+  saveLagSuspected?: boolean;
   /** WP-4.7: selected world event for one-sentence weave (optional). */
   serendipity?: SerendipityForAuditor;
   config: AssessmentConfig;
@@ -234,15 +236,26 @@ export function buildAuditorUserMessage(
       "Scarlett remains the lens and lead. Supporting NPCs have wants/pressure only — never pre-written dialogue. Respect ⚠ knowledge boundaries from the brief."
     );
   }
+  if (input.saveLagSuspected) {
+    parts.push(
+      "",
+      "### SAVE LAG FLAG",
+      "Disk LIVE BEAT may lag multi-scene play. Prefer played consensus (user_message + scarlett_previous_message + recent_context) for present location over stale LIVE BEAT place tokens (cabin/paddock vs suite/shower/hotel).",
+      "Do not demand return to the stale place. Do not invent unsupported history. Operator should update current-state.md."
+    );
+  }
   return parts.join("\n");
 }
 
-export function buildAuditorSystemPrompt(): string {
+export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean }): string {
   return [
     "You are the Scarlett & Benjamin Guardian continuity auditor.",
     "You are a silent database auditor, not the creative director. Do NOT prescribe tone, pacing, or POV.",
     "Use only the provided retrieved evidence and the LIVE BEAT block. Do not invent canon.",
     LIVE_BEAT_SUPERSESSION_INSTRUCTION,
+    options?.saveLagSuspected
+      ? "SAVE LAG: disk LIVE BEAT may lag multi-scene play. When user_message + scarlett_previous_message + recent_context agree on a later location (suite, shower, hotel) than LIVE BEAT (cabin, paddock), prefer the played consensus for present location. Do not block prose or demand return to the stale LIVE BEAT place. Still enforce identity/canon and do not invent unsupported history. Note that Operator should update current-state."
+      : "",
     "When STORY MOMENTUM is present: it is day/arc schedule pressure only. You describe pressure and possibility — never outcomes, dialogue, or results of open beats. LIVE BEAT still wins for present location and story-time.",
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
     "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
@@ -269,7 +282,9 @@ export function buildAuditorSystemPrompt(): string {
     "resonance_echo: at most ONE optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). In private/intimate/aftercare scenes, prefer one real echo when evidence supports a gesture, phrase, body trust, or relationship memory; otherwise null. Never invent history. Never stack multiple echoes. Still not a quota for non-intimate turns.",
     "You describe pressure and possibility. You never decide outcomes, dialogue, or results of open beats.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 /**
@@ -437,7 +452,9 @@ export async function assessGuardianEvidence(
           content: [
             {
               type: "input_text",
-              text: buildAuditorSystemPrompt()
+              text: buildAuditorSystemPrompt({
+                saveLagSuspected: Boolean(input.saveLagSuspected)
+              })
             }
           ]
         },
