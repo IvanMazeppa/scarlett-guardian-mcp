@@ -91,10 +91,15 @@ APPLY:  operator approves a card → it fans out through EXISTING channels:
   "tone_class": "danger",                     // feeds duty cycle
   "knowledge_boundary_change": null,          // or { "who": "Ryan", "learns": "…", "gate": "human_always" }
   "open_forks": ["Benjamin notices first vs Scarlett", "engage vs conserve"],
-  "horizon_sessions": "2-4"
+  "horizon_sessions": "2-4",
+  // Aftermath affordances (adopted from Sol review 2026-07-20 — affordances, never required scenes):
+  "cost_echoes": ["plausible continuity consequences if the pressure lands"],
+  "recovery_affordances": ["rest / privacy / humor / work / intimacy / community available afterward"]
   // NO field for how anything resolves. Schema-enforced, like the dramaturg pass.
 }
 ```
+
+**Thread Ledger integration (adopted from Sol review 2026-07-20):** every applied card's pressure hooks register in the Choice-Respecting Thread Ledger (`offered / engaged / declined / deferred / expired` — designed in Phase 6.5, extending the serendipity deferral state). Rules the GM inherits: declining never advances a thread; a deferred hook resurfaces at most once per cooldown and must **change form** when it returns; silence is not engagement. The campaign picture reads the ledger, so a storyline Scarlett refused stops being re-proposed as if unanswered — refusal changes the world.
 
 ### `campaign-gate.ts` (deterministic, same family as persona-gate)
 
@@ -115,6 +120,7 @@ The anti-hallucination design is the same one that already works in the persona 
 - **Stageability:** an approved card never *is* canon — it *generates* staged artifacts (arc-plan draft beats, agenda entries, registry stubs, serendipity threads) that flow through the existing review CLI. The story only becomes true when it's *played* and the write-back pipeline records it. The GM plants; play harvests.
 - **The Ryan example, run through the machine:** "Ryan discovers Scarlett is trans and attempts wedding sabotage" is a valid card — engine `ryan`, `knowledge_boundary_change: { who: "Ryan", gate: human_always }`, hooks about what he wants and what's at risk, forks open (does he act at the wedding? is he preempted? does the family find out collaterally?). The gate forces human approval because a knowledge boundary moves; the schema cannot express whether the sabotage *succeeds*. That is exactly the difference between a GM and a railroad.
 - **Ensemble growth (Q8):** make it a standing seed (`campaign-seeds/ensemble-gap.md`: "Scarlett's side of the board is underpopulated — propose lasting friends/community, not extras"). The campaign picture measures the gap (registry count by orbit); cards propose people; approved stubs enter the 5.6 registry with wants/boundaries from day one. Scarlett's world stops being an annex of Benjamin's.
+- **Ensemble quality rubric (adopted from Sol review 2026-07-20):** the gap is measured in *orbits*, not headcount — professional peer/rival, queer community, chosen family, Swedish/past-life connection, motorsport ally, and at least one relationship not mediated by Benjamin. Every proposed NPC must carry: a want independent of the couple, a reason to value or challenge Scarlett *specifically*, a knowledge boundary, a plausible offstage life — and no requirement of permanence. A proposed character that doesn't open a distinct facet of Scarlett fails the seed's intent even if it passes the gate.
 
 ---
 
@@ -189,6 +195,16 @@ Data already exists: serendipity's `SceneMode` per turn (telemetry) + arc chroni
 3. **Target bliss/danger mix** for the duty cycle (a starting ratio I can seed the charter with — 40/60? 50/50?).
 4. **Sol budget:** comfortable ceiling per week for GM passes, so O-3's kill criterion has a number.
 5. **Ensemble seeds:** any real names/sketches for Scarlett-side friends you already have in mind, or is inventing them from whole cloth (as `proposed`) part of what you want to watch the model do?
+
+---
+
+## Operator answers (recorded 2026-07-20)
+
+1. **Service canon depth:** No hard limits placed on canon. The sparseness rule stays as a *default* (operational detail lands in `proposed`, never `established`), not a hard boundary; the operator will intervene live if play goes too far. Kill-switch is the operator's voice, not a gate.
+2. **Ryan arc shape:** Subtler and slower than the wedding-sabotage card sketch. Escalation texture the GM may draw on (pressure vocabulary, not a sequence): a phone call; a family member relaying "he knows where you live"; catching Benjamin or the couple in public in London; turning up at the door with dealer associates. All **pre-wedding**, threats before contact. Motive grounding: the club altercation ended with Ryan arrested — partly due to Scarlett's quick thinking — a personal grudge with a specific author. **No concrete event sequence is prescribed — constructing it is the GM's job.** (Action: fold the grudge motive + escalation vocabulary into `npc-agendas.md` Ryan entry and the future seed pack; serendipity `ryan_arc` stages remain the delivery rail.)
+3. **Bliss/danger duty cycle: 70/30** (domestic-bliss-weighted). Seed the charter and campaign-picture target with this ratio.
+4. **Sol budget: $10/week** starting ceiling — the O-3 kill criterion now has its number.
+5. **Scarlett-side ensemble:** No names in mind; the operator explicitly wants to watch what the model invents. Ensemble-gap seed stays fully open — new-NPC proposals are `proposed`-only and land as registry stubs via staging.
 
 ---
 

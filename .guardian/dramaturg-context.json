@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 140,
+  "turnCounter": 2,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "done",
-        "pressure": "The world expects them **on site, introduced, and professionally present** before any lap. Motion-sickness aftercare should not erase the Industry Pool frame.",
+        "pressure": "The world expects them on site, introduced, and professionally present before any lap.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -38,7 +38,7 @@
         "name": "The Green Hell (afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The day expects **real track time and live telemetry**.",
+        "pressure": "The day expects real track time and live telemetry.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -66,8 +66,8 @@
         "index": 3,
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
-        "status": "live",
-        "pressure": "The world is ready for **return → telemetry debrief → grounding**. Whether the aero \"proves\" the simulation is open. Aftercare is available pressure, not a scripted monologue.",
+        "status": "done",
+        "pressure": "The world is ready for return, telemetry debrief, and grounding; the aero result remains unresolved.",
         "cues": [
           "aftercare",
           "green hell",
@@ -93,40 +93,40 @@
       },
       {
         "index": 4,
-        "name": "Transition toward recovery and Affalterbach runway (evening)",
+        "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
-        "status": "next",
-        "pressure": "The world is ready to **leave the circuit and set the stage for Affalterbach** when the scene is done with the track. Do not force hotel check-in mid-stint.",
+        "status": "live",
+        "pressure": "The world is ready for rest and private recovery; no same-night Affalterbach drive, board preparation, or return to the circuit is required.",
         "cues": [
+          "changing room",
+          "b-road",
           "affalterbach",
-          "transition",
-          "toward",
+          "intimacy",
+          "circuit",
+          "luxury",
           "recovery",
-          "runway",
-          "departure",
-          "high-end",
-          "nürburg",
-          "region",
-          "weekend",
-          "stuttgart",
           "primarily",
+          "albion",
           "offstage",
           "unless",
+          "brings",
+          "callback",
+          "physical",
           "emotional",
-          "closeness",
-          "professional",
-          "circuit",
-          "check-in",
-          "mid-stint"
+          "sickness",
+          "high-stakes",
+          "debrief",
+          "partnership",
+          "softens"
         ]
       }
     ],
-    "momentumLine": "Beat 3 of 4 (Adrenaline crash and debrief) is live; remaining today: Transition toward recovery and Affalterbach runway. Pressure now: The world is ready for return → telemetry debrief → grounding. Whether the aero \"proves\" the simulation is open. Aftercare is available p… The world is ready to move when the scene is.",
+    "momentumLine": "Beat 4 is live in the Friday-night recovery window; no further planned beats remain today, with Monday Affalterbach the next stated professional deadline.",
     "npcIntersections": [],
     "planWarnings": [],
-    "generatedAtTurn": 0,
-    "source": "deterministic",
-    "planHash": "e433540601d7d55a",
-    "refreshedAt": "2026-07-18T04:09:50.268Z"
+    "generatedAtTurn": 1,
+    "source": "llm",
+    "planHash": "8f59a34a254ad3a3",
+    "refreshedAt": "2026-07-22T19:25:14.170Z"
   }
 }
