@@ -60,9 +60,17 @@ function testWordBudgetSoft() {
   };
   const block = formatSceneCastBlock(roster, tails, 90);
   const words = block.split(/\s+/).filter(Boolean).length;
-  // Soft-cap: formatter trims fields; mandatory ⚠ + fuller registry tails can overshoot 90
-  assert.ok(words <= 160, `word budget soft-cap, got ${words}`);
+  // Design budget 90; soft ceiling 130 (maxWords + 40) after INTEL-0 formatter fix.
+  // Do not weaken this assertion again without a justified formatter patch.
+  assert.ok(words <= 130, `word budget soft-cap ≤130, got ${words}`);
+  assert.ok(words > 0);
   assert.match(block, /⚠/);
+  // First NPC must not monopolize the whole soft budget with full bible tails
+  const shevLine = block.split("\n").find((l) => /Shevchenko/i.test(l)) ?? "";
+  assert.ok(
+    shevLine.split(/\s+/).filter(Boolean).length <= 45,
+    `Shevchenko line too long: ${shevLine.split(/\s+/).filter(Boolean).length}`
+  );
   console.log("ok word budget", words);
 }
 

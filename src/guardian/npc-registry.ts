@@ -112,9 +112,13 @@ function countWords(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
 
+/** Soft overrun for mandatory ⚠ survival (design target remains maxWords). */
+export const SCENE_CAST_SOFT_OVERRUN = 40;
+
 /**
- * Scene Cast block for the Grok brief. ≤90 words total when possible.
- * Mandatory ⚠ for every mustNotLearn that is not empty / "—".
+ * Scene Cast block for the Grok brief. Design budget maxWords (default 90).
+ * Soft ceiling maxWords + SCENE_CAST_SOFT_OVERRUN (130 when max=90) so ⚠ boundaries survive.
+ * First NPC is also budgeted — full registry tails must not dump past the soft ceiling.
  */
 export function formatSceneCastBlock(
   roster: SceneRoster | GuardianSceneRosterLike | undefined | null,
@@ -122,6 +126,7 @@ export function formatSceneCastBlock(
   maxWords: number = 90
 ): string {
   if (!roster?.active?.length) return "";
+  const softCap = maxWords + SCENE_CAST_SOFT_OVERRUN;
   const map = tails ?? new Map();
   const lines: string[] = [
     "**Scene Cast (supporting — Scarlett remains the lens and the lead):**"
@@ -133,39 +138,44 @@ export function formatSceneCastBlock(
       "displayName" in member ? member.displayName : (member as { name?: string }).name ?? "NPC";
     const id = "id" in member ? member.id : displayName.toLowerCase();
     const tail = findTail(map, displayName, id);
-    const bits: string[] = [];
-    if (tail?.disposition) bits.push(shorten(tail.disposition, 28));
-    if (tail?.wants) bits.push(`wants ${shorten(tail.wants, 22)}`);
-    else if (!tail) bits.push("supporting presence");
-    if (tail?.knows) bits.push(`knows ${shorten(tail.knows, 20)}`);
-
-    let line = `- ${displayName}: ${bits.join("; ")}.`;
     const boundary = normalizeBoundary(tail?.mustNotLearn);
+    const remaining = softCap - used;
+    if (remaining <= 4) break;
+
+    // Prefer compact fields so multi-NPC casts stay near the design budget.
+    const bits: string[] = [];
+    if (tail?.disposition) bits.push(shorten(tail.disposition, 10));
+    if (tail?.wants) bits.push(`wants ${shorten(tail.wants, 8)}`);
+    else if (!tail) bits.push("supporting presence");
+    // Omit knows when a boundary is present — ⚠ is higher priority under pressure.
+    if (tail?.knows && !boundary) bits.push(`knows ${shorten(tail.knows, 6)}`);
+
+    let full = `- ${displayName}: ${bits.join("; ") || "present"}.`;
     if (boundary) {
-      line += ` ⚠ Does not know / must not learn: ${shorten(boundary, 24)}.`;
+      full += ` ⚠ ${shorten(boundary, 12)}.`;
     }
 
-    const w = countWords(line);
-    if (used + w > maxWords && lines.length > 1) {
-      // Still force ⚠ boundaries even under budget pressure
-      if (boundary) {
-        const slim = `- ${displayName}: present. ⚠ ${shorten(boundary, 28)}.`;
-        if (used + countWords(slim) <= maxWords + 12) {
-          lines.push(slim);
-          used += countWords(slim);
-        } else {
-          lines.push(`- ${displayName}: ⚠ ${shorten(boundary, 20)}.`);
-        }
-      }
-      continue;
+    const candidates: string[] = [full];
+    if (boundary) {
+      candidates.push(`- ${displayName}: present. ⚠ ${shorten(boundary, 14)}.`);
+      candidates.push(`- ${displayName}: ⚠ ${shorten(boundary, 10)}.`);
+    } else {
+      candidates.push(`- ${displayName}: present.`);
     }
-    lines.push(line);
-    used += w;
+
+    const chosen =
+      candidates.find((c) => countWords(c) <= remaining) ??
+      (boundary
+        ? `- ${displayName}: ⚠ ${shorten(boundary, Math.max(4, remaining - 3))}.`
+        : undefined);
+    if (!chosen) continue;
+    lines.push(chosen);
+    used += countWords(chosen);
   }
 
   if (roster.background?.length) {
     const bg = `- Background: ${roster.background.slice(0, 3).join("; ")} (ambient only).`;
-    if (used + countWords(bg) <= maxWords + 15) lines.push(bg);
+    if (used + countWords(bg) <= softCap) lines.push(bg);
   }
 
   return lines.join("\n");

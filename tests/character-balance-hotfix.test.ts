@@ -94,8 +94,49 @@ function testSchemaFieldStillPresent() {
   console.log("ok intention field retained on report, not in brief");
 }
 
+/**
+ * INTEL-0 — receptive agency: accepting care / following Benjamin is valid.
+ * Hermetic surface: auditor prompt protects it; brief must not invent a Director's
+ * Correction when the assessment correction is null.
+ */
+function testReceptiveAgencyNoDirectorCorrection() {
+  const sys = buildAuditorSystemPrompt();
+  assert.match(sys, /These are NOT passivity by themselves/i);
+  assert.match(sys, /receiving care/i);
+  assert.match(sys, /letting Benjamin lead/i);
+  assert.match(sys, /chosen yielding or submission/i);
+  assert.match(sys, /resting, silence, fatigue/i);
+
+  const receptivePrevious =
+    "I let the duvet stay over us and lean into your hand on my hip, " +
+    "accepting the coffee and the quiet without needing to take charge of the morning. " +
+    "\"Mmm… stay,\" I murmur, soft Swedish sleep still in my voice.";
+
+  const brief = compileGrokBrief(
+    minimalReport({
+      enabled: true,
+      scarlett_next_intention: null,
+      resonance_echo: null,
+      grok_performance_correction: null
+    })
+  );
+  assert.ok(
+    !brief.includes("**DIRECTOR'S CORRECTION"),
+    "null correction must not surface a Director block"
+  );
+  // Guard: even if a prior bad path put performative language in correction, CB brief still present
+  assert.match(brief, /\*\*CHARACTER BALANCE:\*\*/);
+  assert.match(brief, /receiving|yielding|resting|following/i);
+
+  // Semantic fixture: receptive previous message text is available for duplex evaluators
+  assert.match(receptivePrevious, /accepting the coffee|lean into your hand|without needing to take charge/i);
+  assert.ok(!/I lead|I'll handle|prove|must initiate/i.test(receptivePrevious));
+  console.log("ok receptive agency: null correction stays null; prompt protects receiving/following");
+}
+
 testBriefNoIntentionLine();
 testBriefCharacterBalanceNotOldQa();
 testAuditorPromptNoHarshAndProtectsReceptivity();
 testSchemaFieldStillPresent();
+testReceptiveAgencyNoDirectorCorrection();
 console.log("All character-balance hotfix tests passed.");
