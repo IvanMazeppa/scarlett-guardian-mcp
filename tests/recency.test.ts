@@ -176,6 +176,37 @@ const sampleCurrentState = fs.existsSync(fixturePath)
   assert.equal(textMatchesLiveBeat("random unrelated kitchen silence", beat), false);
 }
 
+// Warmth restore: intimacy triggers unlock historical relationship precedents (not flat -40)
+{
+  const results = [
+    {
+      source_file: "project_source_files/historical/thread-02/events.md",
+      section: "South Cerney trust",
+      text: "Passenger-seat trust and private aftercare intimacy between Scarlett and Benjamin.",
+      rank_score: 0.85,
+      source_role: "supporting_backstory" as const
+    },
+    {
+      source_file: "project_source_files/current-state.md",
+      section: "Where We Are Right Now",
+      text: "Suite doorway after shower; towels; private aftercare.",
+      rank_score: 0.7,
+      source_role: "current_state" as const
+    }
+  ];
+  const withIntimacy = selectPrecedents(
+    results,
+    ["Intimacy, kink, dominance, consent, or aftercare"],
+    "I hold you under the hot water, aftercare and trust, no rush.",
+    2
+  );
+  assert.ok(
+    withIntimacy.some((p) => /South Cerney|Passenger-seat|aftercare intimacy/i.test(p.details)),
+    `intimacy should allow historical relationship precedent, got ${JSON.stringify(withIntimacy.map((p) => p.topic))}`
+  );
+  console.log("ok intimacy unlocks historical relationship precedent");
+}
+
 // empty beat is safe
 {
   assert.equal(scoreRecency({ text: "anything" }, parseLiveBeat(""), "hi"), 0);

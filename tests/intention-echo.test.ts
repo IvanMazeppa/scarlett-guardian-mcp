@@ -48,6 +48,7 @@ function testSystemPromptMentionsFields() {
   assert.match(sys, /Prefer null unless genuinely useful/i);
   assert.match(sys, /never decide outcomes/i);
   assert.match(sys, /receiving care/i);
+  assert.match(sys, /private\/intimate\/aftercare|prefer one real echo/i);
   assert.ok(!/harsh 1-sentence/i.test(sys), "no mandatory harsh correction");
   console.log("ok system prompt intention/echo + balance");
 }

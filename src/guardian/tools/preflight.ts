@@ -1613,9 +1613,14 @@ export function selectPrecedents(
   limit = 2,
   liveBeat?: LiveBeat
 ): CriticalPrecedent[] {
+  // History unlock: family/trauma OR intimacy/aftercare (warmth restore 2026-07-23).
+  // Intimate scenes need relationship precedents; flat -40 on historical/* was starving erotic/emotional memory.
   const historyAllowed = highRiskTriggers.some((t) =>
-    /Family|transition|trauma|Vaxholm|Mormor|milestone|Repeated gesture|memory echo/i.test(t)
+    /Family|transition|trauma|Vaxholm|Mormor|milestone|Repeated gesture|memory echo|Intimacy|kink|dominance|aftercare/i.test(
+      t
+    )
   );
+  const intimacyLive = highRiskTriggers.some((t) => /Intimacy|kink|dominance|aftercare/i.test(t));
   const keywords = extractKeywords(userMessage);
   const triggerText = highRiskTriggers.join(" ");
 
@@ -1629,12 +1634,23 @@ export function selectPrecedents(
     score += keywordOverlapScore(`${result.section ?? ""} ${result.text ?? ""}`, extractKeywords(triggerText, 12));
 
     if (isHistoricalThread(result.source_file, result.section)) {
-      score += historyAllowed ? 5 : -40;
+      // Milder demotion when intimacy is live; still prefer non-random continuous texture.
+      if (historyAllowed) score += intimacyLive ? 12 : 5;
+      else score -= 40;
     }
 
     // Prefer sections that look like open-state / current emotional content.
     const section = (result.section ?? "").toLowerCase();
     if (/current|open story|pending|emotional state|live/.test(section)) score += 12;
+    // Warmth restore: relationship / intimacy milestones when intimate
+    if (
+      intimacyLive &&
+      /intimacy|aftercare|relationship|emotional milestone|trust|private|kink|dominance|bath|shower/i.test(
+        `${section} ${result.text ?? ""}`.slice(0, 400)
+      )
+    ) {
+      score += 8;
+    }
 
     // WP-2.2: demote superseded same-day beats; boost live cues
     if (liveBeat) {
@@ -1876,7 +1892,9 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
   }
 
   if (highRiskTriggers.some((t) => /Intimacy|kink|dominance/i.test(t))) {
-    avoid.push("Keep intimacy scene-specific (privacy, aftercare, body trust); do not pull random historical kink threads unless clearly continuous.");
+    avoid.push(
+      "Keep intimacy scene-specific (privacy, aftercare, body trust). Prefer continuous private history when retrieved (gestures, phrases, established erotic dynamics); do not dump unrelated historical kink as a random scene hijack."
+    );
   }
 
   if (retrievalStatus !== "success") {

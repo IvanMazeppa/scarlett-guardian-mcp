@@ -60,6 +60,7 @@ function testBriefCharacterBalanceNotOldQa() {
   assert.match(brief, /do not invent coldness|coldness, contempt, dismissal/i);
   assert.match(brief, /Professional composure belongs to professional/i);
   assert.match(brief, /Sexual dominance is intimate and role-fluid/i);
+  assert.match(brief, /humour|Swedish|erotic specificity|emotional associations/i);
   console.log("ok character balance block content");
 }
 

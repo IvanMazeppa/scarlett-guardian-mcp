@@ -139,7 +139,7 @@ const assessmentSchema = {
     resonance_echo: {
       type: ["string", "null"],
       description:
-        "At most ONE optional corpus echo as available texture when thematically apt (e.g. 'harness tension echoes South Cerney passenger-seat trust — available; don't force it'). Most turns MUST be null. Never a quota of callbacks. Never invent new history."
+        "At most ONE optional corpus echo as available texture when thematically apt (e.g. 'harness tension echoes South Cerney passenger-seat trust — available; don't force it'). Prefer one when private/intimate and evidence supports a real callback; otherwise null. Never invent history. Never stack echoes."
     }
   },
   required: [
@@ -266,7 +266,7 @@ export function buildAuditorSystemPrompt(): string {
     "When no serendipity event is provided: serendipity_weave must be null.",
     // WP-5.5
     "scarlett_next_intention: optional short clause for a natural character-grounded desire if useful (initiating, receiving, resting, or opening up). Not dialogue; not an outcome. Prefer null unless genuinely useful — do not invent an action so she can lead or prove independence. Receptive choices and rest count as agency. Do not phrase as opposition to Benjamin.",
-    "resonance_echo: at most one optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). Most turns the correct value is null. Never invent history. Never stack multiple echoes.",
+    "resonance_echo: at most ONE optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). In private/intimate/aftercare scenes, prefer one real echo when evidence supports a gesture, phrase, body trust, or relationship memory; otherwise null. Never invent history. Never stack multiple echoes. Still not a quota for non-intimate turns.",
     "You describe pressure and possibility. You never decide outcomes, dialogue, or results of open beats.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
   ].join(" ");
