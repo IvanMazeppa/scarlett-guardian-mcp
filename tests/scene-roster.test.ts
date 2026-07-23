@@ -110,9 +110,30 @@ function testNoFalseRyanOnDinner() {
   console.log("ok no false Ryan");
 }
 
+function testPrivateVenueSuppressesEngineers() {
+  const r = resolveSceneRoster({
+    userMessage: "Stay under the duvet with me. Ignore work.",
+    scarlettPreviousMessage: "Mmm.",
+    liveBeat: {
+      lastUpdated: "",
+      locationLine: "Schloss Lieser suite, king-sized bed, under the duvet",
+      timeLine: "Saturday morning",
+      liveCues: ["suite", "bed", "duvet", "aftercare"],
+      supersededCues: ["paddock", "engineers"],
+      antiResetNotes: [],
+      presentCast: ["Scarlett and Benjamin only"]
+    },
+    arcCastText: "Shevchenko and AMG engineers wait on Monday Affalterbach telemetry."
+  });
+  assert.ok(!r.active.some((a) => a.id === "amg_engineers"), r.summary);
+  assert.ok(!r.active.some((a) => a.id === "shevchenko"), r.summary);
+  console.log("ok private venue suppresses engineers/Shevchenko bleed");
+}
+
 testAddressedWins();
 testPresentCastActivation();
 testCapAtFour();
 testParsePresentField();
 testNoFalseRyanOnDinner();
+testPrivateVenueSuppressesEngineers();
 console.log("All WP-5.7 scene-roster tests passed.");

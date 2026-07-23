@@ -64,6 +64,31 @@ export function isCoupleOnlyPresent(presentCast?: string[] | null): boolean {
   return stripped.length === 0;
 }
 
+/**
+ * Private couple venue (suite/bed/hotel recovery) — suppress passive paddock cast
+ * even if arc-plan cues still say "engineers".
+ */
+export function isPrivateCoupleVenue(liveBeat?: {
+  locationLine?: string;
+  liveCues?: string[];
+  timeLine?: string;
+} | null): boolean {
+  const blob = [
+    liveBeat?.locationLine ?? "",
+    liveBeat?.timeLine ?? "",
+    ...(liveBeat?.liveCues ?? [])
+  ]
+    .join(" ")
+    .toLowerCase();
+  if (!blob.trim()) return false;
+  if (/\b(paddock|pit box|pit wall|on track|nordschleife lap|industry pool)\b/i.test(blob)) {
+    return false;
+  }
+  return /\b(suite|hotel|schloss|bed|duvet|aftercare|shower|bathroom|towel|bedroom|king)\b/i.test(
+    blob
+  );
+}
+
 const ACTIVATION_RANK: Record<RosterActivation, number> = {
   addressed: 100,
   speaker: 90,
@@ -225,7 +250,9 @@ export function resolveSceneRoster(input: {
   const registry = input.registry ?? DEFAULT_NPC_REGISTRY;
   const maxActive = input.maxActive ?? MAX_ACTIVE;
   const coupleOnly = isCoupleOnlyPresent(input.liveBeat?.presentCast);
-  const suppressPassive = Boolean(input.suppressPassiveCast) || coupleOnly;
+  const privateVenue = isPrivateCoupleVenue(input.liveBeat);
+  const suppressPassive =
+    Boolean(input.suppressPassiveCast) || coupleOnly || privateVenue;
   const userHay = normalizeHay(input.userMessage);
   const scarlettHay = normalizeHay(input.scarlettPreviousMessage ?? "");
   const presentHay = normalizeHay(...(input.liveBeat?.presentCast ?? []));

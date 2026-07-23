@@ -41,27 +41,20 @@ function testBriefNoIntentionLine() {
   console.log("ok brief omits intention even when assessment sets one");
 }
 
-function testBriefCharacterBalanceNotOldQa() {
+function testBriefOmitsCharacterBalanceBlock() {
+  // Thread-10 fix: CB lives in Skill only — brief must not re-hammer it.
   const brief = compileGrokBrief(
     minimalReport({ enabled: true, scarlett_next_intention: null, resonance_echo: null })
   );
-  assert.match(brief, /\*\*CHARACTER BALANCE:\*\*/);
+  assert.ok(!brief.includes("**CHARACTER BALANCE:**"), "no CB block in Guardian brief");
   assert.ok(!brief.includes("**QUALIFIED AUTONOMY PROTOCOL"));
   assert.ok(
     !/must NOT passively parrot or simply agree/i.test(brief),
     "old anti-agree leadership checklist gone"
   );
-  assert.ok(!/gently leads/i.test(brief));
-  assert.ok(!/highly proactive and independent/i.test(brief));
-  assert.match(brief, /receiving/i);
-  assert.match(brief, /yielding/i);
-  assert.match(brief, /resting/i);
-  assert.match(brief, /following/i);
-  assert.match(brief, /do not invent coldness|coldness, contempt, dismissal/i);
-  assert.match(brief, /Professional composure belongs to professional/i);
-  assert.match(brief, /Sexual dominance is intimate and role-fluid/i);
-  assert.match(brief, /humour|Swedish|erotic specificity|emotional associations/i);
-  console.log("ok character balance block content");
+  assert.ok(!/do not require visible leadership/i.test(brief));
+  assert.ok(!/quietly dependent/i.test(brief));
+  console.log("ok brief omits Character Balance (Skill is sole source)");
 }
 
 function testAuditorPromptNoHarshAndProtectsReceptivity() {
@@ -124,10 +117,6 @@ function testReceptiveAgencyNoDirectorCorrection() {
     !brief.includes("**DIRECTOR'S CORRECTION"),
     "null correction must not surface a Director block"
   );
-  // Guard: even if a prior bad path put performative language in correction, CB brief still present
-  assert.match(brief, /\*\*CHARACTER BALANCE:\*\*/);
-  assert.match(brief, /receiving|yielding|resting|following/i);
-
   // Semantic fixture: receptive previous message text is available for duplex evaluators
   assert.match(receptivePrevious, /accepting the coffee|lean into your hand|without needing to take charge/i);
   assert.ok(!/I lead|I'll handle|prove|must initiate/i.test(receptivePrevious));
@@ -135,7 +124,7 @@ function testReceptiveAgencyNoDirectorCorrection() {
 }
 
 testBriefNoIntentionLine();
-testBriefCharacterBalanceNotOldQa();
+testBriefOmitsCharacterBalanceBlock();
 testAuditorPromptNoHarshAndProtectsReceptivity();
 testSchemaFieldStillPresent();
 testReceptiveAgencyNoDirectorCorrection();

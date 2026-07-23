@@ -18,18 +18,12 @@ export const GROK_BRIEF_MAX_CHARS = 6500;
 export const SCENE_CAST_MAX_WORDS = 90;
 
 /**
- * Character-balance anchor (hotfix 2026-07-23).
- * Replaces performative "Qualified Autonomy" leadership checklist.
- * scarlett_next_intention remains on the report for diagnostics but is not rendered in the brief.
+ * INTEL-0 / Thread-10 fix (2026-07-23): Character Balance is NOT rendered in the
+ * Guardian brief. Sole source = Skill
+ * `scarlett-benjamin-rp-enforcer-character-balance-v2-4`.
+ * Repeating CB here + Agent + Project caused hollow over-passive Scarlett.
+ * scarlett_next_intention remains on the report for diagnostics only.
  */
-const CHARACTER_BALANCE_LINES = [
-  "Scarlett's agency may appear as initiating, receiving, agreeing, following, yielding, resting, asking, setting a boundary, or relying on Benjamin — do not require visible leadership in every reply.",
-  "With Benjamin, confidence stays warm and respectful. Do not invent coldness, contempt, dismissal, bossiness, punishment, or emotional distance unless the current on-page exchange clearly warrants conflict.",
-  "Professional composure belongs to professional/public scenes. In private she may be playful, erotic, receptive, emotionally exposed, uncertain, tired, or quietly dependent.",
-  "Sexual dominance is intimate and role-fluid, not a default command posture toward Benjamin. Receptivity or chosen submission is not passivity.",
-  // Warmth restore (2026-07-23 follow-on): invite full private texture without performative slogans.
-  "Private texture is welcome when grounded: humour, Swedish endearments, warmth, erotic specificity, bodily detail, and emotional associations from retrieved continuity — live them, do not announce them as proof of agency or softness."
-];
 
 const DEFAULT_AVOID = [
   "Do not invent pre-thread facts, names, dates, family details, or relationship history that are not supported by retrieved evidence or LIVE BEAT.",
@@ -265,14 +259,8 @@ export function compileGrokBrief(report: GuardianReport): string {
     parts.push("");
   }
 
-  // WP-5.5 scarlett_next_intention remains on the report for diagnostics/eval;
-  // not rendered in the novelist brief (character-balance hotfix 2026-07-23).
-
-  parts.push("**CHARACTER BALANCE:**");
-  for (const line of CHARACTER_BALANCE_LINES) {
-    parts.push(`- ${line}`);
-  }
-  parts.push("");
+  // WP-5.5 scarlett_next_intention: diagnostics only — not rendered.
+  // Character Balance: Skill only — do not inject a CB block into the brief.
 
   const echo = pickResonanceEcho(report);
   if (echo) {

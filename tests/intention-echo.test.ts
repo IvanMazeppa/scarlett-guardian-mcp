@@ -82,9 +82,9 @@ function testBriefRendersEchoNotIntention() {
   assert.ok(!/water first/i.test(brief));
   assert.match(brief, /\*\*Echo \(optional texture\):\*\*/);
   assert.match(brief, /pit-wall send-off|Radio intimacy/i);
-  assert.match(brief, /\*\*CHARACTER BALANCE:\*\*/);
+  assert.ok(!brief.includes("**CHARACTER BALANCE:**"), "CB not in brief (Skill only)");
   assert.ok(!brief.includes("**QUALIFIED AUTONOMY PROTOCOL"));
-  console.log("ok brief echo without intention; character balance present");
+  console.log("ok brief echo without intention; no Character Balance block");
 }
 
 function testBriefOmitsNulls() {
