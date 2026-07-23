@@ -42,19 +42,16 @@ function testBriefNoIntentionLine() {
 }
 
 function testBriefOmitsCharacterBalanceBlock() {
-  // Thread-10 fix: CB lives in Skill only — brief must not re-hammer it.
+  // Thread-10 solution: one-line pointer only — not a multi-bullet CB essay.
   const brief = compileGrokBrief(
     minimalReport({ enabled: true, scarlett_next_intention: null, resonance_echo: null })
   );
-  assert.ok(!brief.includes("**CHARACTER BALANCE:**"), "no CB block in Guardian brief");
+  assert.ok(!brief.includes("**CHARACTER BALANCE:**"), "no multi-bullet CB essay in brief");
   assert.ok(!brief.includes("**QUALIFIED AUTONOMY PROTOCOL"));
-  assert.ok(
-    !/must NOT passively parrot or simply agree/i.test(brief),
-    "old anti-agree leadership checklist gone"
-  );
+  assert.match(brief, /Skill owns Character Balance|vivid and capable/i);
   assert.ok(!/do not require visible leadership/i.test(brief));
   assert.ok(!/quietly dependent/i.test(brief));
-  console.log("ok brief omits Character Balance (Skill is sole source)");
+  console.log("ok brief has one-line CB pointer only (Skill owns full essay)");
 }
 
 function testAuditorPromptNoHarshAndProtectsReceptivity() {

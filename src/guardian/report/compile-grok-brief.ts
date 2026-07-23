@@ -18,10 +18,9 @@ export const GROK_BRIEF_MAX_CHARS = 6500;
 export const SCENE_CAST_MAX_WORDS = 90;
 
 /**
- * INTEL-0 / Thread-10 fix (2026-07-23): Character Balance is NOT rendered in the
- * Guardian brief. Sole source = Skill
- * `scarlett-benjamin-rp-enforcer-character-balance-v2-4`.
- * Repeating CB here + Agent + Project caused hollow over-passive Scarlett.
+ * Thread-10 solution (2026-07-23): do NOT re-emit the full Character Balance essay
+ * in the brief (that + Agent + Project + Skill caused hollow passivity).
+ * One-line pointer only — full essay lives in Skill v2.5.
  * scarlett_next_intention remains on the report for diagnostics only.
  */
 
@@ -260,7 +259,11 @@ export function compileGrokBrief(report: GuardianReport): string {
   }
 
   // WP-5.5 scarlett_next_intention: diagnostics only — not rendered.
-  // Character Balance: Skill only — do not inject a CB block into the brief.
+  // One-line Character Balance pointer (not a second full essay).
+  parts.push(
+    "**Character (Skill owns Character Balance):** Keep Scarlett vivid and capable — edge, humour, appetite, initiative when she wants it. Receiving/resting is valid; hollow passivity and only-agreeing parroting are not."
+  );
+  parts.push("");
 
   const echo = pickResonanceEcho(report);
   if (echo) {
