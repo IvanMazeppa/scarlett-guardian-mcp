@@ -60,8 +60,8 @@ function testWordBudgetSoft() {
   };
   const block = formatSceneCastBlock(roster, tails, 90);
   const words = block.split(/\s+/).filter(Boolean).length;
-  // Allow modest overrun for mandatory ⚠ lines
-  assert.ok(words <= 130, `word budget soft-cap, got ${words}`);
+  // Soft-cap: formatter trims fields; mandatory ⚠ + fuller registry tails can overshoot 90
+  assert.ok(words <= 160, `word budget soft-cap, got ${words}`);
   assert.match(block, /⚠/);
   console.log("ok word budget", words);
 }

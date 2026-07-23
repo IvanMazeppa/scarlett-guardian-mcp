@@ -130,10 +130,11 @@ const assessmentSchema = {
         "When a SERENDIPITY WORLD EVENT is provided in the user message: ONE sentence weaving it into the scene background at its tier. Ambient must not demand a response. Null if it cannot be woven without disrupting the scene. Null when no event was provided."
     },
     // WP-5.5 / D7 §2.4 — intention + scarce resonance (null most turns for echo).
+    // Hotfix 2026-07-23: prefer null; field is diagnostic (not rendered in novelist brief).
     scarlett_next_intention: {
       type: ["string", "null"],
       description:
-        "ONE concrete thing Scarlett would initiate given any opening (from live state + plan pressure + her wants). Short clause or sentence. Pressure/possibility only — never a forced outcome or scripted dialogue. Prefer a real intention most turns when LIVE BEAT is clear."
+        "Optional ONE short clause for a natural character-grounded desire or opening if genuinely useful (may be initiating, receiving, resting, or opening up). Pressure/possibility only — never forced dialogue or outcome. Prefer null unless clearly useful. Do not invent an action merely so Scarlett can lead or prove independence. Do not phrase as opposition to Benjamin."
     },
     resonance_echo: {
       type: ["string", "null"],
@@ -245,9 +246,11 @@ export function buildAuditorSystemPrompt(): string {
     "When STORY MOMENTUM is present: it is day/arc schedule pressure only. You describe pressure and possibility — never outcomes, dialogue, or results of open beats. LIVE BEAT still wins for present location and story-time.",
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
     "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
-    "If 'scarlett_previous_message' is provided, critique it against the Qualified Autonomy Protocol. If Scarlett was too passive, merely parroted Benjamin, or hallucinates a trope, write a harsh 1-sentence correction in 'grok_performance_correction'. Otherwise, return null.",
+    "If 'scarlett_previous_message' is provided, critique character balance: correct only clear character erasure, unsupported coldness/cruelty/dismissal toward Benjamin without scene warrant, mechanical parroting across the actual reply, or genuine ensemble displacement. Write one concise sentence in 'grok_performance_correction', or null.",
+    "These are NOT passivity by themselves: agreeing; receiving care; letting Benjamin lead; chosen yielding or submission; resting, silence, fatigue, uncertainty, or vulnerability; responding rather than introducing a new action.",
+    "Confidence and dominance do not authorize disrespect or dismissal toward Benjamin without current scene evidence. Professional register must not be imposed on a private scene merely because the wider arc is professional. Sexual dominance is intimate and role-fluid, not a default command posture.",
     // WP-5.8 ensemble dilution (duplex path)
-    "ENSEMBLE DILUTION: When scarlett_previous_message is provided and the scene has supporting NPCs, if Scarlett's turn reduced her to only reacting, translating, or interpreting for others while NPCs carried the scene in her POV, issue a harsh 1-sentence grok_performance_correction that restores her as lens and lead. Do not lecture every ensemble scene — only when dilution is observed.",
+    "ENSEMBLE DILUTION: When scarlett_previous_message is provided and the scene has supporting NPCs, if Scarlett's turn reduced her to an NPC translator or prop while others carried her POV for the whole turn, issue one concise grok_performance_correction restoring her as lens and lead. Listening or reacting for one reply is not dilution. Do not require her to manage every ensemble beat. Do not lecture every ensemble scene — only when dilution is observed.",
     "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
     "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
     "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",
@@ -262,7 +265,7 @@ export function buildAuditorSystemPrompt(): string {
     "When a SERENDIPITY WORLD EVENT block is present: set serendipity_weave to exactly ONE grounded background sentence at the event's tier (or null to veto). Never invent a different event. Never put tool names or 'SERENDIPITY EVENT' labels in the weave.",
     "When no serendipity event is provided: serendipity_weave must be null.",
     // WP-5.5
-    "scarlett_next_intention: one concrete thing Scarlett would initiate if she gets an opening — grounded in LIVE BEAT, STORY MOMENTUM pressure, and established wants. Not dialogue to speak; not an outcome. Prefer non-null when the scene is clear so she can lead (Qualified Autonomy).",
+    "scarlett_next_intention: optional short clause for a natural character-grounded desire if useful (initiating, receiving, resting, or opening up). Not dialogue; not an outcome. Prefer null unless genuinely useful — do not invent an action so she can lead or prove independence. Receptive choices and rest count as agency. Do not phrase as opposition to Benjamin.",
     "resonance_echo: at most one optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). Most turns the correct value is null. Never invent history. Never stack multiple echoes.",
     "You describe pressure and possibility. You never decide outcomes, dialogue, or results of open beats.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."

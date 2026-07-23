@@ -45,12 +45,14 @@ function testSystemPromptMentionsFields() {
   const sys = buildAuditorSystemPrompt();
   assert.match(sys, /scarlett_next_intention/i);
   assert.match(sys, /resonance_echo/i);
-  assert.match(sys, /Most turns the correct value is null/i);
+  assert.match(sys, /Prefer null unless genuinely useful/i);
   assert.match(sys, /never decide outcomes/i);
-  console.log("ok system prompt intention/echo");
+  assert.match(sys, /receiving care/i);
+  assert.ok(!/harsh 1-sentence/i.test(sys), "no mandatory harsh correction");
+  console.log("ok system prompt intention/echo + balance");
 }
 
-function testBriefRendersIntentionAndEcho() {
+function testBriefRendersEchoNotIntention() {
   const report = {
     retrieval_status: "success",
     confidence_score: 80,
@@ -74,15 +76,14 @@ function testBriefRendersIntentionAndEcho() {
   } satisfies GuardianReport;
 
   const brief = compileGrokBrief(report);
-  assert.match(brief, /\*\*Scarlett's Intention:\*\*/);
-  assert.match(brief, /water first/i);
+  // Character-balance hotfix: intention is diagnostic-only — not in novelist brief
+  assert.ok(!brief.includes("**Scarlett's Intention:**"));
+  assert.ok(!/water first/i.test(brief));
   assert.match(brief, /\*\*Echo \(optional texture\):\*\*/);
   assert.match(brief, /pit-wall send-off|Radio intimacy/i);
-  // Intention appears near autonomy block
-  const intIdx = brief.indexOf("**Scarlett's Intention:**");
-  const qaIdx = brief.indexOf("**QUALIFIED AUTONOMY PROTOCOL");
-  assert.ok(intIdx >= 0 && qaIdx > intIdx, "intention should sit just before QA");
-  console.log("ok brief intention + echo");
+  assert.match(brief, /\*\*CHARACTER BALANCE:\*\*/);
+  assert.ok(!brief.includes("**QUALIFIED AUTONOMY PROTOCOL"));
+  console.log("ok brief echo without intention; character balance present");
 }
 
 function testBriefOmitsNulls() {
@@ -123,7 +124,7 @@ function testEchoRateScorecard() {
 
 testNormalizeIntentionAndEcho();
 testSystemPromptMentionsFields();
-testBriefRendersIntentionAndEcho();
+testBriefRendersEchoNotIntention();
 testBriefOmitsNulls();
 testEchoRateScorecard();
 console.log("All WP-5.5 intention/echo tests passed.");

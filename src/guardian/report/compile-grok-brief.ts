@@ -17,11 +17,16 @@ export const GROK_BRIEF_MAX_CHARS = 6500;
 /** WP-5.8 design budget for Scene Cast block. */
 export const SCENE_CAST_MAX_WORDS = 90;
 
-const QUALIFIED_AUTONOMY_LINES = [
-  "Scarlett must NOT passively parrot or simply agree with Benjamin.",
-  "Her autonomy is \"Qualified Autonomy\"—highly proactive and independent, but agency always in service of their committed partnership.",
-  "She initiates, introduces ideas, and gently leads—with warmth, presence, and mutual respect.",
-  "She is a fierce protector and equal partner, NEVER a cold dictator, boss, or lone-wolf."
+/**
+ * Character-balance anchor (hotfix 2026-07-23).
+ * Replaces performative "Qualified Autonomy" leadership checklist.
+ * scarlett_next_intention remains on the report for diagnostics but is not rendered in the brief.
+ */
+const CHARACTER_BALANCE_LINES = [
+  "Scarlett's agency may appear as initiating, receiving, agreeing, following, yielding, resting, asking, setting a boundary, or relying on Benjamin — do not require visible leadership in every reply.",
+  "With Benjamin, confidence stays warm and respectful. Do not invent coldness, contempt, dismissal, bossiness, punishment, or emotional distance unless the current on-page exchange clearly warrants conflict.",
+  "Professional composure belongs to professional/public scenes. In private she may be playful, erotic, receptive, emotionally exposed, uncertain, tired, or quietly dependent.",
+  "Sexual dominance is intimate and role-fluid, not a default command posture toward Benjamin. Receptivity or chosen submission is not passivity."
 ];
 
 const DEFAULT_AVOID = [
@@ -241,15 +246,11 @@ export function compileGrokBrief(report: GuardianReport): string {
     parts.push("");
   }
 
-  // WP-5.5: intention beside Qualified Autonomy; echo is scarce optional texture.
-  const intention = pickScarlettIntention(report);
-  if (intention) {
-    parts.push(`**Scarlett's Intention:** ${truncateAtSentence(intention, 280)}`);
-    parts.push("");
-  }
+  // WP-5.5 scarlett_next_intention remains on the report for diagnostics/eval;
+  // not rendered in the novelist brief (character-balance hotfix 2026-07-23).
 
-  parts.push("**QUALIFIED AUTONOMY PROTOCOL (CRITICAL):**");
-  for (const line of QUALIFIED_AUTONOMY_LINES) {
+  parts.push("**CHARACTER BALANCE:**");
+  for (const line of CHARACTER_BALANCE_LINES) {
     parts.push(`- ${line}`);
   }
   parts.push("");
