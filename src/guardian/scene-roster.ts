@@ -216,16 +216,22 @@ export function resolveSceneRoster(input: {
   arcCastText?: string;
   registry?: RegistryNpc[];
   maxActive?: number;
+  /**
+   * INTEL-1: suppress Present-cast / arc-cast / cue-only activation.
+   * Direct user address and Scarlett speaker mentions still activate.
+   */
+  suppressPassiveCast?: boolean;
 }): SceneRoster {
   const registry = input.registry ?? DEFAULT_NPC_REGISTRY;
   const maxActive = input.maxActive ?? MAX_ACTIVE;
   const coupleOnly = isCoupleOnlyPresent(input.liveBeat?.presentCast);
+  const suppressPassive = Boolean(input.suppressPassiveCast) || coupleOnly;
   const userHay = normalizeHay(input.userMessage);
   const scarlettHay = normalizeHay(input.scarlettPreviousMessage ?? "");
   const presentHay = normalizeHay(...(input.liveBeat?.presentCast ?? []));
-  // Private couple scenes: do not pull Shevchenko/AMG from arc-plan or location cues alone.
-  const arcHay = coupleOnly ? "" : normalizeHay(input.arcCastText ?? "");
-  const cueHay = coupleOnly
+  // Private couple / provisional scenes: do not pull Shevchenko/AMG from arc-plan or cues alone.
+  const arcHay = suppressPassive ? "" : normalizeHay(input.arcCastText ?? "");
+  const cueHay = suppressPassive
     ? ""
     : normalizeHay(input.liveBeat?.locationLine ?? "", ...(input.liveBeat?.liveCues ?? []));
   const combinedMention = normalizeHay(userHay, scarlettHay, presentHay, arcHay, cueHay);
@@ -238,13 +244,13 @@ export function resolveSceneRoster(input: {
     } else if (npc.aliases.some((a) => hayIncludesAlias(scarlettHay, a))) {
       activation = "speaker";
     } else if (
-      !coupleOnly &&
+      !suppressPassive &&
       npc.aliases.some((a) => hayIncludesAlias(presentHay, a))
     ) {
       activation = "present_cast";
-    } else if (!coupleOnly && npc.aliases.some((a) => hayIncludesAlias(arcHay, a))) {
+    } else if (!suppressPassive && npc.aliases.some((a) => hayIncludesAlias(arcHay, a))) {
       activation = "arc_cast";
-    } else if (!coupleOnly && npc.aliases.some((a) => hayIncludesAlias(combinedMention, a))) {
+    } else if (!suppressPassive && npc.aliases.some((a) => hayIncludesAlias(combinedMention, a))) {
       // location/cue only — weaker
       if (npc.aliases.some((a) => hayIncludesAlias(cueHay, a))) {
         activation = "mentioned";
@@ -286,20 +292,25 @@ export function resolveSceneRoster(input: {
     }
   }
 
-  // Couple-only private scenes: no ambient paddock crowd from weak cues
-  if (coupleOnly) {
+  // Couple-only / provisional private scenes: no ambient paddock crowd from weak cues
+  if (suppressPassive) {
     background.length = 0;
   }
 
   const summary =
     active.length === 0
-      ? coupleOnly
+      ? coupleOnly || suppressPassive
         ? "Couple-only present (no supporting cast)"
         : "No named supporting cast active"
       : `Active: ${active.map((a) => `${a.displayName}(${a.activation})`).join(", ")}` +
         (background.length ? `; background: ${background.slice(0, 3).join(", ")}` : "");
 
-  return { active, background, summary, coupleOnlyPresent: coupleOnly };
+  return {
+    active,
+    background,
+    summary,
+    coupleOnlyPresent: coupleOnly || (suppressPassive && active.length === 0)
+  };
 }
 
 /**

@@ -75,7 +75,17 @@ const EnvSchema = z.object({
     .enum(["none", "minimal", "low", "medium", "high", "xhigh", "max"])
     .default("medium"),
   /** WP-5.5: max resonance echoes rendered per turn (code-enforced; design default 1). */
-  GUARDIAN_ECHO_MAX_PER_TURN: z.coerce.number().int().min(0).max(1).default(1)
+  GUARDIAN_ECHO_MAX_PER_TURN: z.coerce.number().int().min(0).max(1).default(1),
+  /**
+   * INTEL-1: resolved scene-confidence gate. When true (default), provisional
+   * save-lag / stale-present state degrades roster/serendipity/dramaturg/write-back.
+   * Set false to restore pre-INTEL-1 consumer behavior without deleting telemetry.
+   */
+  GUARDIAN_SCENE_CONFIDENCE_GATE: z.preprocess((value) => {
+    if (value === "false" || value === false || value === "0") return false;
+    if (value === "true" || value === true || value === "1") return true;
+    return true;
+  }, z.boolean().default(true))
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;

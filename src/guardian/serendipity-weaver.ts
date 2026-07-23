@@ -498,12 +498,22 @@ export function selectSerendipity(
   mode: SceneMode,
   _triggers: string[],
   rng: () => number = Math.random,
-  options?: { npcIntersections?: AgendaIntersectionInput[] }
+  options?: {
+    npcIntersections?: AgendaIntersectionInput[];
+    /** INTEL-1: hard cap (e.g. ambient-only under provisional scene confidence). */
+    forceMaxTier?: Intrusiveness;
+  }
 ): SelectSerendipityResult {
   const state = cloneState(stateIn);
   state.turnCounter += 1;
   const turn = state.turnCounter;
-  const maxTier = maxTierFor(mode);
+  const baseMax = maxTierFor(mode);
+  // INTEL-1: take the stricter of scene-mode max and optional forceMaxTier
+  const maxTier =
+    options?.forceMaxTier != null &&
+    TIER_RANK[options.forceMaxTier] <= TIER_RANK[baseMax]
+      ? options.forceMaxTier
+      : baseMax;
 
   // Expire deferred
   state.deferred = state.deferred.filter((d) => d.expiresAtTurn >= turn);
@@ -532,7 +542,9 @@ export function selectSerendipity(
   }
 
   // 2) WP-5.4 agenda intersections — outrank catalog (no drought roll)
-  const intersections = options?.npcIntersections ?? [];
+  // INTEL-1: under ambient-only provisional gate, skip NPC agenda pressure entirely.
+  const intersections =
+    options?.forceMaxTier === "ambient" ? [] : (options?.npcIntersections ?? []);
   for (const ix of intersections) {
     if (!ix?.npc?.trim() || !ix.agenda?.trim()) continue;
     const ev = agendaIntersectionToEvent(ix);
@@ -712,6 +724,8 @@ export function runSerendipityTurn(input: {
   liveBeat?: LiveBeat | null;
   /** WP-5.4: dramaturg/deterministic NPC agenda intersections (outrank catalog). */
   npcIntersections?: AgendaIntersectionInput[];
+  /** INTEL-1: provisional ambient-only cap. */
+  forceMaxTier?: Intrusiveness;
   rng?: () => number;
   rootDir?: string;
   persist?: boolean;
@@ -724,7 +738,10 @@ export function runSerendipityTurn(input: {
     mode,
     input.highRiskTriggers,
     input.rng ?? Math.random,
-    { npcIntersections: input.npcIntersections }
+    {
+      npcIntersections: input.npcIntersections,
+      forceMaxTier: input.forceMaxTier
+    }
   );
   if (input.persist !== false) {
     saveSerendipityState(result.state, root);

@@ -41,7 +41,12 @@ import {
   textMatchesLiveBeat,
   type LiveBeat
 } from "../recency.js";
-import { applySaveLagSoftening, detectSaveLag } from "../save-lag.js";
+import { applySaveLagSoftening } from "../save-lag.js";
+import {
+  applyDramaturgNeutralPolicy,
+  resolveSceneConfidence,
+  type ResolvedSceneConfidence
+} from "../scene-confidence.js";
 import {
   PreflightTelemetryCollector,
   buildPreflightTelemetryEvent,
@@ -229,6 +234,8 @@ export async function runGuardianPreflight(
     GUARDIAN_DRAMATURG_ENABLED?: boolean;
     GUARDIAN_DRAMATURG_STALENESS_TURNS?: number;
     GUARDIAN_DRAMATURG_REASONING_EFFORT?: GuardianConfig["GUARDIAN_DRAMATURG_REASONING_EFFORT"];
+    /** INTEL-1 feature gate (default true via env / getConfig). */
+    GUARDIAN_SCENE_CONFIDENCE_GATE?: boolean;
     OPENAI_API_KEY?: string;
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
@@ -263,6 +270,7 @@ async function runGuardianPreflightInner(
     GUARDIAN_DRAMATURG_ENABLED?: boolean;
     GUARDIAN_DRAMATURG_STALENESS_TURNS?: number;
     GUARDIAN_DRAMATURG_REASONING_EFFORT?: GuardianConfig["GUARDIAN_DRAMATURG_REASONING_EFFORT"];
+    GUARDIAN_SCENE_CONFIDENCE_GATE?: boolean;
     OPENAI_API_KEY?: string;
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
@@ -349,13 +357,20 @@ async function runGuardianPreflightInner(
     );
   }
 
-  const saveLag = detectSaveLag({
+  // INTEL-1: one resolved scene-confidence decision before optional systems.
+  const sceneConfidence: ResolvedSceneConfidence = resolveSceneConfidence({
     liveBeat,
     userMessage: input.user_message,
     scarlettPreviousMessage: input.scarlett_previous_message,
-    recentContext: input.recent_context
+    recentContext: input.recent_context,
+    gateEnabled: config.GUARDIAN_SCENE_CONFIDENCE_GATE ?? true
   });
-  if (saveLag.suspected) {
+  const saveLag = sceneConfidence.saveLag;
+  if (sceneConfidence.provisional) {
+    console.log(
+      `${Date.now()} SCENE CONFIDENCE provisional: ${sceneConfidence.reason} (cast=${sceneConfidence.castConfidence} played=${sceneConfidence.playedConfidence})`
+    );
+  } else if (saveLag.suspected) {
     console.log(
       `${Date.now()} SAVE LAG suspected: live=${saveLag.liveCluster} played=${saveLag.playedCluster} (${saveLag.reason})`
     );
@@ -373,15 +388,16 @@ async function runGuardianPreflightInner(
     Boolean(options?.isolateSidecars) ||
     Boolean(options?.disableTelemetry) ||
     Boolean(options?.frozenLlmAssessment);
-  const { snapshot: dramaturg, turnCounter: dramaturgTurn } = resolveHotPathDramaturg({
+  const { snapshot: dramaturgRaw, turnCounter: dramaturgTurn } = resolveHotPathDramaturg({
     deterministic: deterministicDramaturg,
     cache: dramaturgCache,
     planHash,
     bumpTurn: !isolateSidecars
   });
+  const dramaturg = applyDramaturgNeutralPolicy(dramaturgRaw, sceneConfidence);
   if (dramaturg.momentumLine) {
     console.log(
-      `${Date.now()} Story momentum [${dramaturg.source ?? "deterministic"}]: ${dramaturg.momentumLine.slice(0, 160)}${
+      `${Date.now()} Story momentum [${sceneConfidence.dramaturgNeutral ? "provisional_neutral" : dramaturg.source ?? "deterministic"}]: ${dramaturg.momentumLine.slice(0, 160)}${
         dramaturg.momentumLine.length > 160 ? "…" : ""
       }`
     );
@@ -400,7 +416,8 @@ async function runGuardianPreflightInner(
     userMessage: input.user_message,
     scarlettPreviousMessage: input.scarlett_previous_message,
     liveBeat,
-    arcCastText
+    arcCastText,
+    suppressPassiveCast: sceneConfidence.suppressPassiveCast
   });
   if (sceneRoster.active.length || sceneRoster.background.length) {
     console.log(`${Date.now()} Scene roster: ${sceneRoster.summary}`);
@@ -446,16 +463,18 @@ async function runGuardianPreflightInner(
       ? "proceed"
       : "proceed_with_caution";
   // WP-5.4: NPC agenda intersections (deterministic + cached dramaturg) → weaver outranks catalog.
-  const detIntersections = intersectAgendasWithLiveScene(
-    loadAndParseNpcAgendas(),
-    liveBeat,
-    input.user_message,
-    input.recent_context
-  );
-  const npcIntersections = mergeNpcIntersections(
-    detIntersections,
-    dramaturg.npcIntersections
-  );
+  // INTEL-1: under provisional ambient-only, skip agenda intersections for serendipity pressure.
+  const detIntersections = sceneConfidence.serendipityAmbientOnly
+    ? []
+    : intersectAgendasWithLiveScene(
+        loadAndParseNpcAgendas(),
+        liveBeat,
+        input.user_message,
+        input.recent_context
+      );
+  const npcIntersections = sceneConfidence.serendipityAmbientOnly
+    ? []
+    : mergeNpcIntersections(detIntersections, dramaturg.npcIntersections);
   if (npcIntersections.length) {
     console.log(
       `${Date.now()} NPC agendas intersecting: ${npcIntersections
@@ -471,6 +490,7 @@ async function runGuardianPreflightInner(
     userMessage: input.user_message,
     liveBeat,
     npcIntersections,
+    forceMaxTier: sceneConfidence.serendipityAmbientOnly ? "ambient" : undefined,
     persist: !isolateSidecars
   });
   if (serendipityPick.event) {
@@ -504,7 +524,7 @@ async function runGuardianPreflightInner(
         sceneRosterSummary: sceneRoster.coupleOnlyPresent
           ? undefined
           : sceneRoster.summary || undefined,
-        saveLagSuspected: saveLag.suspected,
+        saveLagSuspected: sceneConfidence.auditorSaveLag,
         serendipity: serendipityPick.event
           ? {
               event: serendipityPick.event,
@@ -521,9 +541,11 @@ async function runGuardianPreflightInner(
   );
   llmAssessment.npc_state_changes = npcStateChanges;
 
-  // Soften false location-rewind when multi-scene save lag is detected
+  // Soften false location-rewind when multi-scene save lag / provisional state
   const lagSoft = applySaveLagSoftening({
-    saveLag,
+    saveLag: sceneConfidence.auditorSaveLag
+      ? { ...saveLag, suspected: true }
+      : saveLag,
     correction: llmAssessment.grok_performance_correction,
     shouldBlockProse: Boolean(llmAssessment.should_block_prose)
   });
@@ -588,6 +610,7 @@ async function runGuardianPreflightInner(
     : deterministicProceedRecommendation;
 
   // WP-4.3: material gate + staging branch; memory_write ALWAYS set on the report.
+  // INTEL-1: provisional scene confidence holds all canon-adjacent writes for human review.
   let memoryWrite: NonNullable<GuardianReport["memory_write"]> = {
     action: "none",
     reason: "not evaluated"
@@ -605,6 +628,12 @@ async function runGuardianPreflightInner(
     if (writeDecision.action === "none") {
       memoryWrite = { action: "none", reason: writeDecision.reason };
       console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
+    } else if (sceneConfidence.holdCanonWrites) {
+      memoryWrite = {
+        action: "held_for_review",
+        reason: `provisional scene confidence — canon write held (${sceneConfidence.reason}); decision was ${writeDecision.action}`
+      };
+      console.log(`${Date.now()} Memory write-back held (provisional): ${memoryWrite.reason}`);
     } else if (writeDecision.action === "stage") {
       memoryWrite = await applyBeatStageWrite({
         writeDecision,
@@ -662,9 +691,15 @@ async function runGuardianPreflightInner(
     changes: npcStateChanges,
     sceneTransitionOccurred: llmAssessment.scene_transition?.occurred === true,
     proceedRecommendation,
-    writeMode: config.GUARDIAN_MEMORY_WRITE_MODE
+    writeMode: sceneConfidence.holdCanonWrites ? "off" : config.GUARDIAN_MEMORY_WRITE_MODE
   });
-  if (npcWriteDecision.action === "stage_npc") {
+  if (npcWriteDecision.action === "stage_npc" && sceneConfidence.holdCanonWrites) {
+    memoryWrite = {
+      action: "held_for_review",
+      reason: `provisional scene confidence — NPC write held (${sceneConfidence.reason})`
+    };
+    console.log(`${Date.now()} NPC write held (provisional): ${memoryWrite.reason}`);
+  } else if (npcWriteDecision.action === "stage_npc") {
     try {
       const npcWrite = await applyNpcStateChangeWrites({
         writeDecision: npcWriteDecision,
@@ -711,6 +746,11 @@ async function runGuardianPreflightInner(
   if (saveLag.suspected) {
     hardFlags.push(
       `SAVE_LAG_SUSPECTED: LIVE BEAT cluster=${saveLag.liveCluster} vs played=${saveLag.playedCluster}. Update project_source_files/current-state.md (and reindex) so disk matches play. ${saveLag.reason}`
+    );
+  }
+  if (sceneConfidence.provisional) {
+    hardFlags.push(
+      `SCENE_CONFIDENCE_PROVISIONAL: ${sceneConfidence.reason}. Optional systems degraded (passive cast off, serendipity ambient-only, neutral momentum, canon writes held).`
     );
   }
   const currentStateSummary = summarizeCurrentState(
