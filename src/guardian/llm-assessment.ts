@@ -22,6 +22,7 @@ type AssessmentConfig = Pick<
   | "GUARDIAN_LLM_REASONING_EFFORT"
   | "GUARDIAN_LLM_VERBOSITY"
   | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+  | "GUARDIAN_BUDGET_AUDITOR_MS"
 >;
 
 export type NpcStateChangeKind =
@@ -439,12 +440,15 @@ export async function assessGuardianEvidence(
   const client = new OpenAI({ apiKey: config.OPENAI_API_KEY });
   const userMessage = buildAuditorUserMessage(input, config.GUARDIAN_LLM_MAX_EVIDENCE_CHARS);
 
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), config.GUARDIAN_BUDGET_AUDITOR_MS ?? 12000);
+
   try {
     const response = await client.responses.create({
       model: config.GUARDIAN_MODEL,
       // Explicit — GPT-5.6 defaults to medium if omitted; low keeps terra cost closer to prior ~3k-token mini runs.
       reasoning: {
-        effort: config.GUARDIAN_LLM_REASONING_EFFORT
+        effort: config.GUARDIAN_LLM_REASONING_EFFORT as any
       },
       input: [
         {
@@ -473,7 +477,7 @@ export async function assessGuardianEvidence(
           schema: assessmentSchema
         }
       }
-    } as never);
+    }, { signal: abortController.signal } as never);
 
     const outputText = (response as unknown as { output_text?: string }).output_text
       ?? extractOutputText(response);
@@ -491,8 +495,10 @@ export async function assessGuardianEvidence(
     return {
       enabled: true,
       model: config.GUARDIAN_MODEL,
-      error: error instanceof Error ? error.message : String(error)
+      error: abortController.signal.aborted ? "Auditor timeout exceeded" : (error instanceof Error ? error.message : String(error))
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -500,7 +506,7 @@ function buildEvidencePayload(
   input: Omit<AssessGuardianEvidenceInput, "config">,
   maxChars: number
 ): string {
-  const payload = {
+  const payload: Record<string, unknown> = {
     scarlett_previous_message: input.preflightInput.scarlett_previous_message,
     latest_user_message: input.preflightInput.user_message,
     recent_context: input.preflightInput.recent_context,
@@ -533,7 +539,36 @@ function buildEvidencePayload(
     fact_checks: input.factChecks
   };
 
-  return truncate(JSON.stringify(payload, null, 2), maxChars);
+  while (true) {
+    const fullJson = JSON.stringify(payload, null, 2);
+    if (fullJson.length <= maxChars) {
+      return fullJson;
+    }
+    
+    let dropped = false;
+    const expanded = payload.expanded_contexts as any[];
+    const memory = payload.memory_results as any[];
+    const preflight = payload.preflight_results as any[];
+    const facts = payload.fact_checks as any[];
+    
+    if (expanded.length > 0) {
+      expanded.pop();
+      dropped = true;
+    } else if (memory.length > 0) {
+      memory.pop();
+      dropped = true;
+    } else if (preflight.length > 0) {
+      preflight.pop();
+      dropped = true;
+    } else if (facts.length > 0) {
+      facts.pop();
+      dropped = true;
+    }
+    
+    if (!dropped) {
+       return JSON.stringify(payload, null, 2);
+    }
+  }
 }
 
 function summarizeResults(response: RagRetrieveResponse | undefined) {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 2,
+  "turnCounter": 20,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "done",
-        "pressure": "The world expects them on site, introduced, and professionally present before any lap.",
+        "pressure": "The planned Friday arrival window is behind the current Saturday hotel scene.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -38,7 +38,7 @@
         "name": "The Green Hell (afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The day expects real track time and live telemetry.",
+        "pressure": "The planned afternoon track-time window is behind the current Saturday hotel scene.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The world is ready for return, telemetry debrief, and grounding; the aero result remains unresolved.",
+        "pressure": "The planned late-afternoon paddock return and debrief window is behind the current Saturday hotel scene.",
         "cues": [
           "aftercare",
           "green hell",
@@ -96,7 +96,7 @@
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
         "status": "live",
-        "pressure": "The world is ready for rest and private recovery; no same-night Affalterbach drive, board preparation, or return to the circuit is required.",
+        "pressure": "Private recovery remains the active frame at Schloss Lieser; the next stated professional schedule pressure is Monday Affalterbach, without requiring it to enter the suite now.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,12 +121,15 @@
         ]
       }
     ],
-    "momentumLine": "Beat 4 is live in the Friday-night recovery window; no further planned beats remain today, with Monday Affalterbach the next stated professional deadline.",
+    "momentumLine": "Beat 4 is live in Saturday hotel recovery; the listed circuit-day windows are past, and Monday Affalterbach remains the next professional schedule pressure.",
     "npcIntersections": [],
-    "planWarnings": [],
-    "generatedAtTurn": 1,
+    "planWarnings": [
+      "The live beat is Saturday at Schloss Lieser, beyond the plan's Friday Nordschleife schedule; no listed plan beat covers the intervening transition or the Monday board window."
+    ],
+    "generatedAtTurn": 17,
     "source": "llm",
     "planHash": "8f59a34a254ad3a3",
-    "refreshedAt": "2026-07-22T19:25:14.170Z"
+    "refreshedAt": "2026-07-24T20:10:35.317Z",
+    "liveSceneFingerprint": "bca47d657745747a"
   }
 }

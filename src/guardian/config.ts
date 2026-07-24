@@ -26,10 +26,14 @@ const EnvSchema = z.object({
   GUARDIAN_LLM_VERBOSITY: z.enum(["low", "medium", "high"]).default("medium"),
   // Auditor should see most retrieved evidence (~2 searches × results); 12k starved weave (Fable audit).
   GUARDIAN_LLM_MAX_EVIDENCE_CHARS: z.coerce.number().int().positive().default(32000),
-  /** Soft budget for optional expand_context_around_chunk (ms). */
-  GUARDIAN_EXPAND_BUDGET_MS: z.coerce.number().int().positive().default(10000),
-  /** Soft budget for optional verify_story_fact batch (ms). */
-  GUARDIAN_VERIFY_BUDGET_MS: z.coerce.number().int().positive().default(10000),
+  /** INTEL-3 explicit budgets (ms). */
+  GUARDIAN_BUDGET_INITIAL_RETRIEVAL_MS: z.coerce.number().int().positive().default(14000),
+  GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS: z.coerce.number().int().positive().default(5000),
+  GUARDIAN_BUDGET_AUDITOR_MS: z.coerce.number().int().positive().default(12000),
+  GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS: z.coerce.number().int().positive().default(30000),
+  /** Concurrency limits */
+  GUARDIAN_MCP_INITIAL_CONCURRENCY: z.coerce.number().int().positive().default(3),
+  GUARDIAN_MCP_OPTIONAL_CONCURRENCY: z.coerce.number().int().positive().default(2),
   /**
    * How autonomous LLM memory proposals are applied after preflight:
    * - stage (default): stage_story_update only — no live canon write

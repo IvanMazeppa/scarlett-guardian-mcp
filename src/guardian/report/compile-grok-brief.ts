@@ -174,69 +174,65 @@ function pickSceneCastBlock(report: GuardianReport): string | undefined {
  * Never includes tool_calls, RAG coaching, or raw retrieval dialect.
  */
 export function compileGrokBrief(report: GuardianReport): string {
-  const parts: string[] = [];
+  const essentialParts: string[] = [];
+  const optionalParts: string[] = [];
 
-  parts.push(`**Status:** ${statusLabel(report.proceed_recommendation)} (Confidence: ${report.confidence_score}%)`);
-  parts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
-  parts.push("");
+  essentialParts.push(`**Status:** ${statusLabel(report.proceed_recommendation)} (Confidence: ${report.confidence_score}%)`);
+  essentialParts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
+  essentialParts.push("");
 
-  // Quiet private couple scenes: omit schedule + cast clutter (2026-07-23).
   const quietPrivate = isQuietPrivateCoupleScene(report);
 
-  // WP-5.2: mechanical day/arc schedule pressure (no outcomes).
-  const momentum =
-    typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
+  const momentum = typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
   if (momentum && !isRagMetaText(momentum) && !quietPrivate) {
-    parts.push(`**Story Momentum:** ${truncateAtSentence(momentum, 520)}`);
-    parts.push("");
+    optionalParts.push(`**Story Momentum:** ${truncateAtSentence(momentum, 520)}`);
+    optionalParts.push("");
   }
 
-  // WP-5.8: supporting cast pressure + mandatory stealth ⚠ lines (≤90 words).
   const castBlock = quietPrivate ? undefined : pickSceneCastBlock(report);
   if (castBlock) {
-    parts.push(castBlock);
-    parts.push("");
+    optionalParts.push(castBlock);
+    optionalParts.push("");
   }
 
-  parts.push("**Recent Emotional & Relational Context:**");
-  parts.push(`- ${truncateAtSentence(pickEmotionalContext(report), 520)}`);
-  parts.push("");
+  optionalParts.push("**Recent Emotional & Relational Context:**");
+  optionalParts.push(`- ${truncateAtSentence(pickEmotionalContext(report), 520)}`);
+  optionalParts.push("");
 
-  parts.push("**Key Facts to Ground In:**");
+  essentialParts.push("**Key Facts to Ground In:**");
   for (const fact of pickKeyFacts(report)) {
-    parts.push(`- ${truncateAtSentence(fact, 360)}`);
+    essentialParts.push(`- ${truncateAtSentence(fact, 360)}`);
   }
-  parts.push("");
+  essentialParts.push("");
 
-  parts.push("**Relevant Precedents:**");
+  optionalParts.push("**Relevant Precedents:**");
   const precedents = pickPrecedents(report);
   if (precedents.length === 0) {
-    parts.push("None flagged for this turn.");
+    optionalParts.push("None flagged for this turn.");
   } else {
     precedents.forEach((p, i) => {
-      parts.push(`${i + 1}. **${p.topic}:** ${p.details}`);
+      optionalParts.push(`${i + 1}. **${p.topic}:** ${p.details}`);
     });
   }
-  parts.push("");
+  optionalParts.push("");
 
-  parts.push("**Things to Avoid:**");
+  optionalParts.push("**Things to Avoid:**");
   for (const avoid of pickAvoid(report)) {
-    parts.push(`- ${avoid}`);
+    optionalParts.push(`- ${avoid}`);
   }
-  parts.push("");
+  optionalParts.push("");
 
-  parts.push("**Open Threads / Notes:**");
+  optionalParts.push("**Open Threads / Notes:**");
   const threads = pickOpenThreads(report);
   if (threads.length === 0) {
-    parts.push("- None flagged.");
+    optionalParts.push("- None flagged.");
   } else {
     for (const t of threads) {
-      parts.push(`- ${truncateAtSentence(t, 420)}`);
+      optionalParts.push(`- ${truncateAtSentence(t, 420)}`);
     }
   }
-  parts.push("");
+  optionalParts.push("");
 
-  // WP-4.7: prefer auditor serendipity_weave (already preferred into serendipity_nudge in preflight).
   const weave =
     (report.llm_assessment?.serendipity_weave &&
     typeof report.llm_assessment.serendipity_weave === "string" &&
@@ -248,42 +244,47 @@ export function compileGrokBrief(report: GuardianReport): string {
       ? report.serendipity_nudge.trim()
       : undefined);
   if (weave && !isRagMetaText(weave)) {
-    parts.push("**World Weaver (Serendipity):**");
-    // Strip legacy "SERENDIPITY EVENT..." prefix if present for cleaner novelist brief
+    optionalParts.push("**World Weaver (Serendipity):**");
     const clean = weave
       .replace(/^SERENDIPITY EVENT[^:]*:\s*/i, "")
       .replace(/\s*Grok Note:.*$/i, "")
       .trim();
-    parts.push(`- ${truncateAtSentence(clean || weave, 320)}`);
-    parts.push("");
+    optionalParts.push(`- ${truncateAtSentence(clean || weave, 320)}`);
+    optionalParts.push("");
   }
 
-  // WP-5.5 scarlett_next_intention: diagnostics only — not rendered.
-  // One-line Character Balance pointer (not a second full essay).
-  parts.push(
+  essentialParts.push(
     "**Character (Skill owns Character Balance):** Keep Scarlett vivid and capable — edge, humour, appetite, initiative when she wants it. Receiving/resting is valid; hollow passivity and only-agreeing parroting are not."
   );
-  parts.push("");
+  essentialParts.push("");
 
   const echo = pickResonanceEcho(report);
   if (echo) {
-    parts.push("**Echo (optional texture):**");
-    parts.push(`- ${truncateAtSentence(echo, 220)}`);
-    parts.push("");
+    optionalParts.push("**Echo (optional texture):**");
+    optionalParts.push(`- ${truncateAtSentence(echo, 220)}`);
+    optionalParts.push("");
   }
 
   const correction = report.llm_assessment?.grok_performance_correction;
   if (correction && typeof correction === "string" && correction.trim() && correction !== "null") {
-    parts.push("**DIRECTOR'S CORRECTION (CRITICAL):**");
-    parts.push(`- ${truncate(correction.trim(), 400)}`);
-    parts.push("");
+    essentialParts.push("**DIRECTOR'S CORRECTION (CRITICAL):**");
+    essentialParts.push(`- ${truncate(correction.trim(), 400)}`);
+    essentialParts.push("");
   }
 
-  let markdown = parts.join("\n").trim() + "\n";
-
-  if (markdown.length > GROK_BRIEF_MAX_CHARS) {
-    markdown = `${markdown.slice(0, GROK_BRIEF_MAX_CHARS - 20).trim()}\n\n…(brief truncated)\n`;
+  const essentialText = essentialParts.join("\n").trim();
+  let optionalText = optionalParts.join("\n").trim();
+  
+  if (essentialText.length + optionalText.length + 2 > GROK_BRIEF_MAX_CHARS) {
+      const budgetForOptional = Math.max(0, GROK_BRIEF_MAX_CHARS - essentialText.length - 20);
+      if (budgetForOptional > 0) {
+          optionalText = `${optionalText.slice(0, budgetForOptional).trim()}\n\n…(brief truncated)`;
+      } else {
+          optionalText = "";
+      }
   }
+
+  let markdown = `${essentialText}\n\n${optionalText}`.trim() + "\n";
 
   return markdown;
 }

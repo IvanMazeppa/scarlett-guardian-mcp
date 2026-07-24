@@ -35,6 +35,7 @@ type OocConfig = Pick<
   | "GUARDIAN_LLM_REASONING_EFFORT"
   | "GUARDIAN_LLM_VERBOSITY"
   | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
+  | "GUARDIAN_BUDGET_AUDITOR_MS"
 >;
 
 export async function runGuardianOocConsult(

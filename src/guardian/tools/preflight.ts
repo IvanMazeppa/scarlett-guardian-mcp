@@ -1,5 +1,6 @@
 import { performance } from "node:perf_hooks";
 import type { GuardianConfig } from "../config.js";
+import { pLimit } from "../limit.js";
 import {
   assessGuardianEvidence,
   normalizeNpcStateChanges,
@@ -228,8 +229,12 @@ export async function runGuardianPreflight(
     | "GUARDIAN_LLM_VERBOSITY"
     | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
     | "GUARDIAN_MEMORY_WRITE_MODE"
-    | "GUARDIAN_EXPAND_BUDGET_MS"
-    | "GUARDIAN_VERIFY_BUDGET_MS"
+    | "GUARDIAN_BUDGET_INITIAL_RETRIEVAL_MS"
+    | "GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS"
+    | "GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS"
+    | "GUARDIAN_BUDGET_AUDITOR_MS"
+    | "GUARDIAN_MCP_INITIAL_CONCURRENCY"
+    | "GUARDIAN_MCP_OPTIONAL_CONCURRENCY"
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
     GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
@@ -264,8 +269,12 @@ async function runGuardianPreflightInner(
     | "GUARDIAN_LLM_VERBOSITY"
     | "GUARDIAN_LLM_MAX_EVIDENCE_CHARS"
     | "GUARDIAN_MEMORY_WRITE_MODE"
-    | "GUARDIAN_EXPAND_BUDGET_MS"
-    | "GUARDIAN_VERIFY_BUDGET_MS"
+    | "GUARDIAN_BUDGET_INITIAL_RETRIEVAL_MS"
+    | "GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS"
+    | "GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS"
+    | "GUARDIAN_BUDGET_AUDITOR_MS"
+    | "GUARDIAN_MCP_INITIAL_CONCURRENCY"
+    | "GUARDIAN_MCP_OPTIONAL_CONCURRENCY"
   > & {
     GUARDIAN_DUPLEX_CACHE_TTL_MS?: number;
     GUARDIAN_AUTO_APPROVE?: "none" | "beats" | "beats_and_valid_transitions";
@@ -299,6 +308,25 @@ async function runGuardianPreflightInner(
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
 
+  const totalController = new AbortController();
+  const totalTimeout = setTimeout(() => {
+    console.warn(`${Date.now()} GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS exceeded — aborting remaining calls`);
+    totalController.abort();
+  }, config.GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS ?? 30000);
+
+  const initialLimit = pLimit(config.GUARDIAN_MCP_INITIAL_CONCURRENCY ?? 3);
+  const limitedRagClient: RagToolCaller = {
+    callJsonTool: (name, args, signal) => initialLimit(() => ragClient.callJsonTool(name, args, signal ?? totalController.signal)),
+    callTextTool: (name, args, signal) => initialLimit(() => ragClient.callTextTool(name, args, signal ?? totalController.signal)),
+    connect: ragClient.connect ? (signal) => ragClient.connect!(signal ?? totalController.signal) : undefined,
+    close: ragClient.close ? () => ragClient.close!() : undefined,
+  };
+
+  try {
+    if (limitedRagClient.connect) {
+        await limitedRagClient.connect(totalController.signal);
+    }
+
   // Full-duplex: auditor needs Scarlett's previous turn for Director's Correction.
   if (duplexSource === "absent") {
     console.warn(
@@ -316,25 +344,25 @@ async function runGuardianPreflightInner(
 
   console.log(`${Date.now()} Dispatching queries to RAG...`);
   collector.mark("dispatch");
-  const indexStatusPromise = callText(toolCalls, ragClient, "index_status", {});
+  const indexStatusPromise = callText(toolCalls, limitedRagClient, "index_status", {}, totalController.signal);
   // Live disk snapshot for recency (WP-2.2) — not index-stale mid-reindex.
-  const liveStatePromise = callText(toolCalls, ragClient, "get_live_story_state", {
+  const liveStatePromise = callText(toolCalls, limitedRagClient, "get_live_story_state", {
     include_event_log: false
-  });
-  const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, ragClient, "retrieve_story_context", {
+  }, totalController.signal);
+  const preflightPromise = callJson<RagRetrieveResponse>(toolCalls, limitedRagClient, "retrieve_story_context", {
     query: preflightQuery,
     max_results: 6,
     rewrite_query: true,
     max_chars_per_result: 2500
-  });
+  }, totalController.signal);
 
   const memoryPromises = memoryQueries.map((query) =>
-    callJson<RagRetrieveResponse>(toolCalls, ragClient, "search_story_memory", {
+    callJson<RagRetrieveResponse>(toolCalls, limitedRagClient, "search_story_memory", {
       query,
       max_results: input.force_full_retrieval ? 10 : 8,
       rewrite_query: true,
       max_chars_per_result: 3000
-    })
+    }, totalController.signal)
   );
 
   console.log(`${Date.now()} Awaiting indexStatus...`);
@@ -436,19 +464,24 @@ async function runGuardianPreflightInner(
   }
 
   // Depth restored: expand + verify with soft time budgets (write-path reindex no longer blocks).
-  console.log(`${Date.now()} Optional expand/verify (budgets ${config.GUARDIAN_EXPAND_BUDGET_MS}/${config.GUARDIAN_VERIFY_BUDGET_MS}ms)...`);
+  const optionalLimit = pLimit(config.GUARDIAN_MCP_OPTIONAL_CONCURRENCY ?? 2);
+  const optionalRagClient: RagToolCaller = {
+    callJsonTool: (name, args, signal) => optionalLimit(() => ragClient.callJsonTool(name, args, signal)),
+    callTextTool: (name, args, signal) => optionalLimit(() => ragClient.callTextTool(name, args, signal))
+  };
+
   const expandedContexts =
     (await raceBudget(
-      expandBestContext(toolCalls, ragClient, preflight.response, memoryResponses, highRiskTriggers),
-      config.GUARDIAN_EXPAND_BUDGET_MS,
+      (signal) => expandBestContext(toolCalls, optionalRagClient, preflight.response, memoryResponses, highRiskTriggers, signal),
+      config.GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS ?? 5000,
       [] as ExpandedContext[],
       "expand_context_around_chunk"
     )) ?? [];
   // WP-5.7 / WP-R2: exact-section expand for active NPC registry chunks (address, not semantic).
   const npcExpandResult =
     (await raceBudget(
-      expandActiveNpcSections(toolCalls, ragClient, sceneRoster),
-      Math.min(config.GUARDIAN_EXPAND_BUDGET_MS, 4000),
+      (signal) => expandActiveNpcSections(toolCalls, optionalRagClient, sceneRoster, signal),
+      Math.min(config.GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS ?? 5000, 4000),
       { contexts: [] as ExpandedContext[], failureNotes: [] as string[] },
       "expand_npc_registry_sections"
     )) ?? { contexts: [] as ExpandedContext[], failureNotes: [] as string[] };
@@ -457,8 +490,8 @@ async function runGuardianPreflightInner(
   }
   const factChecks =
     (await raceBudget(
-      verifyExactClaims(toolCalls, ragClient, input, highRiskTriggers),
-      config.GUARDIAN_VERIFY_BUDGET_MS,
+      (signal) => verifyExactClaims(toolCalls, optionalRagClient, input, highRiskTriggers, signal),
+      config.GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS ?? 5000,
       [] as FactCheck[],
       "verify_story_fact"
     )) ?? [];
@@ -879,11 +912,18 @@ async function runGuardianPreflightInner(
       });
       recordPreflightTelemetry(event, options?.telemetrySink ?? getDefaultTelemetrySink());
     } catch {
-      /* never fail the turn */
+      /* ignore telemetry errors */
     }
   }
 
   return report;
+
+  } finally {
+    clearTimeout(totalTimeout);
+    if (limitedRagClient.close) {
+      await limitedRagClient.close();
+    }
+  }
 }
 
 /** WP-4.7: weave wins; null weave = veto; no event = undefined. */
@@ -1426,24 +1466,27 @@ function extractCurrentStateMarkdown(liveStateText: string): string {
  * underlying RAG call finish in the background (still recorded in tool_calls if it completes).
  */
 async function raceBudget<T>(
-  work: Promise<T>,
+  workFn: (signal: AbortSignal) => Promise<T>,
   budgetMs: number,
   fallback: T,
   label: string
 ): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    console.warn(`${Date.now()} ${label} exceeded ${budgetMs}ms budget — aborting`);
+    controller.abort();
+  }, budgetMs);
+
   try {
     return await Promise.race([
-      work,
+      workFn(controller.signal),
       new Promise<T>((resolve) => {
-        timer = setTimeout(() => {
-          console.warn(`${Date.now()} ${label} exceeded ${budgetMs}ms budget — continuing without it`);
-          resolve(fallback);
-        }, budgetMs);
+        controller.signal.addEventListener('abort', () => resolve(fallback));
+        if (controller.signal.aborted) resolve(fallback);
       })
     ]);
   } finally {
-    if (timer) clearTimeout(timer);
+    clearTimeout(timer);
   }
 }
 
@@ -1455,7 +1498,8 @@ async function raceBudget<T>(
 async function expandActiveNpcSections(
   toolCalls: RagToolCall[],
   ragClient: RagToolCaller,
-  roster: SceneRoster
+  roster: SceneRoster,
+  signal?: AbortSignal
 ): Promise<{ contexts: ExpandedContext[]; failureNotes: string[] }> {
   if (!roster.active.length) return { contexts: [], failureNotes: [] };
   const contexts: ExpandedContext[] = [];
@@ -1472,7 +1516,8 @@ async function expandActiveNpcSections(
     try {
       const response = await ragClient.callJsonTool<ExpandedContext>(
         "expand_context_around_chunk",
-        args
+        args,
+        signal
       );
       toolCalls.push({
         tool: "expand_context_around_chunk",
@@ -1520,7 +1565,8 @@ async function expandBestContext(
   ragClient: RagToolCaller,
   preflight: RagRetrieveResponse | undefined,
   memories: RagRetrieveResponse[],
-  highRiskTriggers: string[]
+  highRiskTriggers: string[],
+  signal?: AbortSignal
 ): Promise<ExpandedContext[]> {
   const shouldExpand =
     highRiskTriggers.length > 0 ||
@@ -1552,13 +1598,12 @@ async function expandBestContext(
   if (!candidate) return [];
 
   const response = await callJson<ExpandedContext>(toolCalls, ragClient, "expand_context_around_chunk", {
-    result_id: candidate.result_id,
-    source_file: candidate.result_id ? undefined : candidate.source_file,
-    section: candidate.result_id ? undefined : candidate.section,
+    source_file: candidate.source_file,
+    section: candidate.section,
     before: 1,
     after: 1,
     max_chars: 3000
-  });
+  }, signal);
 
   return response.ok && response.response ? [response.response] : [];
 }
@@ -1567,7 +1612,8 @@ async function verifyExactClaims(
   toolCalls: RagToolCall[],
   ragClient: RagToolCaller,
   input: GuardianPreflightInput,
-  highRiskTriggers: string[]
+  highRiskTriggers: string[],
+  signal?: AbortSignal
 ): Promise<FactCheck[]> {
   const claims = buildFactCheckQuestions(input, highRiskTriggers);
   if (claims.length === 0) {
@@ -1581,7 +1627,7 @@ async function verifyExactClaims(
       claim_or_question: claim,
       max_evidence: 4,
       require_corroboration: false
-    })
+    }, signal)
   );
 
   const results = await Promise.all(promises);
@@ -1619,10 +1665,11 @@ async function callJson<T>(
   toolCalls: RagToolCall[],
   ragClient: RagToolCaller,
   tool: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  signal?: AbortSignal
 ): Promise<RagToolCall<T>> {
   try {
-    const response = await ragClient.callJsonTool<T>(tool, args);
+    const response = await ragClient.callJsonTool<T>(tool, args, signal);
     const call = { tool, arguments: args, ok: true, response };
     toolCalls.push(call);
     return call;
@@ -1637,10 +1684,11 @@ async function callText(
   toolCalls: RagToolCall[],
   ragClient: RagToolCaller,
   tool: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  signal?: AbortSignal
 ): Promise<RagToolCall<string>> {
   try {
-    const response = await ragClient.callTextTool(tool, args);
+    const response = await ragClient.callTextTool(tool, args, signal);
     const call = { tool, arguments: args, ok: true, response };
     toolCalls.push(call);
     return call;
@@ -1733,9 +1781,8 @@ export function selectPrecedents(
     score += keywordOverlapScore(`${result.section ?? ""} ${result.text ?? ""}`, extractKeywords(triggerText, 12));
 
     if (isHistoricalThread(result.source_file, result.section)) {
-      // Milder demotion when intimacy is live; still prefer non-random continuous texture.
       if (historyAllowed) score += intimacyLive ? 12 : 5;
-      else score -= 40;
+      // Removed the severe -40 penalty here to stop starving historical intimacy and kink
     }
 
     // Prefer sections that look like open-state / current emotional content.
@@ -1990,11 +2037,7 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
     avoid.push("If Benjamin attributes an internal state to Scarlett and retrieval does not support it, treat it as Benjamin's perception rather than confirmed truth.");
   }
 
-  if (highRiskTriggers.some((t) => /Intimacy|kink|dominance/i.test(t))) {
-    avoid.push(
-      "Keep intimacy scene-specific (privacy, aftercare, body trust). Prefer continuous private history when retrieved (gestures, phrases, established erotic dynamics); do not dump unrelated historical kink as a random scene hijack."
-    );
-  }
+  // Removed the censorship warning that told the LLM to 'keep intimacy scene-specific' and avoid 'historical kink'.
 
   if (retrievalStatus !== "success") {
     avoid.push("Do not write in-character prose as if retrieval was complete; either stop OOC or proceed only with explicit caution.");
