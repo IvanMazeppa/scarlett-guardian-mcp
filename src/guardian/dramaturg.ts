@@ -15,6 +15,11 @@ import type { GuardianConfig } from "./config.js";
 import type { NpcIntersection } from "./npc-agendas.js";
 import { extractCues, type LiveBeat } from "./recency.js";
 import type { Intrusiveness } from "./serendipity-weaver.js";
+import {
+  computeLiveSceneFingerprint,
+  fingerprintsMatch,
+  sceneFingerprintInvalidationReason
+} from "./scene-fingerprint.js";
 
 export type BeatKind = "fixed" | "open" | "conditional";
 export type BeatStatus = "done" | "live" | "next" | "dormant";
@@ -79,6 +84,10 @@ export type DramaturgContext = {
   source: "llm" | "deterministic";
   planHash: string;
   refreshedAt: string;
+  /** INTEL-2: LIVE BEAT scene fingerprint at last LLM/deterministic seed. */
+  liveSceneFingerprint?: string;
+  /** INTEL-2: last reason cache was not used (observability only). */
+  lastInvalidationReason?: string;
 };
 
 export type DramaturgCacheFile = {
@@ -93,7 +102,8 @@ export type DramaturgRefreshReason =
   | "plan_changed"
   | "scene_transition"
   | "staleness"
-  | "force";
+  | "force"
+  | "scene_fingerprint";
 
 export type DramaturgPassConfig = Pick<
   GuardianConfig,
@@ -513,13 +523,16 @@ export function writeDramaturgCache(
 }
 
 /**
- * Resolve the snapshot for *this* turn: prefer valid LLM cache (same plan hash),
- * else deterministic beat-diff. Never calls the network.
+ * Resolve the snapshot for *this* turn: prefer valid LLM cache
+ * (same plan hash + INTEL-2 live scene fingerprint), else deterministic beat-diff.
+ * Never calls the network.
  */
 export function resolveHotPathDramaturg(args: {
   deterministic: DramaturgSnapshot;
   cache: DramaturgCacheFile | null;
   planHash: string;
+  /** LIVE BEAT for INTEL-2 fingerprint (optional for unit tests). */
+  liveBeat?: LiveBeat | null;
   /** When true, bump turnCounter on the returned cache view (persisted lightly). */
   bumpTurn?: boolean;
   rootDir?: string;
@@ -527,8 +540,11 @@ export function resolveHotPathDramaturg(args: {
   snapshot: DramaturgSnapshot;
   cache: DramaturgCacheFile | null;
   turnCounter: number;
+  /** INTEL-2: why LLM cache was not used, if any */
+  cacheInvalidationReason?: string | null;
 } {
   const rootDir = args.rootDir ?? process.cwd();
+  const currentFp = computeLiveSceneFingerprint(args.liveBeat);
   let cache = args.cache;
   let turnCounter = cache?.turnCounter ?? 0;
   if (args.bumpTurn !== false) {
@@ -555,7 +571,8 @@ export function resolveHotPathDramaturg(args: {
             generatedAtTurn: 0,
             source: "deterministic",
             planHash: args.planHash,
-            refreshedAt: new Date().toISOString()
+            refreshedAt: new Date().toISOString(),
+            liveSceneFingerprint: currentFp
           }
         };
         writeDramaturgCache(seed, rootDir);
@@ -567,16 +584,24 @@ export function resolveHotPathDramaturg(args: {
   }
 
   const ctx = cache?.context;
+  const fpReason = sceneFingerprintInvalidationReason(
+    ctx?.liveSceneFingerprint,
+    currentFp
+  );
+  // Old sidecars without fingerprint: fail conservative (do not use as llm_cache).
+  const sceneOk = fingerprintsMatch(ctx?.liveSceneFingerprint, currentFp);
   const cacheUsable =
     Boolean(ctx?.momentumLine) &&
     Boolean(args.planHash) &&
     ctx!.planHash === args.planHash &&
-    ctx!.source === "llm";
+    ctx!.source === "llm" &&
+    sceneOk;
 
   if (cacheUsable && ctx) {
     return {
       turnCounter,
       cache,
+      cacheInvalidationReason: null,
       snapshot: {
         arcSlug: ctx.arcSlug || args.deterministic.arcSlug,
         planStatus: args.deterministic.planStatus,
@@ -594,9 +619,34 @@ export function resolveHotPathDramaturg(args: {
     };
   }
 
+  const invalidation =
+    ctx?.source === "llm"
+      ? fpReason ||
+        (ctx.planHash !== args.planHash ? "plan_hash_mismatch" : "cache_not_usable")
+      : null;
+
+  // Persist invalidation reason on disk for operator visibility (non-destructive).
+  if (invalidation && cache?.context) {
+    try {
+      const updated: DramaturgCacheFile = {
+        ...cache,
+        turnCounter,
+        context: {
+          ...cache.context,
+          lastInvalidationReason: invalidation
+        }
+      };
+      writeDramaturgCache(updated, rootDir);
+      cache = updated;
+    } catch {
+      /* non-fatal */
+    }
+  }
+
   return {
     turnCounter,
     cache,
+    cacheInvalidationReason: invalidation,
     snapshot: {
       ...args.deterministic,
       source: "deterministic"
@@ -616,6 +666,8 @@ export function shouldRefreshDramaturg(args: {
   turnCounter: number;
   stalenessTurns: number;
   sceneTransitionOccurred: boolean;
+  /** INTEL-2: current LIVE BEAT fingerprint */
+  currentSceneFingerprint?: string;
   force?: boolean;
 }): { refresh: boolean; reason: DramaturgRefreshReason | null } {
   if (args.skipForEval) return { refresh: false, reason: null };
@@ -628,6 +680,16 @@ export function shouldRefreshDramaturg(args: {
   }
   if (args.planHash && args.cache.context.planHash !== args.planHash) {
     return { refresh: true, reason: "plan_changed" };
+  }
+  // INTEL-2: fingerprint mismatch or missing → refresh LLM pass when network allowed
+  if (
+    args.currentSceneFingerprint &&
+    !fingerprintsMatch(
+      args.cache.context.liveSceneFingerprint,
+      args.currentSceneFingerprint
+    )
+  ) {
+    return { refresh: true, reason: "scene_fingerprint" };
   }
   if (args.sceneTransitionOccurred) {
     return { refresh: true, reason: "scene_transition" };
@@ -816,6 +878,7 @@ export function normalizeDramaturgPassResult(
     deterministic: DramaturgSnapshot;
     planHash: string;
     turnCounter: number;
+    liveBeat?: LiveBeat | null;
   }
 ): DramaturgContext {
   const beatsRaw = Array.isArray(raw.beats) ? raw.beats : [];
@@ -889,7 +952,8 @@ export function normalizeDramaturgPassResult(
     generatedAtTurn: input.turnCounter,
     source: "llm",
     planHash: input.planHash,
-    refreshedAt: new Date().toISOString()
+    refreshedAt: new Date().toISOString(),
+    liveSceneFingerprint: computeLiveSceneFingerprint(input.liveBeat)
   };
 }
 

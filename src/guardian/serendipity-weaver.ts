@@ -8,6 +8,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { LiveBeat } from "./recency.js";
+import { computeLiveSceneFingerprint } from "./scene-fingerprint.js";
 
 export type Intrusiveness = "ambient" | "peripheral" | "engaging" | "disruptive";
 export type SceneMode =
@@ -46,6 +47,10 @@ export interface DeferredEvent {
   eventId: string;
   queuedAtTurn: number;
   expiresAtTurn: number;
+  /** INTEL-2: scene fingerprint when deferred (cross-scene blocked). */
+  sceneFingerprint?: string;
+  /** INTEL-2: thread key when deferred (cross-thread blocked). */
+  threadKey?: string;
 }
 
 export interface SerendipityState {
@@ -55,6 +60,10 @@ export interface SerendipityState {
   categoryLastFired: Record<string, number>;
   arcProgress: Record<string, number>;
   deferred: DeferredEvent[];
+  /** INTEL-2: last thread that wrote this sidecar (optional). */
+  threadKey?: string;
+  /** INTEL-2: last scene fingerprint (optional). */
+  sceneFingerprint?: string;
 }
 
 export type SelectSerendipityResult = {
@@ -372,7 +381,9 @@ function cloneState(state: SerendipityState): SerendipityState {
     eventCooldowns: { ...state.eventCooldowns },
     categoryLastFired: { ...state.categoryLastFired },
     arcProgress: { ...state.arcProgress },
-    deferred: state.deferred.map((d) => ({ ...d }))
+    deferred: state.deferred.map((d) => ({ ...d })),
+    threadKey: state.threadKey,
+    sceneFingerprint: state.sceneFingerprint
   };
 }
 
@@ -490,6 +501,62 @@ function categoryForAgendaNpc(npc: string): SerendipityCategory {
 }
 
 /**
+ * INTEL-2: apply thread/scene isolation before selection.
+ * Cross-thread → empty deferred (fail conservative). Cross-scene deferred dropped.
+ */
+export function prepareSerendipityStateForScene(
+  stateIn: SerendipityState,
+  options?: { threadKey?: string; sceneFingerprint?: string }
+): SerendipityState {
+  const threadKey = options?.threadKey?.trim() || undefined;
+  const sceneFp = options?.sceneFingerprint?.trim() || undefined;
+  let state = cloneState(stateIn);
+
+  // Thread boundary: do not carry deferred events into another conversation.
+  if (threadKey && state.threadKey && state.threadKey !== threadKey) {
+    state = {
+      ...emptySerendipityState(),
+      threadKey,
+      sceneFingerprint: sceneFp,
+      // keep arc progress lightly? plan says fail conservative on missing ids —
+      // reset deferred only; keep cooldowns empty on thread switch
+      turnCounter: state.turnCounter
+    };
+  } else if (threadKey) {
+    state.threadKey = threadKey;
+  }
+
+  if (sceneFp) state.sceneFingerprint = sceneFp;
+
+  // Drop deferred that expired or belong to another scene/thread
+  state.deferred = (state.deferred ?? []).filter((d) => {
+    if (sceneFp && d.sceneFingerprint && d.sceneFingerprint !== sceneFp) return false;
+    if (threadKey && d.threadKey && d.threadKey !== threadKey) return false;
+    // Deferred without fingerprint from old sidecars: keep only if scene also empty/unknown
+    if (sceneFp && !d.sceneFingerprint) return false;
+    return true;
+  });
+
+  return state;
+}
+
+function pushDeferred(
+  state: SerendipityState,
+  eventId: string,
+  turn: number,
+  options?: { sceneFingerprint?: string; threadKey?: string }
+): void {
+  if (state.deferred.some((d) => d.eventId === eventId)) return;
+  state.deferred.push({
+    eventId,
+    queuedAtTurn: turn,
+    expiresAtTurn: turn + DEFER_EXPIRY_TURNS,
+    sceneFingerprint: options?.sceneFingerprint ?? state.sceneFingerprint,
+    threadKey: options?.threadKey ?? state.threadKey
+  });
+}
+
+/**
  * Core selector. Pass `rng` for tests (returns [0,1)).
  * WP-5.4: `npcIntersections` outrank the random catalog (after deferred queue).
  */
@@ -502,9 +569,15 @@ export function selectSerendipity(
     npcIntersections?: AgendaIntersectionInput[];
     /** INTEL-1: hard cap (e.g. ambient-only under provisional scene confidence). */
     forceMaxTier?: Intrusiveness;
+    /** INTEL-2 */
+    threadKey?: string;
+    sceneFingerprint?: string;
   }
 ): SelectSerendipityResult {
-  const state = cloneState(stateIn);
+  const state = prepareSerendipityStateForScene(stateIn, {
+    threadKey: options?.threadKey,
+    sceneFingerprint: options?.sceneFingerprint
+  });
   state.turnCounter += 1;
   const turn = state.turnCounter;
   const baseMax = maxTierFor(mode);
@@ -515,7 +588,7 @@ export function selectSerendipity(
       ? options.forceMaxTier
       : baseMax;
 
-  // Expire deferred
+  // Expire deferred by turn
   state.deferred = state.deferred.filter((d) => d.expiresAtTurn >= turn);
 
   // 1) Deferred queue first (includes previously deferred agenda events)
@@ -550,15 +623,12 @@ export function selectSerendipity(
     const ev = agendaIntersectionToEvent(ix);
     if (isOnCooldown(state, ev, turn)) continue;
     if (!tierAdmissible(ev.tier, maxTier)) {
-      if (!state.deferred.some((d) => d.eventId === ev.id)) {
-        state.deferred.push({
-          eventId: ev.id,
-          queuedAtTurn: turn,
-          expiresAtTurn: turn + DEFER_EXPIRY_TURNS
-        });
-        // Stash payload so deferral can rehydrate without catalog
-        rememberAgendaEvent(ev);
-      }
+      pushDeferred(state, ev.id, turn, {
+        sceneFingerprint: options?.sceneFingerprint,
+        threadKey: options?.threadKey
+      });
+      // Stash payload so deferral can rehydrate without catalog
+      rememberAgendaEvent(ev);
       return {
         deferredInstead: ev,
         agendaDriven: true,
@@ -599,13 +669,10 @@ export function selectSerendipity(
     );
     pick = weightedPick(over, state, rng());
     if (pick) {
-      if (!state.deferred.some((d) => d.eventId === pick!.id)) {
-        state.deferred.push({
-          eventId: pick.id,
-          queuedAtTurn: turn,
-          expiresAtTurn: turn + DEFER_EXPIRY_TURNS
-        });
-      }
+      pushDeferred(state, pick.id, turn, {
+        sceneFingerprint: options?.sceneFingerprint,
+        threadKey: options?.threadKey
+      });
       return {
         deferredInstead: pick,
         mode,
@@ -619,13 +686,10 @@ export function selectSerendipity(
   }
 
   if (!tierAdmissible(pick.tier, maxTier)) {
-    if (!state.deferred.some((d) => d.eventId === pick!.id)) {
-      state.deferred.push({
-        eventId: pick.id,
-        queuedAtTurn: turn,
-        expiresAtTurn: turn + DEFER_EXPIRY_TURNS
-      });
-    }
+    pushDeferred(state, pick.id, turn, {
+      sceneFingerprint: options?.sceneFingerprint,
+      threadKey: options?.threadKey
+    });
     return {
       deferredInstead: pick,
       mode,
@@ -726,12 +790,17 @@ export function runSerendipityTurn(input: {
   npcIntersections?: AgendaIntersectionInput[];
   /** INTEL-1: provisional ambient-only cap. */
   forceMaxTier?: Intrusiveness;
+  /** INTEL-2: conversation/thread id for deferred isolation */
+  threadKey?: string;
   rng?: () => number;
   rootDir?: string;
   persist?: boolean;
 }): SelectSerendipityResult & { nudge?: string } {
   const root = input.rootDir ?? process.cwd();
   const state = loadSerendipityState(root);
+  const sceneFingerprint = computeLiveSceneFingerprint(input.liveBeat, {
+    threadKey: input.threadKey
+  });
   const mode = classifySceneMode(input.highRiskTriggers, input.userMessage, input.liveBeat);
   const result = selectSerendipity(
     state,
@@ -740,7 +809,9 @@ export function runSerendipityTurn(input: {
     input.rng ?? Math.random,
     {
       npcIntersections: input.npcIntersections,
-      forceMaxTier: input.forceMaxTier
+      forceMaxTier: input.forceMaxTier,
+      threadKey: input.threadKey,
+      sceneFingerprint
     }
   );
   if (input.persist !== false) {

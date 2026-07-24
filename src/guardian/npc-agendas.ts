@@ -94,6 +94,11 @@ function guessCategory(name: string): SerendipityCategory | undefined {
   return "environment";
 }
 
+/**
+ * INTEL-2: positive agenda activation haystack.
+ * Superseded LIVE BEAT cues are intentionally excluded so paddock/engineers
+ * tokens marked superseded cannot re-activate NPC pressure.
+ */
 function haystack(
   liveBeat: LiveBeat | null | undefined,
   userMessage: string,
@@ -105,12 +110,40 @@ function haystack(
     liveBeat?.locationLine ?? "",
     liveBeat?.timeLine ?? "",
     liveBeat?.lastUpdated ?? "",
-    ...(liveBeat?.liveCues ?? []),
-    ...(liveBeat?.supersededCues ?? [])
+    ...(liveBeat?.liveCues ?? [])
+    // do NOT include supersededCues
   ]
     .join(" ")
     .toLowerCase()
     .replace(/[-_]+/g, " ");
+}
+
+/** Current-turn corroboration hay (user + duplex + live location/cues only). */
+export function corroborationHaystack(
+  liveBeat: LiveBeat | null | undefined,
+  userMessage: string,
+  recentContext?: string,
+  scarlettPreviousMessage?: string
+): string {
+  return [
+    userMessage,
+    scarlettPreviousMessage ?? "",
+    recentContext ?? "",
+    liveBeat?.locationLine ?? "",
+    ...(liveBeat?.liveCues ?? []),
+    ...(liveBeat?.presentCast ?? [])
+  ]
+    .join(" ")
+    .toLowerCase()
+    .replace(/[-_]+/g, " ");
+}
+
+function npcNameCorroborated(npc: string, hay: string): boolean {
+  const tokens = npc
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2 && !/^(the|and|mr|mrs)$/.test(t));
+  return tokens.some((t) => cueMatchesHay(hay, t));
 }
 
 /** Word-aware cue match — avoids "uk" in random tokens / "deb" inside longer words. */
@@ -175,18 +208,32 @@ export function intersectAgendasWithLiveScene(
 
 /**
  * Merge deterministic + dramaturg LLM intersections (LLM wins on same NPC name).
+ * INTEL-2: dramaturg-only NPCs require current-turn corroboration (name in user/duplex/live).
  */
 export function mergeNpcIntersections(
   deterministic: NpcIntersection[],
-  fromDramaturg: NpcIntersection[] | undefined | null
+  fromDramaturg: NpcIntersection[] | undefined | null,
+  options?: {
+    requireDramaturgCorroboration?: boolean;
+    corroborationHay?: string;
+  }
 ): NpcIntersection[] {
   const map = new Map<string, NpcIntersection>();
+  const detKeys = new Set<string>();
   for (const i of deterministic) {
-    map.set(i.npc.toLowerCase(), i);
+    const k = i.npc.toLowerCase();
+    map.set(k, i);
+    detKeys.add(k);
   }
+  const hay = options?.corroborationHay ?? "";
+  const requireCorr = options?.requireDramaturgCorroboration !== false;
   for (const i of fromDramaturg ?? []) {
     if (!i?.npc?.trim()) continue;
-    map.set(i.npc.toLowerCase(), i);
+    const k = i.npc.toLowerCase();
+    if (requireCorr && !detKeys.has(k) && !npcNameCorroborated(i.npc, hay)) {
+      continue;
+    }
+    map.set(k, i);
   }
   return [...map.values()].slice(0, 4);
 }

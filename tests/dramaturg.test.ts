@@ -28,6 +28,7 @@ import {
 import { compileGrokBrief } from "../src/guardian/report/compile-grok-brief.js";
 import type { GuardianReport } from "../src/guardian/report/models.js";
 import type { LiveBeat } from "../src/guardian/recency.js";
+import { computeLiveSceneFingerprint } from "../src/guardian/scene-fingerprint.js";
 
 const arcPlanPath = path.resolve(
   process.cwd(),
@@ -326,6 +327,14 @@ function testHotPathPrefersLlmCache() {
     antiResetNotes: []
   });
   const planHash = hashArcPlanMarkdown(samplePlan);
+  const liveBeat = {
+    lastUpdated: "x",
+    locationLine: "pit box debrief",
+    timeLine: "late",
+    liveCues: ["debrief", "pit box"],
+    supersededCues: ["out lap"],
+    antiResetNotes: []
+  };
   const cache: DramaturgCacheFile = {
     version: 1,
     turnCounter: 5,
@@ -340,7 +349,8 @@ function testHotPathPrefersLlmCache() {
       generatedAtTurn: 5,
       source: "llm",
       planHash,
-      refreshedAt: new Date().toISOString()
+      refreshedAt: new Date().toISOString(),
+      liveSceneFingerprint: computeLiveSceneFingerprint(liveBeat)
     }
   };
   writeDramaturgCache(cache, tmp);
@@ -348,6 +358,7 @@ function testHotPathPrefersLlmCache() {
     deterministic: det,
     cache: readDramaturgCache(tmp),
     planHash,
+    liveBeat,
     bumpTurn: true,
     rootDir: tmp
   });

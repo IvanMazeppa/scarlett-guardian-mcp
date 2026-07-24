@@ -93,10 +93,12 @@ import {
   truncateAtSentence
 } from "../report/text-clean.js";
 import {
+  corroborationHaystack,
   intersectAgendasWithLiveScene,
   loadAndParseNpcAgendas,
   mergeNpcIntersections
 } from "../npc-agendas.js";
+import { computeLiveSceneFingerprint } from "../scene-fingerprint.js";
 import { resolveSceneRoster, type SceneRoster } from "../scene-roster.js";
 import {
   formatSerendipityNudge,
@@ -388,12 +390,22 @@ async function runGuardianPreflightInner(
     Boolean(options?.isolateSidecars) ||
     Boolean(options?.disableTelemetry) ||
     Boolean(options?.frozenLlmAssessment);
-  const { snapshot: dramaturgRaw, turnCounter: dramaturgTurn } = resolveHotPathDramaturg({
+  const {
+    snapshot: dramaturgRaw,
+    turnCounter: dramaturgTurn,
+    cacheInvalidationReason: dramaturgInvalidation
+  } = resolveHotPathDramaturg({
     deterministic: deterministicDramaturg,
     cache: dramaturgCache,
     planHash,
+    liveBeat,
     bumpTurn: !isolateSidecars
   });
+  if (dramaturgInvalidation) {
+    console.log(
+      `${Date.now()} Dramaturg cache invalidated: ${dramaturgInvalidation} (using deterministic)`
+    );
+  }
   const dramaturg = applyDramaturgNeutralPolicy(dramaturgRaw, sceneConfidence);
   if (dramaturg.momentumLine) {
     console.log(
@@ -474,7 +486,15 @@ async function runGuardianPreflightInner(
       );
   const npcIntersections = sceneConfidence.serendipityAmbientOnly
     ? []
-    : mergeNpcIntersections(detIntersections, dramaturg.npcIntersections);
+    : mergeNpcIntersections(detIntersections, dramaturg.npcIntersections, {
+        requireDramaturgCorroboration: true,
+        corroborationHay: corroborationHaystack(
+          liveBeat,
+          input.user_message,
+          input.recent_context,
+          input.scarlett_previous_message
+        )
+      });
   if (npcIntersections.length) {
     console.log(
       `${Date.now()} NPC agendas intersecting: ${npcIntersections
@@ -491,6 +511,7 @@ async function runGuardianPreflightInner(
     liveBeat,
     npcIntersections,
     forceMaxTier: sceneConfidence.serendipityAmbientOnly ? "ambient" : undefined,
+    threadKey: input.thread_key,
     persist: !isolateSidecars
   });
   if (serendipityPick.event) {
@@ -574,7 +595,8 @@ async function runGuardianPreflightInner(
     planHash,
     turnCounter: dramaturgTurn,
     stalenessTurns: config.GUARDIAN_DRAMATURG_STALENESS_TURNS ?? 12,
-    sceneTransitionOccurred: llmAssessment.scene_transition?.occurred === true
+    sceneTransitionOccurred: llmAssessment.scene_transition?.occurred === true,
+    currentSceneFingerprint: computeLiveSceneFingerprint(liveBeat)
   });
   if (refreshDecision.refresh && arcPlanLoaded && refreshDecision.reason) {
     scheduleDramaturgRefresh({
