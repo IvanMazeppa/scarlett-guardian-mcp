@@ -29,7 +29,7 @@ const DEFAULT_AVOID = [
   "When retrieved continuity supports a private phrase, gesture, or established erotic/emotional dynamic, you may use it; do not invent new history.",
   "Do not read Benjamin's private thoughts; infer only from speech, visible behavior, and retrieved context.",
   "Do not flatten Scarlett into generic romance, bland reassurance, cold autonomy, cruelty, or passive caretaking.",
-  "CRITICAL CANON: Scarlett is a pre-op trans woman. Never forget her gender identity, anatomy, or transition history."
+  "OPERATIONAL RULE: If the scene involves physical intimacy or nakedness, pre-op anatomical continuity is a hard requirement. Generic substitution, omission, or cis-washing is a severe continuity error."
 ];
 
 function statusLabel(recommendation: GuardianReport["proceed_recommendation"]): string {

@@ -30,6 +30,7 @@ const EnvSchema = z.object({
   GUARDIAN_BUDGET_INITIAL_RETRIEVAL_MS: z.coerce.number().int().positive().default(14000),
   GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS: z.coerce.number().int().positive().default(5000),
   GUARDIAN_BUDGET_AUDITOR_MS: z.coerce.number().int().positive().default(12000),
+  GUARDIAN_BUDGET_PLANNER_MS: z.coerce.number().int().positive().default(4000),
   GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS: z.coerce.number().int().positive().default(30000),
   /** Concurrency limits */
   GUARDIAN_MCP_INITIAL_CONCURRENCY: z.coerce.number().int().positive().default(3),

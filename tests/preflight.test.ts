@@ -8,7 +8,6 @@ import {
 } from "../src/guardian/report/text-clean.js";
 import type { GuardianReport } from "../src/guardian/report/models.js";
 import {
-  buildMemoryQueries,
   buildPreflightQuery,
   detectHighRiskTriggers,
   selectPrecedents
@@ -30,15 +29,6 @@ assert.deepEqual(
   ]
 );
 
-assert.equal(buildMemoryQueries({ user_message: "A quiet ordinary reply with no named detail." }).length, 1);
-assert.match(buildMemoryQueries({ user_message: foodTurn })[0], /feeding food care appetite ribeye/);
-
-// force_full_retrieval: up to 3 queries; triggered turns: up to 2
-const fullQueries = buildMemoryQueries({ user_message: foodTurn, force_full_retrieval: true });
-assert.ok(fullQueries.length >= 1 && fullQueries.length <= 3);
-assert.ok(new Set(fullQueries).size === fullQueries.length);
-const triggeredQueries = buildMemoryQueries({ user_message: foodTurn });
-assert.ok(triggeredQueries.length >= 1 && triggeredQueries.length <= 2);
 
 // P0.3 — intimate paddock / race-suit turns must fire intimacy + AMG triggers
 const intimatePaddock =
@@ -53,7 +43,6 @@ assert.ok(
   intimateTriggers.some((t) => /AMG|Nuerburgring|paddock/i.test(t)),
   `expected AMG/paddock trigger, got: ${intimateTriggers.join(", ")}`
 );
-assert.match(buildMemoryQueries({ user_message: intimatePaddock })[0], /intimacy aftercare|Nuerburgring paddock/i);
 
 // Precedent selection demotes historical threads without history triggers
 const precedents = selectPrecedents(

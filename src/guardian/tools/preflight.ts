@@ -107,6 +107,7 @@ import {
 } from "../serendipity-weaver.js";
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
+import { planMemoryQueries } from "../query-planner.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
@@ -188,33 +189,7 @@ export function detectHighRiskTriggers(userMessage: string): string[] {
     .map((trigger) => trigger.label);
 }
 
-export function buildMemoryQueries(input: GuardianPreflightInput): string[] {
-  const message = compactWhitespace(input.user_message);
-  const matched = HIGH_RISK_TRIGGERS.filter((trigger) => trigger.pattern.test(message));
-  // Prefer canon hooks over pasting the full user message (better deep-hit relevance).
-  const hintBlock = matched.map((trigger) => trigger.queryHint).join(" ");
-  const messageSnippet = message.slice(0, 220);
 
-  if (input.force_full_retrieval) {
-    // Arc-critical / diagnostic: up to 3 targeted corpus queries (depth restored post-timeout era).
-    return uniqueQueries([
-      matched.length > 0
-        ? `${hintBlock}; current scene continuity ${messageSnippet}`
-        : `current scene continuity relationship precedent ${messageSnippet}`,
-      ...matched.map((trigger) => trigger.queryHint)
-    ]).slice(0, 3);
-  }
-
-  if (matched.length > 0) {
-    // Triggered turns: primary combined query + first trigger hint (max 2).
-    return uniqueQueries([
-      `${hintBlock}; scene cues: ${messageSnippet}`,
-      matched[0].queryHint
-    ]).slice(0, 2);
-  }
-
-  return ["Scarlett Benjamin current scene emotional dynamic relationship precedent current arc"];
-}
 
 export async function runGuardianPreflight(
   input: GuardianPreflightInput,
@@ -233,6 +208,7 @@ export async function runGuardianPreflight(
     | "GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS"
     | "GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS"
     | "GUARDIAN_BUDGET_AUDITOR_MS"
+    | "GUARDIAN_BUDGET_PLANNER_MS"
     | "GUARDIAN_MCP_INITIAL_CONCURRENCY"
     | "GUARDIAN_MCP_OPTIONAL_CONCURRENCY"
   > & {
@@ -273,6 +249,7 @@ async function runGuardianPreflightInner(
     | "GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS"
     | "GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS"
     | "GUARDIAN_BUDGET_AUDITOR_MS"
+    | "GUARDIAN_BUDGET_PLANNER_MS"
     | "GUARDIAN_MCP_INITIAL_CONCURRENCY"
     | "GUARDIAN_MCP_OPTIONAL_CONCURRENCY"
   > & {
@@ -304,7 +281,6 @@ async function runGuardianPreflightInner(
   const duplexSource: DuplexSource = duplexResolved.duplexSource;
 
   const preflightQuery = buildPreflightQuery(input);
-  const memoryQueries = buildMemoryQueries(input);
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
 
@@ -313,6 +289,20 @@ async function runGuardianPreflightInner(
     console.warn(`${Date.now()} GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS exceeded — aborting remaining calls`);
     totalController.abort();
   }, config.GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS ?? 30000);
+
+  const plannerController = new AbortController();
+  const plannerTimeout = setTimeout(() => {
+    console.warn(`${Date.now()} GUARDIAN_BUDGET_PLANNER_MS exceeded — aborting query planner`);
+    plannerController.abort();
+  }, config.GUARDIAN_BUDGET_PLANNER_MS ?? 4000);
+  totalController.signal.addEventListener("abort", () => plannerController.abort());
+
+  const memoryQueries = await planMemoryQueries(
+    input, 
+    config as any, 
+    plannerController.signal
+  );
+  clearTimeout(plannerTimeout);
 
   const initialLimit = pLimit(config.GUARDIAN_MCP_INITIAL_CONCURRENCY ?? 3);
   const limitedRagClient: RagToolCaller = {

@@ -140,7 +140,7 @@ const assessmentSchema = {
     resonance_echo: {
       type: ["string", "null"],
       description:
-        "At most ONE optional corpus echo as available texture when thematically apt (e.g. 'harness tension echoes South Cerney passenger-seat trust — available; don't force it'). Prefer one when private/intimate and evidence supports a real callback; otherwise null. Never invent history. Never stack echoes."
+        "At most ONE optional corpus echo as available texture when thematically apt. Prefer one when private/intimate and evidence supports a real callback; otherwise null. Never invent history. Never stack echoes."
     }
   },
   required: [
@@ -263,6 +263,7 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
     "If 'scarlett_previous_message' is provided, critique character balance: correct only clear character erasure, unsupported coldness/cruelty/dismissal toward Benjamin without scene warrant, mechanical parroting across the actual reply, or genuine ensemble displacement. Write one concise sentence in 'grok_performance_correction', or null.",
     "These are NOT passivity by themselves: agreeing; receiving care; letting Benjamin lead; chosen yielding or submission; resting, silence, fatigue, uncertainty, or vulnerability; responding rather than introducing a new action.",
     "Confidence and dominance do not authorize disrespect or dismissal toward Benjamin without current scene evidence. Professional register must not be imposed on a private scene merely because the wider arc is professional. Sexual dominance is intimate and role-fluid, not a default command posture.",
+    "IDENTITY DILUTION: If the scene involves physical intimacy and Scarlett's pre-op anatomy is omitted, cis-washed, or replaced with generic tropes, issue a critical grok_performance_correction rewinding the turn. Softness does not licence the erasure of her specific anatomy or sensual confidence.",
     // WP-5.8 ensemble dilution (duplex path)
     "ENSEMBLE DILUTION: When scarlett_previous_message is provided and the scene has supporting NPCs, if Scarlett's turn reduced her to an NPC translator or prop while others carried her POV for the whole turn, issue one concise grok_performance_correction restoring her as lens and lead. Listening or reacting for one reply is not dilution. Do not require her to manage every ensemble beat. Do not lecture every ensemble scene — only when dilution is observed.",
     "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
@@ -280,7 +281,7 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
     "When no serendipity event is provided: serendipity_weave must be null.",
     // WP-5.5
     "scarlett_next_intention: optional short clause for a natural character-grounded desire if useful (initiating, receiving, resting, or opening up). Not dialogue; not an outcome. Prefer null unless genuinely useful — do not invent an action so she can lead or prove independence. Receptive choices and rest count as agency. Do not phrase as opposition to Benjamin.",
-    "resonance_echo: at most ONE optional thematic callback from retrieved evidence, phrased as available texture ('… — available; don't force it'). In private/intimate/aftercare scenes, prefer one real echo when evidence supports a gesture, phrase, body trust, or relationship memory; otherwise null. Never invent history. Never stack multiple echoes. Still not a quota for non-intimate turns.",
+    "resonance_echo: at most ONE optional thematic callback from retrieved evidence, phrased as available texture. In private/intimate/aftercare scenes, prefer one real echo when evidence supports a gesture, phrase, body trust, or relationship memory; otherwise null. Never invent history. Never stack multiple echoes. Still not a quota for non-intimate turns.",
     "You describe pressure and possibility. You never decide outcomes, dialogue, or results of open beats.",
     "If evidence is insufficient, do not lecture the user. Simply mark needs_more_retrieval true."
   ]
