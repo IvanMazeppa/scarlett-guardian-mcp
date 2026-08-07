@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 65,
+  "turnCounter": 33,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "dormant",
-        "pressure": "The world expects them on site, introduced, and professionally present before any lap. Motion-sickness aftercare should not erase the Industry Pool frame.",
+        "pressure": "Its Friday arrival window is no longer the live scene.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -38,7 +38,7 @@
         "name": "The Green Hell (afternoon)",
         "kind": "open",
         "status": "dormant",
-        "pressure": "The day expects real track time and live telemetry.",
+        "pressure": "Track-time and telemetry pressure remain unresolved in the plan, but the Nordschleife session is not live in the current Stuttgart suite scene.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "dormant",
-        "pressure": "The world is ready for return → telemetry debrief → grounding. Whether the aero \"proves\" the simulation is open. Aftercare is available pressure, not a scripted monologue.",
+        "pressure": "The return, debrief, and grounding window is not the current scene; its technical and personal questions remain open.",
         "cues": [
           "aftercare",
           "green hell",
@@ -95,8 +95,8 @@
         "index": 4,
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
-        "status": "dormant",
-        "pressure": "The world is ready for rest and private recovery once track-day professional obligations are winding down and live telemetry needs permit departure.",
+        "status": "live",
+        "pressure": "They are at the hotel-recovery destination; private recovery remains available while any track-session obligations must already be sufficiently winding down for departure.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,16 +121,16 @@
         ]
       }
     ],
-    "momentumLine": "No Friday Nürburgring plan beat is live in the Saturday-afternoon Schloss Lieser scene; the track-day sequence remains unmatched by the current schedule snapshot.",
+    "momentumLine": "Beat 4 is live in the Stuttgart hotel-recovery window; today’s remaining pressure is private recovery, with no same-day board preparation or circuit reset required by this plan.",
     "npcIntersections": [],
     "planWarnings": [
-      "No live beat match: the active plan is framed around Friday Nürburgring events, while LIVE BEAT is Saturday afternoon at Schloss Lieser.",
-      "Do not infer completion of the Friday track-day beats from the current hotel setting alone."
+      "The live snapshot is Sunday in Stuttgart while this active plan is framed around Friday Nürburgring timing; beats 1–3 cannot be treated as current without additional continuity confirmation.",
+      "Beat 4's condition is only partially evidenced by the hotel arrival; do not infer the disposition of track telemetry, debrief, or car-release obligations."
     ],
-    "generatedAtTurn": 65,
+    "generatedAtTurn": 22,
     "source": "llm",
     "planHash": "8f59a34a254ad3a3",
-    "refreshedAt": "2026-08-02T20:09:31.384Z",
-    "liveSceneFingerprint": "bca47d657745747a"
+    "refreshedAt": "2026-08-06T07:44:15.515Z",
+    "liveSceneFingerprint": "2eded25dbc02b62c"
   }
 }
