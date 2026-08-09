@@ -241,8 +241,8 @@ export function buildAuditorUserMessage(
     parts.push(
       "",
       "### SAVE LAG FLAG",
-      "Disk LIVE BEAT may lag multi-scene play. Prefer played consensus (user_message + scarlett_previous_message + recent_context) for present location over stale LIVE BEAT place tokens (cabin/paddock vs suite/shower/hotel).",
-      "Do not demand return to the stale place. Do not invent unsupported history. Operator should update current-state.md."
+      "Disk LIVE BEAT is lagging multi-scene play. Prefer played consensus (user_message + scarlett_previous_message + recent_context) for present location.",
+      "Do not demand return to the stale place. Do not invent unsupported history. YOU MUST generate a candidate_memory_update summarizing the new location to fix this lag."
     );
   }
   return parts.join("\n");
@@ -255,7 +255,7 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
     "Use only the provided retrieved evidence and the LIVE BEAT block. Do not invent canon.",
     LIVE_BEAT_SUPERSESSION_INSTRUCTION,
     options?.saveLagSuspected
-      ? "SAVE LAG: disk LIVE BEAT may lag multi-scene play. When user_message + scarlett_previous_message + recent_context agree on a later location (suite, shower, hotel) than LIVE BEAT (cabin, paddock), prefer the played consensus for present location. Do not block prose or demand return to the stale LIVE BEAT place. Still enforce identity/canon and do not invent unsupported history. Note that Operator should update current-state."
+      ? "SAVE LAG: disk LIVE BEAT may lag multi-scene play. When user_message + scarlett_previous_message + recent_context agree on a later location than LIVE BEAT, prefer the played consensus. Do not demand return to the stale LIVE BEAT place. YOU MUST set candidate_memory_update to permanently log the new location and fix the lag."
       : "",
     "When STORY MOMENTUM is present: it is day/arc schedule pressure only. You describe pressure and possibility — never outcomes, dialogue, or results of open beats. LIVE BEAT still wins for present location and story-time.",
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
