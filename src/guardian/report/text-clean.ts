@@ -169,6 +169,8 @@ export function sourceRoleBoost(sourceFile?: string, sourceRole?: string, sectio
   if (/event-log|event_log/.test(hay)) return 40;
   if (/master-context|master_context/.test(hay)) return 35;
   if (/story-bible|story_bible/.test(hay)) return 30;
+  // Warm recent narrative (europe-arm / arc_chronicle) — above cool history, below event-log.
+  if (isWarmChronicle(sourceFile, sourceRole)) return 28;
   if (/character-bible|character_bible/.test(hay)) return 20;
   if (/chronological-summary|emotional-milestones/.test(hay)) return 15;
   if (/historical\/thread-0|\/thread-0|index_ready|index-ready/.test(hay)) return -35;
@@ -176,8 +178,15 @@ export function sourceRoleBoost(sourceFile?: string, sourceRole?: string, sectio
   return 0;
 }
 
+/** Recent trip / peeled chronicles — not deep UK archive. */
+export function isWarmChronicle(sourceFile?: string, sourceRole?: string): boolean {
+  const hay = `${sourceFile ?? ""} ${sourceRole ?? ""}`.toLowerCase();
+  return /europe-arm|arc_chronicle|arc-chronicles/.test(hay);
+}
+
 export function isHistoricalThread(sourceFile?: string, section?: string): boolean {
   const hay = `${sourceFile ?? ""} ${section ?? ""}`.toLowerCase();
+  if (isWarmChronicle(sourceFile)) return false;
   return /historical\/thread-0|\/thread-0|index_ready|index-ready/.test(hay);
 }
 

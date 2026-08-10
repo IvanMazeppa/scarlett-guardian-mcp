@@ -86,6 +86,7 @@ import {
   isHistoricalThread,
   isPlaceholderContext,
   isRagMetaText,
+  isWarmChronicle,
   keywordOverlapScore,
   shortTopicLabel,
   sourceRoleBoost,
@@ -107,7 +108,7 @@ import {
 } from "../serendipity-weaver.js";
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
-import { planMemoryQueries } from "../query-planner.js";
+import { planMemoryQueries, warmRecentMemoryQuery } from "../query-planner.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
@@ -355,6 +356,10 @@ async function runGuardianPreflightInner(
     }, totalController.signal)
   );
 
+  // Dedicated warm lane: europe-arm / arc_chronicle (Recency upgrade 2026-08).
+  // Soft-optional on cassette miss so frozen goldens don't PLAN_DRIFT-warn.
+  const warmMemoryPromise = callWarmStoryMemory(toolCalls, limitedRagClient, input, totalController.signal);
+
   console.log(`${Date.now()} Awaiting indexStatus...`);
   const indexStatus = await indexStatusPromise;
   console.log(`${Date.now()} Awaiting live story state...`);
@@ -363,9 +368,13 @@ async function runGuardianPreflightInner(
   const preflight = await preflightPromise;
   console.log(`${Date.now()} Awaiting memoryResults...`);
   const memoryCallResults = await Promise.all(memoryPromises);
-  const memoryResponses = memoryCallResults
-    .filter((call) => call.ok && call.response)
-    .map((call) => call.response as RagRetrieveResponse);
+  const warmMemoryCall = await warmMemoryPromise;
+  const memoryResponses = [
+    ...memoryCallResults
+      .filter((call) => call.ok && call.response)
+      .map((call) => call.response as RagRetrieveResponse),
+    ...(warmMemoryCall ? [warmMemoryCall] : [])
+  ];
   collector.mark("rag_batch");
 
   const liveBeat = parseLiveBeat(
@@ -882,7 +891,7 @@ async function runGuardianPreflightInner(
     grok_emotional_context: emotionalTone,
     retrieval_plan: {
       preflight_query: preflightQuery,
-      memory_queries: memoryQueries,
+      memory_queries: [...memoryQueries, warmRecentMemoryQuery(input)],
       high_risk_triggers: highRiskTriggers
     },
     tool_calls: toolCalls
@@ -1579,8 +1588,13 @@ async function expandBestContext(
     let score = (result.rank_score ?? result.relevance_score ?? 0) * 20;
     if (/current-state|current_state/.test(hay)) score += 50;
     if (/event-log|event_log/.test(hay)) score += 40;
+    if (isWarmChronicle(result.source_file, result.source_role)) score += 35;
     if (/where we are|recent key|notes for next|emotional/.test(hay)) score += 20;
-    if (/historical\/thread|index_ready|index-ready/.test(hay)) score -= 30;
+    // Demote cool UK archive only — not europe-arm warm index-ready files.
+    if (!isWarmChronicle(result.source_file, result.source_role) &&
+        /historical\/thread|index_ready|index-ready/.test(hay)) {
+      score -= 30;
+    }
     return score;
   };
 
@@ -1667,6 +1681,42 @@ async function callJson<T>(
     const call = { tool, arguments: args, ok: false, error: stringifyError(error) };
     toolCalls.push(call);
     return call;
+  }
+}
+
+/**
+ * Warm arc_chronicle lane. On hermetic cassette miss, skip quietly (no PLAN_DRIFT
+ * tool_call entry) so frozen goldens stay green while live RAG still gets the boost.
+ */
+async function callWarmStoryMemory(
+  toolCalls: RagToolCall[],
+  ragClient: RagToolCaller,
+  input: GuardianPreflightInput,
+  signal?: AbortSignal
+): Promise<RagRetrieveResponse | undefined> {
+  const args = {
+    query: warmRecentMemoryQuery(input),
+    source_roles: ["arc_chronicle"],
+    max_results: 4,
+    rewrite_query: true,
+    max_chars_per_result: 3000
+  };
+  try {
+    const response = await ragClient.callJsonTool<RagRetrieveResponse>(
+      "search_story_memory",
+      args,
+      signal
+    );
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: true, response });
+    return response;
+  } catch (error) {
+    const msg = stringifyError(error);
+    if (/PLAN_DRIFT|CassetteMissError/i.test(msg)) {
+      console.warn(`${Date.now()} warm arc_chronicle lane skipped (cassette miss)`);
+      return undefined;
+    }
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: false, error: msg });
+    return undefined;
   }
 }
 

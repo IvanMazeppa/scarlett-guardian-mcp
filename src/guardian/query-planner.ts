@@ -23,6 +23,12 @@ const queryPlannerSchema = {
   required: ["queries"],
 } as const;
 
+/** Fixed warm-lane query — recent europe-arm / arc_chronicle continuity (~last 48h). */
+export function warmRecentMemoryQuery(input: GuardianPreflightInput): string {
+  const snippet = input.user_message.replace(/\s+/g, " ").trim().slice(0, 160);
+  return `recent europe-arm warm continuity Stuttgart Lieser Nordschleife anklet last sessions ${snippet}`;
+}
+
 export async function planMemoryQueries(
   input: GuardianPreflightInput,
   config: PlannerConfig,
@@ -47,11 +53,11 @@ User message (Benjamin): ${userMessage}
 Scarlett previous message: ${scarlettMessage}
 Recent context: ${recentContext}
 
-Output a JSON array of 1-3 strings.
+Output a JSON object with key "queries" containing an array of 1-3 strings.
 Queries should cover:
-1. Current scene continuity and emotional tone.
+1. Current scene continuity and emotional tone (live beat).
 2. Specific relationship precedents or character triggers mentioned in the user message.
-3. Any location or character data needed to respond accurately.`;
+3. When the turn depends on the last ~48 hours of travel/intimacy (Germany trip, Luxembourg, Nordschleife, Schloss Lieser, Stuttgart), include one query aimed at recent europe-arm / warm chronicle continuity — not deep UK archive threads.`;
 
   try {
     const response = await client.chat.completions.create({
