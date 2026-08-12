@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 54,
+  "turnCounter": 78,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The return, telemetry debrief, and available grounding window have passed; the aero result remains unspecified.",
+        "pressure": "The world is ready for return, telemetry debrief, and grounding; correlation and aftercare remain unscripted.",
         "cues": [
           "aftercare",
           "green hell",
@@ -95,8 +95,8 @@
         "index": 4,
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
-        "status": "done",
-        "pressure": "The recovery and hotel-transition window has passed; no same-day Affalterbach push is required by this beat.",
+        "status": "live",
+        "pressure": "The hotel-recovery frame remains active; private recovery has room to continue without forcing an Affalterbach arrival, board preparation, or a return to the circuit.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,16 +121,16 @@
         ]
       }
     ],
-    "momentumLine": "No arc-09 beat is live on Sunday evening; the Friday track-day schedule is complete, with Monday Affalterbach remaining an offstage future deadline.",
+    "momentumLine": "Beat 4 remains live in the hotel-recovery frame; no further plan beats are scheduled today, while Monday Affalterbach pressure remains offstage.",
     "npcIntersections": [],
     "planWarnings": [
-      "No live beat match: this active plan ends with Friday recovery, while the LIVE BEAT is Sunday evening in Stuttgart.",
-      "The plan's Monday Affalterbach deadline is referenced in NPC agendas but is not represented as a plan beat."
+      "The LIVE BEAT is Sunday evening in a Stuttgart penthouse, while Beat 4 is framed as Friday-evening post-circuit recovery; its broad recovery frame matches, but its original timing and location do not.",
+      "plan_status is marked complete while the deterministic diff and LIVE BEAT frame still identify Beat 4 as live."
     ],
-    "generatedAtTurn": 52,
+    "generatedAtTurn": 70,
     "source": "llm",
-    "planHash": "8f59a34a254ad3a3",
-    "refreshedAt": "2026-08-09T03:03:48.742Z",
-    "liveSceneFingerprint": "4e19a3a29af6de63"
+    "planHash": "6cc69e232567cf81",
+    "refreshedAt": "2026-08-11T02:20:41.213Z",
+    "liveSceneFingerprint": "831d151c24b667ff"
   }
 }
