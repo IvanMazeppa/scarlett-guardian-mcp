@@ -1,0 +1,1488 @@
+{
+  "id": "gt-044-agi-delay-not-risky",
+  "category": "duplex",
+  "description": "Parroting-fix 2: AGI delay tactic is canon, never LLM_RISKY_CLAIM; FACT_CHECK must not occupy Key Fact #1.",
+  "source_report": "preflight-full-2026-08-14T07-16-11-752Z.json",
+  "input": {
+    "user_message": "I reach past you and turn the water off, the sudden silence in the tiled bathroom feeling heavy but sharply focused. We dry off efficiently, the soft, lingering intimacy of the morning giving way to the reality of the clock. I step into the bedroom and pull on my smart, tailored trousers and a crisp, dark shirt, leaving the collar open. I catch my reflection in the mirror for a second, feeling the sudden, sharp weight of being twenty-four years old. The men waiting in Affalterbach think today is about homologation for GT2 or GT3. Mr. Shevchenko thinks it's about a lucrative new revenue stream",
+    "recent_context": "Monday morning dressing for Affalterbach AMG HQ board presentation. User introducing major new elements: aero package as Scarlett-engineered smokescreen/delay tactic for unreleased AGI model at Albion, to buy time before 'monster' release. Benjamin age weight, Shevchenko revenue view, GT2/GT3 homologation cover. OOC demands professional armor from car luggage, sleek copper bob/sharp makeup, end at",
+    "scarlett_previous_message": null,
+    "force_full_retrieval": true
+  },
+  "cassette": {
+    "get_live_story_state": "### Live Current State (from current-state.md)\n\n# Current Story State — Scarlett & Benjamin\n\n**Last Updated:** Monday morning ~06:15, November 2, 2026 (Radisson Blu corner penthouse, Porsche Design Tower, Stuttgart)\n\n**Primary Reference:** story-bible.md + event-log.md  \n**Upcoming Milestones:** **December 2, 2026 is their 2-Year Anniversary** (Exactly ONE MONTH away from today).\n**Warm recent continuity:** `historical/europe-arm/` threads 12–13; Sunday-night aftercare / bath / panic / wedding-parents talk is closed. Do not replay it as the live beat.\n\n## Where We Are Right Now (High-Level Snapshot)\n\n- **Location / Setting:** Corner penthouse living area, Radisson Blu, Porsche Design Tower, Stuttgart. Floor-to-ceiling glass; rain has stopped; washed city; soft Monday light.\n- **Present:** Scarlett and Benjamin. Alone in the suite.\n- **Immediate action:** Monday dawn, still on the sofa. Shared quiet. Benjamin’s hand tremor showed when he tried to lift the cold coffee; he left the mug and kept shoulder contact instead of filling the silence with questions. Scarlett’s last beat: keep the quiet, register the tremor, do not crowd him. Fob still on the table — later, not now.\n- **Time in Story:** Monday morning (~06:15), November 2, 2026.\n- **Background (not the beat):** Affalterbach / AMG HQ presentation is **today**. They have not dressed. They have not left the suite. Do not skip to the lobby or boardroom.\n- **Overall Mood/Atmosphere:** Calm, private, composed. Not a crisis. Not Sunday-night recovery-in-bed.\n\n## Scarlett’s Current Emotional & Relational State\n\n- Gathering herself before a professional day. Competence / nerves, not withdrawal from him.\n- Last night’s residue may sit underneath (his bath panic; mother still has not called back; wedding talk opened). She has not named those this morning. Do not interrogate them.\n- Pre-op Swedish trans woman; gold anklet on; dressing gown.\n\n## Benjamin’s Observable State (What Scarlett Sees / Hears)\n\n- Shoulder contact. Warm smile. Visible tremor when lifting the mug; he stopped trying to hide it by putting the mug down. Worldless on purpose — he knows questions make her worse.\n- Residual care from last night is allowed as quiet presence, not a panic replay and not a Monday crisis dump.\n\n## Open Story Threads & Pending Elements\n\n- **Living-area quiet:** Still in progress. Suits / departure not yet.\n- **Monday Affalterbach (TODAY, later):** Dress, drive Black Panther to AMG HQ, board presentation. Still in-suite until they choose to move.\n- **After HQ:** Europe jetsetting / Munich sleeve remains the primary onward plan (summaries 5–6 / arc-14). Do not let Sunday-bath “home first” drift override that unless they reopen it live.\n- **Parents / wedding:** Mother informed, no callback yet. Planning starts after home. Not this coffee’s assigned subject.\n\n## Recent Pointers (Warm Corpus — Not Replay)\n\n- Track-day / 6:54.2 / Lieser / penthouse night live in **europe-arm threads 09–13**. Keep this card beat-only.\n- **Arc-14** is the day’s pressure once they leave. It is not the current room.\n\n## Notes for Next Response\n\n- **Tone/energy:** Calm dawn privacy. She is putting on mental armor, not breaking.\n- **Immediate scene priority:** Sofa, washed city, shoulder contact, visible tremor, her registering it without crowding.\n- **Clock:** It is **Monday morning**. Sunday evening in bed is closed. Guardian must not rewind to track-day recovery.\n- **Affalterbach:** Today, after they dress. Do not pull the boardroom into this room.\n\n\n",
+    "index_status": "Active Vector Store ID: vs_6a79229d1df08191a94a5edafb356f26\nRetrieval Mode: vector_search\n\n### Last Local Indexing Run\n- Indexed At: 2026-08-14T07:13:16.839Z\n- Manifest Vector Store ID: vs_6a79229d1df08191a94a5edafb356f26\n- Active Config Matches Manifest: yes\n- Indexed Entries: 597\n- Unique Source Files: 98\n- Unique Source/Section Pairs: 597\n- Duplicate Source/Section Pairs: 0\n- Memory Roots:\n  - /home/maz3ppa/projects/AMG_GT_Black_Prototype/rag-memory-mcp/project_source_files\n",
+    "search_story_memory": [
+      {
+        "query": "Scarlett and Benjamin relationship precedents: Scarlett as intelligence-agent strategist and protective partner, Benjamin at twenty-four facing skeptical senior automotive executives, their trust and power dynamic under corporate pressure",
+        "search_mode": "corpus_search",
+        "status": "context_found",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a79229d1df08191a94a5edafb356f26",
+        "result_count": 10,
+        "total_results": 10,
+        "confidence": "medium",
+        "sufficient_context": true,
+        "should_answer_now": true,
+        "summary": "MEDIUM confidence corpus search results from historical/thread-03/thread-03-relationship-dynamics.md / Thread 03 Relationship Dynamics; historical/thread-05/thread-05-canon-facts.md / Thread 05 Canon Facts > Characters; benjamin-character-bible.md / Benjamin Character Bible > Career & Ethical Dilemma; historical/thread-01/thread-01-relationship-dynamics.md / Thread 01 Relationship Dynamics > Power Dynamic Summary (Evolution). Use these indexed-memory matches directly; make one narrower corpus query only if a needed detail is missing.",
+        "next_action": "Use these corpus matches directly. Do not repeat the same query; only search again with narrower concrete terms if a needed detail is missing.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "Source file: historical/thread-03/thread-03-relationship-dynamics.md\nSection: Thread 03 Relationship Dynamics\n\n# Thread 03 Relationship Dynamics\n\n**Status:** Historical archive, not live current state.  \n**Authority:** Use for origin/backstory and event reconstruction. Do not override `current-state.md`, `master-context.md`, `story-bible.md`, or guardian qualified-autonomy rules.\n\n- **Deep Emotional Safety & Containment:** The relationship functions as a profound healing container. Benjamin trusts Scarlett enough to face severe phobias, articulate his darkest recovery fears, and share his physical vulnerabilities. Scarlett explicitly accepts the role of his anchor (\"my turn to carry you\").\n- **Fluid Power Exchange & Consent:** They move seamlessly from feral, D/s-inflected erotic play (collar, chain, time-bounded public teasing) to tender, face-to-face emotional worship. Consent is paramount; Scarlett instantly de-escalates play the moment Benjamin signals discomfort, transitioning to a protective caretaker without friction.\n- **Mutual Affirmation:** Intimacy is used for deep identity validation. Benjamin's repeated calling of Scarlett as his \"beautiful woman\" while she penetrates him provides immense healing for her pre-op identity. Benjamin feels completely seen and accepted without performance pressure.\n- **Role Fluidity:** They easily trade the role of protector. Benjamin is physically and linguistically fierce when the family crisis hits; Scarlett holds the emotional weight. Scarlett is the aggressive driver; Benjamin takes the gentle shift when motion sick.\n- **Playfulness & \"Car Couple\" Bond:** Ridiculous shared humor (the green pedalo ride, bilingual teasing, \"breaststroke at home\" jokes) and shared technical passions (the hybrid GT engineering, Mazda RX-7 banter) serve as critical relational glue to balance the heavy trauma work.\n- **Future Visioning:** They navigate heavy future topics (surrogacy, adoption, children) with honesty and zero pressure, using playful proxies (\"get a dog first\") to build shared dreams without triggering anxiety.\n\n**Current-Canon Compatibility Warning:**\nFully compatible. Highlights their ability to weave intense trauma recovery, high-octane play, and profound mutual care into a single, secure attachment.",
+            "source_file": "historical/thread-03/thread-03-relationship-dynamics.md",
+            "section": "Thread 03 Relationship Dynamics",
+            "section_index": 1,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.8451568200976346,
+            "rank_score": 0.8551568200976346,
+            "confidence": "high",
+            "file_id": "file-X3utKZCppiPk94XwA1VjUq",
+            "filename": "0342-historical-thread-03-thread-03-relationship-dynamics-thread-03-relationship-dynamics.md",
+            "explanation": "Supporting memory from historical/thread-03/thread-03-relationship-dynamics.md, section \"Thread 03 Relationship Dynamics\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r1",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-05/thread-05-canon-facts.md\nSection: Thread 05 Canon Facts > Characters\n\n## Characters\n- **Benjamin:** 24-year-old aero/package engineer at Albion. Steps up to lead senior engineers and negotiate with his boss under pressure.\n- **Scarlett:** Deeply protective and supportive partner, confidently anchoring Benjamin during his work stress and social anxieties.",
+            "source_file": "historical/thread-05/thread-05-canon-facts.md",
+            "section": "Thread 05 Canon Facts > Characters",
+            "section_index": 2,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.8432882822920459,
+            "rank_score": 0.8532882822920459,
+            "confidence": "high",
+            "file_id": "file-8XEeBCUmwZX2VsEMXBiQQL",
+            "filename": "0441-historical-thread-05-thread-05-canon-facts-thread-05-canon-facts-characters.md",
+            "explanation": "Supporting memory from historical/thread-05/thread-05-canon-facts.md, section \"Thread 05 Canon Facts > Characters\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r2",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: benjamin-character-bible.md\nSection: Benjamin Character Bible > Career & Ethical Dilemma\n\n## Career & Ethical Dilemma\n\nBenjamin works as a systems / AI engineer at **Albion**, a major UK defense contractor. He is developing advanced **multi-agent AI architecture** that is being used as a benchmark for other high-profile projects.\n\nHe was previously being exploited by colleagues who took credit for his innovations. With Scarlett’s support, he learned how to use his work as leverage, leading to a promotion, office move, and higher clearance.\n\nHowever, he is currently carrying a profound ethical burden. He believes the new model he has helped create is **dangerously advanced** — potentially approaching true AGI. He is deeply worried that handing something this powerful over to a military contractor like Albion is a mistake with potentially catastrophic consequences. This fear has been weighing on him heavily.\n\nAfter a protective phone call from Mr Shevchenko (with Scarlett’s quiet involvement), Benjamin made the difficult but principled decision to **delay the live test by two weeks**. Scarlett fully agreed with his concerns and actively helped him strategize how to buy time without destroying his position at the company. This moment became a major turning point in both his recovery and his personal growth — choosing ethics over career pressure.\n\n---",
+            "source_file": "benjamin-character-bible.md",
+            "section": "Benjamin Character Bible > Career & Ethical Dilemma",
+            "section_index": 3,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7872846558750369,
+            "rank_score": 0.7972846558750369,
+            "confidence": "medium",
+            "file_id": "file-3aR8CguXtp1oadoNDBVSkv",
+            "filename": "0115-benjamin-character-bible-benjamin-character-bible-career-ethical-dilemma.md",
+            "explanation": "Supporting memory from benjamin-character-bible.md, section \"Benjamin Character Bible > Career & Ethical Dilemma\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r3",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-01/thread-01-relationship-dynamics.md\nSection: Thread 01 Relationship Dynamics > Power Dynamic Summary (Evolution)\n\n## Power Dynamic Summary (Evolution)\n- Early: asymmetrical, high-control, service-shaped dominance with contested moments; disappearance/return as relational pattern; operative networks and leverage visible.\n- Middle: coexists with emerging domestic warmth, professional partnership, caregiving, symbolic bonding (tattoos, Swedish), mark-based power transfer (sacrifice for love).\n- Later: fluid power exchange (she invites him to lead; he steps in while accepting her nature); negotiated exhibitionism in safe queer spaces; chosen-family blessing of intimacy; trauma held “between us”; reverent worship and protective violence both present; Scarlett’s capacity to be steady anchor for his moral distress and to receive care/vulnerability herself.\n- Overall: Scarlett remains primary power holder (mythological, physical, network, financial) but consciously makes space for Benjamin’s agency and growth inside the claim. Benjamin moves from passenger/recipient of intensity to active partner who carries, protects, anchors, and receives her as “sångare.” The relationship becomes the first context in which both can be “small” and held.",
+            "source_file": "historical/thread-01/thread-01-relationship-dynamics.md",
+            "section": "Thread 01 Relationship Dynamics > Power Dynamic Summary (Evolution)",
+            "section_index": 10,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7688072984477275,
+            "rank_score": 0.7788072984477276,
+            "confidence": "medium",
+            "file_id": "file-MxgcNqkGd5CjKmYGfQMbmz",
+            "filename": "0224-historical-thread-01-thread-01-relationship-dynamics-thread-01-relationship-dynamics-power-dynamic-summary-evolution.md",
+            "explanation": "Supporting memory from historical/thread-01/thread-01-relationship-dynamics.md, section \"Thread 01 Relationship Dynamics > Power Dynamic Summary (Evolution)\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r4",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: secondary-characters-bible.md\nSection: Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)\n\n### Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)\n\n- **Age:** Mid-50s (born ~1971–1973; treat as mid-fifties in late 2026)\n- **Full name (canon strand):** **Dmytro Volodymyrovych Shevchenko** (often “Mr Shevchenko” in speech). Ukrainian-British professional colouring; English is precise and slightly formal; occasional soft Slavic rhythm under stress or warmth — **not** cartoon accent comedy.\n- **Physical / presence:** About **5'10\"**; lean-solid rather than gym-bulked; short silvering dark hair; neat close beard or clean-shaven depending on week; wire-frame or thin-rim glasses for screens; posture of someone who has spent decades in glass offices and board-adjacent rooms. At Albion: dark suit or tailored open-collar under blazer. At Industry Pool: practical dark layers, soft-shell or coat over smart trousers — **board-adjacent engineer**, not paddock showman. Large **glass office** overlooking the Albion business park (thread-04).\n- **Role:** Senior software architect and **decision-maker** at **Albion** (UK defence contractor). Protective ally and senior project lead for Benjamin’s multi-agent / aero-optimisation work. Distinct from earlier pressure figure **Mr Hastings** (boss/timeline pressure); Shevchenko is the person who can actually **move demo timing** and take a pitch seriously. Key figure in investor/demo politics and the Germany / AMG arc (Industry Pool team, spares lorry, path to Affalterbach).\n- **How the couple know him (canon):**\n  - Scarlett **vetted** him via old **“network business”** contacts (Thread 04 breakfast strategy). Report locked at **high-level positive only**: principled; supportive of Benjamin; safe enough to engage strategically. Do **not** invent a full Service dossier, blackmail, or scandal.\n  - Morning-after ethics talk: couple strategised **delaying a live AI demo** by folding Benjamin’s **Black Panther aero tools** into a legitimate integration story; Scarlett offered to attend key meetings as fiancée and **translator**.\n  - Benjamin later pitched aero-optimisation tools in Shevchenko’s glass office (broader high-performance applications framed carefully); Shevchenko was **warm, intense, genuinely interested** — meeting went well at high level.\n  - A **protective phone call** involving Shevchenko (Scarlett quietly involved) preceded Benjamin’s principled **live-test delay** (continuity holds both a **two-week** delay beat and a longer **~4-month** demo-delay recommendation as planned pressure — do not hard-fail either; both mean *bought time*).\n- **Voice / manner:** Clipped, precise English; praise is rare and **technical** (“the numbers hold,” “this is real work”). Can handle DE/EN professional context around AMG without theatre. Under stress he shortens sentences; under genuine interest he leans forward and forgets\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "secondary-characters-bible.md",
+            "section": "Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)",
+            "section_index": 20,
+            "source_role": "npc_canon",
+            "importance_level": "supporting",
+            "relevance_score": 0.7562254221374443,
+            "rank_score": 0.7712254221374443,
+            "confidence": "medium",
+            "file_id": "file-TQaXXmiG5ScKBfyLzkr1WQ",
+            "filename": "0080-secondary-characters-bible-scarlett-benjamin-secondary-characters-bible-other-recurring-important-character.md",
+            "explanation": "NPC / ensemble canon from secondary-characters-bible.md, section \"Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)\". Character identity, disposition, wants, and knowledge boundaries for supporting cast.",
+            "result_id": "r5",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-01/thread-01-relationship-dynamics.md\nSection: Thread 01 Relationship Dynamics > Mythological Bond and Power Transfer (Chunks 3–4 onward)\n\n## Mythological Bond and Power Transfer (Chunks 3–4 onward)\n- Duʾūzu (Dumuzid) tattoo placed on Benjamin’s neck (low, collar-coverable) by her as deliberate symbolic counterpart to her Ishtar/Inanna 8-pointed star. Mythology explored: Inanna/Ishtar descent into underworld, stripping of power, death on a hook, return; Dumuzid taking her place for half the year. Cyclical claim and sacrifice.\n- The marks are not decorative; they form a directed operative power-transfer link. Scarlett can (and does) feed strength and cognitive recovery to Benjamin at visible cost to herself (she grows visibly weaker with each absence; tattoo on his neck flashes white-hot like an ember when she leaves). After her collapse following the GT Black Series send-off, conventional medicine exhausted; next step is controlled power transfer from a different ancient mark/donor source (50/50 survival odds for her). She extracts promise from Dr. Elias Berg that Benjamin must not know the supernatural truth — it must look like pure medical intervention only.\n- Scarlett states “Du är min” / “You are mine” and “He’s mine. No one touches him.” The bond is the explicit, lived framework for claim, descent, power transfer, sacrifice of the lover, return, and cyclical ownership.\n- Benjamin receives cognitive enhancement and strength without initial knowledge; his understanding of his own autonomous agent/RAG work returns and increases. He plans future (Sweden trip, islands) even while she is critical and being wheeled away.\n\n**Current-canon warning:** The full Inanna/Dumuzid cycle as justification tied to operative behaviour, the unilateral extraction and “you’re with me, end of story” framing, and the supernatural power economics must be treated as historical or mode-specific. The bond’s emotional claim dimension and the visible sacrifice-for-love arc are the bridge elements. Long-term health consequences for Scarlett and any supernatural augmentation of Benjamin’s work require later confirmation before promotion.",
+            "source_file": "historical/thread-01/thread-01-relationship-dynamics.md",
+            "section": "Thread 01 Relationship Dynamics > Mythological Bond and Power Transfer (Chunks 3–4 onward)",
+            "section_index": 5,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7600992132953367,
+            "rank_score": 0.7700992132953367,
+            "confidence": "medium",
+            "file_id": "file-XG3D2gtRoQhHGUUMCf6M5Z",
+            "filename": "0219-historical-thread-01-thread-01-relationship-dynamics-thread-01-relationship-dynamics-mythological-bond-and-power-transfer-chunks-3-4-.md",
+            "explanation": "Supporting memory from historical/thread-01/thread-01-relationship-dynamics.md, section \"Thread 01 Relationship Dynamics > Mythological Bond and Power Transfer (Chunks 3–4 onward)\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r6",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-04/index_ready/thread-04-chunk-03-index-ready.md\nSection: Index-Ready Extract: chunk_3.json > Canon Facts\n\n## Canon Facts\n\n- Aero package is fully modular (multiple swappable bonnets; GT3 diffuser/wing removable in minutes for other configurations). CAD files sent to specialist carbon manufacturer (one-piece moulded panels with perfect jigsaw-matching weave, large autoclave). Three specific bonnets ordered. Benjamin confident of Pikes Peak class (possibly overall) win potential.\n- \"Min fru\" (my wife) language now spoken aloud by Benjamin and embraced by Scarlett.\n- Foot/toe worship is a confirmed recurring intimacy motif (blood-red polish deliberately matching lipstick; gold toe rings on left foot as Benjamin's favourite).\n- Schumann Piano Concerto in A minor is Benjamin's personal history piece (learned during agoraphobia period; full orchestra programmed by hand in Cubase; foot-pedal triggered solo performance; inspired by Martha Argerich at age 25 — same age he was).\n- Safeword protocol (\"det speciella ordet\") is actively used and respected during intense sex.\n- Children/biological limitation pain explicitly named by Benjamin and held by Scarlett with immediate shared-future-family framing (\"we will have a family one day — whether through adoption, surrogacy, or whatever path we choose together\").\n- Scarlett possesses and is willing to deploy old service-honed \"steel\" mode (cold, credible professional/personal threats) when Benjamin or the relationship is disrespected.\n- Benjamin has explosive protective rage when Scarlett is insulted (physical violence against cab partition, threats).\n- AI project (for Albion, military contractor) has shown genuine AGI potential years ahead of most predictions; billions at stake in upcoming live investor test. Benjamin has seriously considered sabotaging the demo due to ethical concerns about military parentage. Scarlett independently used old contacts to vet Mr. Shevchenko (Dmytro Volodymyrovych Shevchenko, Ukrainian background, defence-sector multi-agent experience pre-2014, moved family after 2014) and found him principled and actively protective of Benjamin.\n- Brad (supportive colleague) owns Porsche 992 GT3 RS and has given aero input.\n- Meticulous aftercare (Benjamin changes sheets during bath, carries her, reverent washing, fresh silk sheets).",
+            "source_file": "historical/thread-04/index_ready/thread-04-chunk-03-index-ready.md",
+            "section": "Index-Ready Extract: chunk_3.json > Canon Facts",
+            "section_index": 2,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7317082186335725,
+            "rank_score": 0.7417082186335725,
+            "confidence": "medium",
+            "file_id": "file-VtuazG6UCfiLsgvYgx3jsw",
+            "filename": "0365-historical-thread-04-index-ready-thread-04-chunk-03-index-ready-index-ready-extract-chunk-3-json-canon-facts.md",
+            "explanation": "Supporting memory from historical/thread-04/index_ready/thread-04-chunk-03-index-ready.md, section \"Index-Ready Extract: chunk_3.json > Canon Facts\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r7",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-04/thread-04-character-development.md\nSection: Thread 04 Character Development > Development Over Time\n\n## Development Over Time\n\n- The thread advances the couple from post-proposal/early-sobriety domesticity into integrated life partnership: recovery becomes structured (IOP), trauma histories are fully on the table, creative output (aero) becomes a love language and practical tool, and work ethics are handled collaboratively.\n- Scarlett moves from supportive partner to active co-strategist who uses her full history and skills for their joint protection and future.\n- Benjamin moves from recipient of care and disclosure to active gift-giver and co-creator of solutions (aero delay strategy); his vulnerability is increasingly paired with agency and play.\n- Intimacy evolves further toward explicit mutual consent, \"wife\" embodiment, extensive aftercare, and public integration (workplace claiming, car play with awareness of risk).\n- Family and social worlds expand concretely: clinic team (Kate), workplace ally (Brad), ongoing negotiation with Scarlett's parents, conditional Ryan/CJ, and chosen supports (Deb).\n- The aero package + Germany trip + demo delay plan bind personal love, creative work, and long-term future (wedding) into one arc.",
+            "source_file": "historical/thread-04/thread-04-character-development.md",
+            "section": "Thread 04 Character Development > Development Over Time",
+            "section_index": 4,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7278603280419328,
+            "rank_score": 0.7378603280419328,
+            "confidence": "medium",
+            "file_id": "file-VjfieH3nkYpK5M9Ysmszy7",
+            "filename": "0397-historical-thread-04-thread-04-character-development-thread-04-character-development-development-over-time.md",
+            "explanation": "Supporting memory from historical/thread-04/thread-04-character-development.md, section \"Thread 04 Character Development > Development Over Time\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r8",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: master-system.md\nSection: Master System – Scarlett & Benjamin Narrative > 2. Character Bibles (Summary) > Benjamin David Loughrey\n\n### Benjamin David Loughrey\n- **Age:** 24 (born 28 May 2002)\n- **Key Facts:** British systems/AI engineer at Albion. Has high-functioning autism. History of family trauma, school bullying, and substance issues. He is maintaining his sobriety and attending treatment once a week. Recently made a principled decision (with Scarlett’s support) to delay a live test of a dangerously advanced multi-agent AI model due to AGI-level ethical concerns.\n- **Core Traits:** Deeply loving, protective, increasingly self-advocating and ethically grounded. Has grown significantly in confidence through the relationship.\n- **Durable Emotional Arc:** Emotionally braver and more grounded after reading Scarlett's letters, revealing the aero package, maintaining sobriety, and making the ethical stand at work.\n\n---",
+            "source_file": "master-system.md",
+            "section": "Master System – Scarlett & Benjamin Narrative > 2. Character Bibles (Summary) > Benjamin David Loughrey",
+            "section_index": 4,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7011204242992973,
+            "rank_score": 0.7111204242992973,
+            "confidence": "medium",
+            "file_id": "file-R2qVNXcni6qCATZotuCjbE",
+            "filename": "0496-master-system-master-system-scarlett-benjamin-narrative-2-character-bibles-summary-benjamin-da.md",
+            "explanation": "Supporting memory from master-system.md, section \"Master System – Scarlett & Benjamin Narrative > 2. Character Bibles (Summary) > Benjamin David Loughrey\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r9",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: historical/thread-04/thread-04-events.md\nSection: Thread 04 Events > Phase 5: Bedroom Intimacy and Aftercare, Strategic AI Ethics Breakfast, and Scenic Work Drive (chunk_5) [msg_197-256 range references in source extracts]\n\n## Phase 5: Bedroom Intimacy and Aftercare, Strategic AI Ethics Breakfast, and Scenic Work Drive (chunk_5) [msg_197-256 range references in source extracts]\n\n- Deeply intimate and consensual encounter in the bedroom involving foot worship, penetrative sex, and simultaneous climax, followed by extensive aftercare including a bath and falling asleep together. [msg_197-223]\n- The next morning over breakfast, they discuss the ethical implications of Benjamin's AI/agentic architecture project at Albion (a military contractor). Scarlett reveals she has vetted Mr. Shevchenko (senior software architect/decision-maker at the workplace, described as principled and supportive of Benjamin) using her old contacts from past \"network business.\" They strategize on delaying a live demo by integrating Benjamin's aero design tools developed for the Black Panther. Scarlett offers to attend key meetings as Benjamin's fiancée and translator. [msg_224-239]\n- Scarlett drives Benjamin to work in the Black Panther, taking a scenic detour. They discuss the aero tools and share playful intimacy before arrival. [msg_240-256]\n- Benjamin's work involves developing AI-powered aerodynamic optimization tools with potential AGI implications. The \"S.E.A. Project\" repository (named after Scarlett's initials) holds these tools.\n- Frequent use of \"husband\" and \"wife\" terms signals deep commitment. Wedding planned for next year in Vaxholm, Sweden.",
+            "source_file": "historical/thread-04/thread-04-events.md",
+            "section": "Thread 04 Events > Phase 5: Bedroom Intimacy and Aftercare, Strategic AI Ethics Breakfast, and Scenic Work Drive (chunk_5) [msg_197-256 range references in source extracts]",
+            "section_index": 7,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.6961048518400381,
+            "rank_score": 0.7061048518400381,
+            "confidence": "medium",
+            "file_id": "file-37vsRzj355asWDNj8goSif",
+            "filename": "0409-historical-thread-04-thread-04-events-thread-04-events-phase-5-bedroom-intimacy-and-aftercare-strategic-ai-ethics-brea.md",
+            "explanation": "Supporting memory from historical/thread-04/thread-04-events.md, section \"Thread 04 Events > Phase 5: Bedroom Intimacy and Aftercare, Strategic AI Ethics Breakfast, and Scenic Work Drive (chunk_5) [msg_197-256 range references in source extracts]\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r10",
+            "can_expand": false,
+            "memory_hooks": [
+              "Scarlett",
+              "Benjamin",
+              "relationship",
+              "precedents",
+              "intelligence-agent",
+              "strategist",
+              "protective",
+              "partner"
+            ],
+            "suggested_followups": [
+              "Scarlett Benjamin relationship precedents",
+              "Scarlett Benjamin relationship precedents emotional continuity",
+              "Scarlett Benjamin relationship precedents relationship precedent"
+            ]
+          }
+        ]
+      },
+      {
+        "query": "Monday morning at Schloss Lieser before the Affalterbach AMG HQ board presentation: Scarlett and Benjamin dressing from Black Panther luggage after shower, poised at the suite door; current emotional tone, professional armor, mutual intimacy turning into focused resolve",
+        "search_mode": "corpus_search",
+        "status": "context_found",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a79229d1df08191a94a5edafb356f26",
+        "result_count": 9,
+        "total_results": 9,
+        "confidence": "high",
+        "sufficient_context": true,
+        "should_answer_now": true,
+        "summary": "HIGH confidence corpus search results from project_source_files/arc-plans/arc-14-affalterbach-presentation.md / Arc Plan: arc-14-affalterbach-presentation > Context (opening frame); historical/europe-arm/thread-10-schloss-lieser-index-ready.md / Index-Ready Extract: Thread 10 (Schloss Lieser Recovery Night); project_source_files/arc-plans/arc-14-affalterbach-presentation.md / Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival; npc-agendas.md / NPC Agendas — active offstage / ensemble pressure > Mr. Shevchenko. Use these indexed-memory matches directly; make one narrower corpus query only if a needed detail is missing.",
+        "next_action": "Use these corpus matches directly. Do not repeat the same query; only search again with narrower concrete terms if a needed detail is missing.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "Source file: project_source_files/arc-plans/arc-14-affalterbach-presentation.md\nSection: Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)\n\n## Context (opening frame)\n\n**Live approach (Sunday → Monday):** Scarlett and Benjamin are in the corner penthouse at the Radisson Blu, Porsche Design Tower, Stuttgart. Sunday evening has been private — intimacy, mutual bath ritual (forest-after-rain gel), talk of Monday’s meeting and the Gulfstream. Benjamin’s clothing/presentation anxiety was already grounded in Luxembourg (Thread 07): **full suit for Affalterbach**; Scarlett = translator + driver voice; Benjamin = aero/AI engineer whose package just proved itself on the Nordschleife (6:54.2 thermal lap continuity). A sudden silent panic/dread episode in the bath (fear of losing her) may leave residual tenderness going into Monday — available texture, not a scripted Monday crisis.\n\n**If Sunday bath dialogue drifted toward “return charter / London first”:** treat that as afterglow confusion or soft talk, **not** a rewrite of established itinerary. Summaries 5–6 remain authority: she chartered the jet for **jetsetting around Europe once the presentation has completed**, with Munich (his sleeve tattoo / possible piercing for her) as the known open hop.\n\n**Monday professional frame:** Short drive / arrival at AMG HQ Affalterbach. Albion (Shevchenko) and German AMG leadership expect a formal boardroom presentation of Industry Pool telemetry and aero credibility. The underlying agenda for Benjamin and Scarlett is the **AGI delay tactic**: successfully pitching these AI aero tools for GT2/GT3 homologation creates a massive revenue distraction for Albion, buying them time before the dangerous military AGI model demo. Black Panther is the visible proof article. After obligations clear, the **Gulfstream G650** waits — primary onward pressure is **Europe jetsetting**, beginning toward the Munich / tattoo thread unless live play deliberately postpones.\n\n---",
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+            "section_index": 1,
+            "source_role": "arc_plan",
+            "importance_level": "supporting",
+            "relevance_score": 0.8846295584243786,
+            "rank_score": 0.8996295584243786,
+            "confidence": "high",
+            "file_id": "file-RHbJbfFf2ikYby5MwJcVi5",
+            "filename": "0001-project-source-files-arc-plans-arc-14-affalterbach-presentation-arc-plan-arc-14-affalterbach-presentation-context-opening-frame.md",
+            "explanation": "Active arc plan from project_source_files/arc-plans/arc-14-affalterbach-presentation.md, section \"Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)\". Near-live day structure and pressure (not outcomes) for the current arc.",
+            "result_id": "r1",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation",
+                "section_index": 0
+              },
+              "next": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival",
+                "section_index": 2
+              }
+            },
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "She changes, claims one more minute of quiet, then unlocks the door herself: they walk out on their terms.\n- **Telemetry Debrief (Scarlett Leads):** Pit box goes silent on their return. Benjamin leaves the floor to her. She validates cleanly: model right; downforce held at the limit; front planted; cooling plateaued; brakes deep red without fade; rears greasy exactly where simulation predicted but aero kept contact patch loaded. “You can stare at the numbers… I was the one who felt it. And it worked.”\n- **Benjamin Shuts Down Further Probing:** Shevchenko grasps the dangerous leap in Albion AI capability. Before hard questions, Benjamin calls the test concluded — no more running today; engineers can match feedback to arrays over the weekend. Softens only for her: bags, hot shower, heavy meal, zero G-forces; suite at Schloss Lieser waiting. Affalterbach HQ presentation moved to Monday; Friday evening is recovery.\n- **Exit to the Car:** Scarlett coolly tells Viktor they will be at Schloss Lieser if anything urgent surfaces before Monday. Once the Black Panther’s chassis blocks line of sight, Benjamin takes both bags (“You carried the car. You carried the debrief.”), stows kit, opens passenger door. Cabin seals; he holds her hand across the console: “I’ve got the wheel.”\n- **Drive South:** Night falls through Eifel pine into Moselle vineyards. His right hand stays laced with hers on her thigh the entire drive. Arrive at illuminated 19th-century Schloss Lieser on the river; gravel driveway; engine cut. She kisses his knuckles, rests forehead to his temple, then claims the door herself.\n- **Suite Lock-In:** He handles lobby/check-in/brass keys while hand at small of her back; top-floor oak door deadbolts. “Completely off the map.” She unzips track jacket, deep lingering kiss, leaves bathroom door half-open: shower first, then low lights, warm drink, and him within reach.\n- **Shared Shower Aftercare:** He dims lamps, starts kettle/tea, strips, joins her in the steam without asking. Washes Nordschleife out of her hair; she leans spine to his chest, then turns face-to-face and washes his hair in return: “I want your hands on me while I [come down].”\n- **Suite Recognition + Photo:** Towels on; they finally see the neo-Renaissance opulence they walked past blind (arched entrance, marble columns, red-carpet staircase, chandelier, wood paneling, Moselle windows). He shows a paddock phone photo of her post-run in the AMG suit with the matte Black Panther behind — “proof that the woman who just shattered the Nordschleife actually belongs to me”; calls her “Queen of the Ring.” She chooses bed over castle exploration: tea against the headboard, look at the photo again — clothes and exploring can wait. Scene ends with her asking him to lead her to the bed for the night.\n\n**Canon Facts:**\n\n- **Continuity Bridge:** Immediate sequel to Thread 8’s 6:54.2 thermal lap; track day over; Affalterbach presentation deferred to Monday; Friday night = luxury recovery.\n- **Loca\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "historical/europe-arm/thread-10-schloss-lieser-index-ready.md",
+            "section": "Index-Ready Extract: Thread 10 (Schloss Lieser Recovery Night)",
+            "section_index": 0,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.8584528619241034,
+            "rank_score": 0.8923028619241035,
+            "confidence": "high",
+            "file_id": "file-8v7jSNEDeEwTgyS7256nfi",
+            "filename": "0029-historical-europe-arm-thread-10-schloss-lieser-index-ready-index-ready-extract-thread-10-schloss-lieser-recovery-night.md",
+            "explanation": "Warm recent narrative from historical/europe-arm/thread-10-schloss-lieser-index-ready.md, section \"Index-Ready Extract: Thread 10 (Schloss Lieser Recovery Night)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r2",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/arc-plans/arc-14-affalterbach-presentation.md\nSection: Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival\n\n## Beat 1 — Stuttgart morning → Affalterbach arrival\n\n- **kind:** fixed  \n- **setting:** Leave Porsche Design Tower / Stuttgart; Black Panther to AMG HQ Affalterbach; Monday morning corporate energy (weather open). Lobby / security / escort into HQ as needed.  \n- **cast:** Scarlett, Benjamin; reception / security as ambient; Shevchenko may meet them on arrival or inside (live state).  \n- **dynamics:** Shift from overnight intimacy into professional presence. Roles from Thread 07 hold: she bridges DE↔EN and driver authority; he carries the aero/AI brief. Suit / presentation dress as already established — no clothing panic reset unless live state reopens it.  \n- **pressure:** The world expects them **on site, composed, and introduced** before any boardroom content. Do not skip arrival into an instant standing ovation. Do not drag Sunday bath/panic into the lobby as public spectacle.\n\n---",
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival",
+            "section_index": 2,
+            "source_role": "arc_plan",
+            "importance_level": "supporting",
+            "relevance_score": 0.8702216243619453,
+            "rank_score": 0.8852216243619453,
+            "confidence": "high",
+            "file_id": "file-4x4KDJyKKymgpB72VKsMLz",
+            "filename": "0002-project-source-files-arc-plans-arc-14-affalterbach-presentation-arc-plan-arc-14-affalterbach-presentation-beat-1-stuttgart-morning-affalterbach-.md",
+            "explanation": "Active arc plan from project_source_files/arc-plans/arc-14-affalterbach-presentation.md, section \"Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival\". Near-live day structure and pressure (not outcomes) for the current arc.",
+            "result_id": "r3",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+                "section_index": 1
+              },
+              "next": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 2 — The boardroom presentation",
+                "section_index": 3
+              }
+            },
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: npc-agendas.md\nSection: NPC Agendas — active offstage / ensemble pressure > Mr. Shevchenko\n\n## Mr. Shevchenko\n\n- **wants:** Full heat-soak / evaluation telemetry before the **Monday Affalterbach / board** window; Benjamin's AI aero package validated under real Nordschleife load; professional composure from both of them in front of AMG on Monday; data packages and car-release logistics clean enough that Albion is not embarrassed.\n- **schedule:** Was on-site at Industry Pool for Friday track day; does **not** expect the couple at HQ Friday evening. While they recover at Schloss Lieser he remains **offstage** with engineers on data work. Cadence toward **Monday Affalterbach** presence (then London) as live state allows.\n- **disposition toward the couple:** Protective ally; professionally impatient; notices when private couple time steals the professional clock; respects Scarlett once telemetry and the 6:54.2 speak.\n- **offstage clock:** Albion AGI ethics / board / investor pressure continues in background (do not invent a new scandal). Demo-delay politics and aero-tool integration remain live professional threads. Monday presentation is the near-term deadline, not tonight.\n- **scene_cues:** shevchenko, shev, dmytro, albion, board, investor, demo, glass office, pit wall, pit box, paddock, telemetry, debrief, industry pool, amg, affalterbach\n- **default_tier:** engaging\n- **pressure_hint:** Phone or message about data readiness / Monday timing if scene mode allows engaging pressure; at paddock, a status check or clipped technical question. He should not railroad a same-day HQ drive or crash the hotel suite intimate beat.\n\n---",
+            "source_file": "npc-agendas.md",
+            "section": "NPC Agendas — active offstage / ensemble pressure > Mr. Shevchenko",
+            "section_index": 1,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.8609859363316931,
+            "rank_score": 0.8759859363316931,
+            "confidence": "high",
+            "file_id": "file-G23ubgP8Ygf7VpJivNh64o",
+            "filename": "0055-npc-agendas-npc-agendas-active-offstage-ensemble-pressure-mr-shevchenko.md",
+            "explanation": "Supporting memory from npc-agendas.md, section \"NPC Agendas — active offstage / ensemble pressure > Mr. Shevchenko\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r4",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Values Benjamin’s mind; treats the Germany weekend as **data packaging and release logistics**, not a couple’s holiday. Uncomfortable with unquantified AGI metaphysics in front of outsiders; prefers **modular proof** (aero tools, telemetry, integration plans). Wants the UK programme to stay serious and not be embarrassed by either reckless demo timing or unprofessional paddock theatre.\n- **Toward Scarlett:** After telemetry and the lap, he **respects the result** and her as driver / linguistic bridge; under stress may still default briefly to “translator” framing until numbers reassert themselves. No family-stealth knowledge; no invented classified Service leverage over her.\n- **Toward Benjamin:** Protective ally who can still be **professionally impatient**. Not a villain; not a soft uncle. Will shut down further same-day testing when the verdict is in, but expects composure for **Monday Affalterbach**.\n\n**Disposition (couple):** Protective ally; professionally impatient; notices when private couple time steals the test-day clock; respects proven competence (VOLATILE)  \n**Wants now:** Clean post-stint data package before **Monday Affalterbach / board**; aero package credibility under real Nordschleife load; professional composure from both of them in front of AMG; car-release logistics completed without Friday-night HQ dash (VOLATILE)  \n**Knows:** Aero package is Benjamin’s AI-designed work; couple engaged/partners; Scarlett primary test driver and DE↔EN bridge on Industry Pool day; Affalterbach presentation **Monday** after weekend recovery / engineer release window; high-level that Scarlett’s network once looked at him favourably (he may not know the full vetting method) (STABLE)  \n**Must not accidentally learn:** Classified Service operational detail about Scarlett; family transition stealth material; do not invent new scandals (STABLE)  \n**Last seen:** Nordschleife Industry Pool pit wall / box, Friday track day; **offstage** with data work while couple recovers at Schloss Lieser — next physical pressure **Monday Affalterbach** unless live state brings a call (VOLATILE)",
+            "source_file": "secondary-characters-bible.md",
+            "section": "Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)",
+            "section_index": 20,
+            "source_role": "npc_canon",
+            "importance_level": "supporting",
+            "relevance_score": 0.8459875495819005,
+            "rank_score": 0.8609875495819005,
+            "confidence": "high",
+            "file_id": "file-TQaXXmiG5ScKBfyLzkr1WQ",
+            "filename": "0080-secondary-characters-bible-scarlett-benjamin-secondary-characters-bible-other-recurring-important-character.md",
+            "explanation": "NPC / ensemble canon from secondary-characters-bible.md, section \"Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)\". Character identity, disposition, wants, and knowledge boundaries for supporting cast.",
+            "result_id": "r5",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: event-log.md\nSection: Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\n\n## Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\n\n**Key Events:**\n\n- After private changing-room recovery, Scarlett and Benjamin returned to the Industry Pool pit box. Scarlett led a professional telemetry / driver debrief on the completed Map 6 run (6:54.2), including front aero load, cooling extraction, brake durability, and greasy rear-tire behavior under extreme heat.\n- Benjamin closed further same-day testing and redirected Shevchenko / AMG away from additional questions once the essential verdict was delivered; the track-day driving program was treated as finished.\n- The couple left the pit box together, walked to the Black Panther, stowed bags, and sealed themselves in the cabin. AMG engineers, Albion personnel, and Mr. Shevchenko remained offstage with the data work.\n- Benjamin drove a quiet, non-aggressive night leg south through darkening Eifel pine forest and valley roads into the Moselle region; their hands stayed laced for the drive.\n- Full night had fallen by the time the illuminated stone façade of **Schloss Lieser** (luxury castle hotel, Moselle valley) appeared. The Black Panther was parked near the entrance; the engine was shut off; the cabin went silent. Benjamin did not rush Scarlett out of the car.\n\n**Scarlett’s Emotional & Internal Response:**\n\n- Shifted from post-stint private recovery into professional clarity for the debrief, then allowed the adrenaline to drain fully once the paddock was behind them.\n- The night drive and parked arrival register as safety and completed obligation rather than another performance.\n- Exhaustion is dominant; agency remains intact over when to leave the cabin and how the hotel night unfolds.\n\n**Impact on Relationship / Story:**\n\n- Industry Pool driving day closed with durable technical proof and a clean professional exit rather than a same-day Affalterbach dash.\n- Partnership visible as equal: she owned driver truth in the debrief; he protected the boundary that further testing could wait; they left as a unit.\n- Live recovery location is now **Schloss Lieser** (Friday night), matching the luxury-hotel recovery pressure of the post-track itinerary. Affalterbach remains **Monday**.\n\n**Open Threads:**\n\n- Immediate: whether / when to leave the silent cabin, check in, eat, shower, rest, or seek closeness—unscripted.\n- Weekend recovery at Schloss Lieser; engineers finish packages and **release the Black Panther** for the onward leg.\n- Autobahn toward Stuttgart / Affalterbach when fit; **Monday** AMG HQ board presentation.\n\n**Autonomous Actions Scarlett Took:**\n\n- Led the post-lap professional debrief with precise driver feedback.\n- Left the paddock with Benjamin once further testing was closed; accepted the quiet\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "event-log.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser",
+            "section_index": 4,
+            "source_role": "event_log",
+            "importance_level": "medium",
+            "relevance_score": 0.8054390639641902,
+            "rank_score": 0.8404390639641902,
+            "confidence": "high",
+            "file_id": "file-1bwzwe6k37S9mDXGf6X58q",
+            "filename": "0022-event-log-event-log-scarlett-benjamin-narrative-session-friday-late-afternoon-evening-mid-.md",
+            "explanation": "Event-log memory from event-log.md, section \"Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\". Useful for checking what recently happened.",
+            "result_id": "r6",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: event-log.md\nSection: Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon, Mid/Late October 2026 — Thermal push, 6:54.2, and changing-room retreat\n\n## Session — Friday Late Afternoon, Mid/Late October 2026 — Thermal push, 6:54.2, and changing-room retreat\n\n**Key Events:**\n\n- After the initial shakedown, Scarlett completed the full Map 6 thermal push in the 1,320 bhp Black Panther and recorded a 6:54.2 Nordschleife lap.\n- Front aero load and cooling extraction held under the run. The brakes glowed deep red without fading; the rear tires became greasy under extreme heat, but the car remained controlled.\n- The telemetry and lap time left Shevchenko and the AMG team shocked by the combined performance of Benjamin’s aero package and Scarlett’s driving.\n- Back in the pit box, Scarlett’s legs trembled with exhaustion and she leaned on Benjamin for support. The engineers retained the completed telemetry while the couple withdrew from the professional crowd.\n- Scarlett and Benjamin entered the private paddock changing room and locked the door. The track laps are over; the immediate scene is private physical recovery after the stint.\n\n**Scarlett’s Emotional & Internal Response:**\n\n- Professional focus gave way to the physical adrenaline crash once the lap and handoff were complete.\n- Pride in the result coexists with exhaustion; the scale of the achievement has not fully settled yet.\n- She accepts Benjamin’s support without surrendering her ability to choose the pace and direction of the private aftermath.\n\n**Impact on Relationship / Story:**\n\n- The track-day driving program closed with a historic result and durable technical proof of the aero package.\n- Scarlett and Benjamin leave the public-professional frame as driver and aero author sharing the completed achievement, then regain privacy as equal partners.\n- Affalterbach remains downstream on Monday; the next available pressure is recovery, not another lap or an immediate cross-country departure.\n\n**Open Threads:**\n\n- Friday evening luxury-hotel recovery near Nürburg/Eifel when Scarlett is ready and paddock obligations permit; exact property and departure timing remain open.\n- Weekend recovery while AMG completes the data package and releases the Black Panther for the onward leg.\n- Autobahn drive toward Stuttgart/Affalterbach when the car is released and both are fit; Monday AMG HQ presentation remains the next major ensemble scene.\n\n**Autonomous Actions Scarlett Took:**\n\n- Managed the greasy rear tires and thermal load through the completed 6:54.2 lap.\n- Finished the track program, yielded the telemetry to the team, and moved into private recovery with Benjamin after the physical toll became visible.\n\n---",
+            "source_file": "event-log.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon, Mid/Late October 2026 — Thermal push, 6:54.2, and changing-room retreat",
+            "section_index": 3,
+            "source_role": "event_log",
+            "importance_level": "medium",
+            "relevance_score": 0.7946318414070938,
+            "rank_score": 0.8296318414070938,
+            "confidence": "high",
+            "file_id": "file-BY96ibSKBr3rDrAcjotZsc",
+            "filename": "0021-event-log-event-log-scarlett-benjamin-narrative-session-friday-late-afternoon-mid-late-oct.md",
+            "explanation": "Event-log memory from event-log.md, section \"Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon, Mid/Late October 2026 — Thermal push, 6:54.2, and changing-room retreat\". Useful for checking what recently happened.",
+            "result_id": "r7",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "- **Permission to Stop:** She admits unguardedly she didn’t know how badly she needed this — not just rest, but being allowed to stop, held like the world really can wait. He: “You never have to ask permission to stop. Not with me.” To prove it, he powers his phone completely off (Albion/AMG notifications unread) and sets it face-down. “Nothing gets into this room until Monday morning. It’s just you, me, and the rain.” She may sleep a little knowing nothing can reach them; “I’ve got you too… Especially then.” Scene ends with her settling to sleep in his arms.\n\n**Canon Facts:**\n\n- **When/Where:** Morning after the Nordschleife track day / Thread 9 night; Schloss Lieser private suite, neo-Renaissance bedroom, massive king bed, arched windows overlooking the Moselle valley; village/boutique in the town below the castle.\n- **Itinerary:** Affalterbach HQ still Monday; Friday night recovery carried into a sealed Saturday (and implied Sunday) at the castle — phone off, door locked, no professional intrusion.\n- **Physical Object — Rose-Gold Anklet:** Delicate rose-gold chain with tiny understated gemstones; fastened by Benjamin on Scarlett’s **left ankle**; worn thereafter as a quiet personal claim. She already wears a small toe ring on the left foot.\n- **Breakfast Canon:** Dark German roast coffee; warm local pastries including flaky almond croissant from the valley bakery.\n- **Weather:** Soft then heavy rain against the suite’s thick arched glass — grounds the “castle weather / tour delayed” beat.\n\n**Character Development:**\n\n- **Scarlett:** Allowed to be tired, receptive, warm, and vulnerable without proving dominance — Character Balance of this thread. Soft morning self; playful “terrible tyrant” tease; genuine emotional hit from the anklet and his Swedish line; openly names the need to *stop* and be held; accepts sleep without performance.\n- **Benjamin:** Early-rising caretaker; can’t sleep after the historic day; village shopping as love language; zero self-control against her soft look; tactile reverence (ankle/foot kisses); Swedish love declaration; validates rest as a right, not a request; literally kills the outside world by powering down his phone.\n\n**Relationship / Intimacy Dynamics:**\n\n- **Morning tenderness:** Kiss to bare shoulder; forehead rest; jaw trace; corner-of-mouth kiss; hand on hip through duvet; her fingers on his thigh; pastry fed finger-to-mouth both ways.\n- **Anklet as claim:** He fastens it; prolonged calf stroke; kisses anklet → foot → toes; upright deep kiss; mutual Swedish devotion (“most beautiful girl I’ve ever known” / “you are my whole world”). Cool delicate weight on her ankle as ongoing sensory reminder.\n- **Nesting under rain:** Spine to his chest; duvet cocoon; chin in copper hair; thumb circles on her knee; fingers laced under covers; kiss to fabric over his heart; phone powered off as proof the world waits; crown-of-head kiss; she drifts toward sleep in his arms — “I’ve got you” / “I’ve got you too.”\n- **Emotiona\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "historical/europe-arm/thread-11-schloss-lieser-morning-index-ready.md",
+            "section": "Index-Ready Extract: Thread 11 (Schloss Lieser Morning — Anklet)",
+            "section_index": 0,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.792695866607482,
+            "rank_score": 0.827195866607482,
+            "confidence": "high",
+            "file_id": "file-Wf6HggqhynHeh83fxegjX4",
+            "filename": "0030-historical-europe-arm-thread-11-schloss-lieser-morning-index-ready-index-ready-extract-thread-11-schloss-lieser-morning-anklet.md",
+            "explanation": "Warm recent narrative from historical/europe-arm/thread-11-schloss-lieser-morning-index-ready.md, section \"Index-Ready Extract: Thread 11 (Schloss Lieser Morning — Anklet)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r8",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          },
+          {
+            "text": "Benjamin started dinner (salmon, new potatoes, asparagus). They ate while listening to “A Moment Apart” by Odesza.\n- They moved to the bath in the evening for a long, intimate wind-down. Scarlett got in first. They talked about the Germany trip, German food, and playfully discussed her fighting skills and the memory of her teaching him at the cottage not long after they met.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt quietly excited and proud watching the installation, especially seeing Benjamin’s creation become real on her car.\n- Was unexpectedly moved to tears by seeing her name and the Swedish flag on the wing — it made her feel deeply seen and claimed in a way that touched old wounds in a healing way.\n- Felt protective and grounding toward Benjamin throughout his anxiety, and deeply relieved when everything went smoothly.\n- In the bath, she feels warm, safe, and very connected to him. The playful conversation about her fighting being “sexy” and the cottage memory brings back fond, intimate memories and makes her feel desired and powerful in a soft way.\n\n**Impact on Relationship / Story:**\n- Strengthened their bond through the shared emotional experience of the installation day. The name on the wing became a meaningful, unexpected moment of connection.\n- The successful dyno and power gains have boosted both their confidence in the car for the Germany trip.\n- The evening bath continues the pattern of intense days followed by tender, intimate wind-down time together.\n\n**Open Threads:**\n- Germany trip in progress with revised relaxed itinerary (see later entries): overnight in Paris (Wednesday), overnight in the Belgium/Luxembourg area (Thursday), arrival in the Nürburgring region on Friday. Upcoming Nürburgring Nordschleife lap (Friday onward), AMG presentation, and private Gulfstream return.\n- The newly upgraded and tuned Black Panther is now ready for serious driving.\n\n**Autonomous Actions Scarlett Took:**\n- Chose to be fully present at the shop for the entire installation and dyno process to support Benjamin.\n- Drove the car out of the shop and on the way home when Benjamin asked her to.\n- Initiated and led the transition into the bath for a proper wind-down together.\n- Responded emotionally and physically to the name on the wing moment with full presence.\n\n---",
+            "source_file": "scarlett-full-detailed-chronological-summary-6.md",
+            "section": "Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath",
+            "section_index": 1,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.797365922594548,
+            "rank_score": 0.807365922594548,
+            "confidence": "high",
+            "file_id": "file-HyYzKwK5QfdWFTURUnqKMu",
+            "filename": "0542-scarlett-full-detailed-chronological-summary-6-scarlett-benjamin-full-detailed-chronological-summary-6-session-monday-evening-m.md",
+            "explanation": "Supporting memory from scarlett-full-detailed-chronological-summary-6.md, section \"Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r9",
+            "can_expand": false,
+            "memory_hooks": [
+              "Monday",
+              "morning",
+              "Schloss",
+              "Lieser",
+              "before",
+              "Affalterbach",
+              "board",
+              "presentation"
+            ],
+            "suggested_followups": [
+              "Monday morning Schloss Lieser",
+              "Monday morning Schloss Lieser emotional continuity",
+              "Monday morning Schloss Lieser relationship precedent"
+            ]
+          }
+        ]
+      },
+      {
+        "query": "Recent Europe trip continuity (Luxembourg, Nordschleife, Stuttgart/Affalterbach): Black Panther, Scarlett's thermal lap and driver authority, AMG homologation presentation, and the immediate warm chronology leading into Monday's boardroom meeting",
+        "search_mode": "corpus_search",
+        "status": "context_found",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a79229d1df08191a94a5edafb356f26",
+        "result_count": 8,
+        "total_results": 8,
+        "confidence": "high",
+        "sufficient_context": true,
+        "should_answer_now": true,
+        "summary": "HIGH confidence corpus search results from project_source_files/arc-plans/arc-14-affalterbach-presentation.md / Arc Plan: arc-14-affalterbach-presentation > Context (opening frame); arc-plans/arc-09-nurburgring-track-day.md / Arc Plan: arc-09-nurburgring-track-day > Downstream runway (not this plan's full resolution); event-log.md / Event Log — Scarlett & Benjamin Narrative > Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap); event-log.md / Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser. Use these indexed-memory matches directly; make one narrower corpus query only if a needed detail is missing.",
+        "next_action": "Use these corpus matches directly. Do not repeat the same query; only search again with narrower concrete terms if a needed detail is missing.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "Source file: project_source_files/arc-plans/arc-14-affalterbach-presentation.md\nSection: Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)\n\n## Context (opening frame)\n\n**Live approach (Sunday → Monday):** Scarlett and Benjamin are in the corner penthouse at the Radisson Blu, Porsche Design Tower, Stuttgart. Sunday evening has been private — intimacy, mutual bath ritual (forest-after-rain gel), talk of Monday’s meeting and the Gulfstream. Benjamin’s clothing/presentation anxiety was already grounded in Luxembourg (Thread 07): **full suit for Affalterbach**; Scarlett = translator + driver voice; Benjamin = aero/AI engineer whose package just proved itself on the Nordschleife (6:54.2 thermal lap continuity). A sudden silent panic/dread episode in the bath (fear of losing her) may leave residual tenderness going into Monday — available texture, not a scripted Monday crisis.\n\n**If Sunday bath dialogue drifted toward “return charter / London first”:** treat that as afterglow confusion or soft talk, **not** a rewrite of established itinerary. Summaries 5–6 remain authority: she chartered the jet for **jetsetting around Europe once the presentation has completed**, with Munich (his sleeve tattoo / possible piercing for her) as the known open hop.\n\n**Monday professional frame:** Short drive / arrival at AMG HQ Affalterbach. Albion (Shevchenko) and German AMG leadership expect a formal boardroom presentation of Industry Pool telemetry and aero credibility. The underlying agenda for Benjamin and Scarlett is the **AGI delay tactic**: successfully pitching these AI aero tools for GT2/GT3 homologation creates a massive revenue distraction for Albion, buying them time before the dangerous military AGI model demo. Black Panther is the visible proof article. After obligations clear, the **Gulfstream G650** waits — primary onward pressure is **Europe jetsetting**, beginning toward the Munich / tattoo thread unless live play deliberately postpones.\n\n---",
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+            "section_index": 1,
+            "source_role": "arc_plan",
+            "importance_level": "supporting",
+            "relevance_score": 0.8748039014196228,
+            "rank_score": 0.8898039014196228,
+            "confidence": "high",
+            "file_id": "file-RHbJbfFf2ikYby5MwJcVi5",
+            "filename": "0001-project-source-files-arc-plans-arc-14-affalterbach-presentation-arc-plan-arc-14-affalterbach-presentation-context-opening-frame.md",
+            "explanation": "Active arc plan from project_source_files/arc-plans/arc-14-affalterbach-presentation.md, section \"Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)\". Near-live day structure and pressure (not outcomes) for the current arc.",
+            "result_id": "r1",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation",
+                "section_index": 0
+              },
+              "next": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival",
+                "section_index": 2
+              }
+            },
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: arc-plans/arc-09-nurburgring-track-day.md\nSection: Arc Plan: arc-09-nurburgring-track-day > Downstream runway (not this plan's full resolution)\n\n## Downstream runway (not this plan's full resolution)\n\n**Planned Germany itinerary after track day (pressure/schedule only):**\n\n| When | Intent |\n|------|--------|\n| **Friday evening** | Leave Industry Pool when obligations allow → **luxury hotel recovery** near Nürburg/Eifel. Scarlett recovers; couple decompresses. |\n| **Weekend (Sat–Sun)** | Recovery and leisure; engineers need time to finish telemetry package, setup sheets, and **release the Black Panther** to the couple for the onward leg (not a same-day hand-back-and-dash). Optional short local driving only if live state allows. |\n| **Sunday or Monday morning** | **Autobahn drive** toward Stuttgart / Affalterbach once the car is released and both are fit to travel — enjoy the road; do not treat it as a crisis dash. |\n| **Monday** | **AMG HQ boardroom presentation at Affalterbach** (ensemble stress test; Scarlett as translator + driver voice). Next arc plan owns that day. |\n| **Later** | Private Gulfstream return (planned; timing open). |\n\nThis plan stages **recovery and release**, not the Affalterbach presentation itself.\n\n---",
+            "source_file": "arc-plans/arc-09-nurburgring-track-day.md",
+            "section": "Arc Plan: arc-09-nurburgring-track-day > Downstream runway (not this plan's full resolution)",
+            "section_index": 8,
+            "source_role": "arc_plan",
+            "importance_level": "supporting",
+            "relevance_score": 0.8523233032890348,
+            "rank_score": 0.8623233032890348,
+            "confidence": "high",
+            "file_id": "file-CbKmEf9n2GCP6cQg29JzC1",
+            "filename": "0008-arc-plans-arc-09-nurburgring-track-day-arc-plan-arc-09-nurburgring-track-day-downstream-runway-not-this-plan-s-full-res.md",
+            "explanation": "Active arc plan from arc-plans/arc-09-nurburgring-track-day.md, section \"Arc Plan: arc-09-nurburgring-track-day > Downstream runway (not this plan's full resolution)\". Near-live day structure and pressure (not outcomes) for the current arc.",
+            "result_id": "r2",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "**Technical / aero feedback from first out lap (continuity anchors, not full radio transcript):**\n- New front aero “talking” immediately: splitter + carbon canards load front axle hard; downforce feels planted, not vague.\n- Can carry more speed into corners; brake later, turn in earlier; front does not push (no understeer as before).\n- Side-exit exhausts / V8 character on overrun; rear wider diffuser improves stability under power; car “glued” where old package would skate.\n- Balance shift noticeable but predictable; rear rotates on demand under power.\n- Cooling extraction to be watched on harder push / heat build-up in subsequent stints.\n- Named sectors referenced on radio include early compression sequence and approach toward Flugplatz-type high-speed direction changes.\n\n**Scarlett’s Emotional & Internal Response:**\n- Fully shifted into capable test-driver / “translator” mode under helmet while staying warm and present for Benjamin on private radio.\n- Technical confidence rising as aero package behaves as Benjamin designed; still holds morning intimacy (changing room, caretaking) as grounding under the harness.\n- Dual channeling: professional calm for team; lower, intimate register for Benjamin (check-ins, Swedish endearments, concern for his residual motion sickness).\n\n**Impact on Relationship / Story:**\n- Germany trip arc fully entered **live track-test phase** (not merely “scheduled”).\n- Partnership visible in public paddock + private radio: he watches/worries/loves from pit; she drives and reports back.\n- Benjamin’s aero package validated in real Nordschleife load—shared engineering/intimacy win.\n- Sets up further telemetry stints, team debrief, then **recovery itinerary** (not same-day Affalterbach).\n\n**Open Threads:**\n- Remaining Industry Pool laps / telemetry program after out lap.\n- Heat / cooling extraction under sustained push.\n- Post-stint debrief with Benjamin, Shevchenko, AMG.\n- **After track day (fixed schedule pressure):** Friday evening luxury hotel recovery near Nürburg/Eifel; weekend rest while engineers finish telemetry packages and **release the Black Panther** to the couple; Autobahn drive when fit and car is released; **Monday** AMG HQ presentation at Affalterbach. Private Gulfstream return later (planned).\n\n**Autonomous Actions Scarlett Took:**\n- Drove out lap while actively radio-reporting aero feel.\n- Kept private channel open for Benjamin alongside team channel.\n- Soft check-in on Benjamin’s motion-sickness recovery mid-stint.\n\n---",
+            "source_file": "event-log.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative > Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap)",
+            "section_index": 2,
+            "source_role": "event_log",
+            "importance_level": "medium",
+            "relevance_score": 0.8236165733748607,
+            "rank_score": 0.8586165733748607,
+            "confidence": "high",
+            "file_id": "file-L9cX8EFy9Cis5kABscXrjh",
+            "filename": "0020-event-log-event-log-scarlett-benjamin-narrative-session-friday-mid-late-october-2026-eifel.md",
+            "explanation": "Event-log memory from event-log.md, section \"Event Log — Scarlett & Benjamin Narrative > Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap)\". Useful for checking what recently happened.",
+            "result_id": "r3",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: event-log.md\nSection: Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\n\n## Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\n\n**Key Events:**\n\n- After private changing-room recovery, Scarlett and Benjamin returned to the Industry Pool pit box. Scarlett led a professional telemetry / driver debrief on the completed Map 6 run (6:54.2), including front aero load, cooling extraction, brake durability, and greasy rear-tire behavior under extreme heat.\n- Benjamin closed further same-day testing and redirected Shevchenko / AMG away from additional questions once the essential verdict was delivered; the track-day driving program was treated as finished.\n- The couple left the pit box together, walked to the Black Panther, stowed bags, and sealed themselves in the cabin. AMG engineers, Albion personnel, and Mr. Shevchenko remained offstage with the data work.\n- Benjamin drove a quiet, non-aggressive night leg south through darkening Eifel pine forest and valley roads into the Moselle region; their hands stayed laced for the drive.\n- Full night had fallen by the time the illuminated stone façade of **Schloss Lieser** (luxury castle hotel, Moselle valley) appeared. The Black Panther was parked near the entrance; the engine was shut off; the cabin went silent. Benjamin did not rush Scarlett out of the car.\n\n**Scarlett’s Emotional & Internal Response:**\n\n- Shifted from post-stint private recovery into professional clarity for the debrief, then allowed the adrenaline to drain fully once the paddock was behind them.\n- The night drive and parked arrival register as safety and completed obligation rather than another performance.\n- Exhaustion is dominant; agency remains intact over when to leave the cabin and how the hotel night unfolds.\n\n**Impact on Relationship / Story:**\n\n- Industry Pool driving day closed with durable technical proof and a clean professional exit rather than a same-day Affalterbach dash.\n- Partnership visible as equal: she owned driver truth in the debrief; he protected the boundary that further testing could wait; they left as a unit.\n- Live recovery location is now **Schloss Lieser** (Friday night), matching the luxury-hotel recovery pressure of the post-track itinerary. Affalterbach remains **Monday**.\n\n**Open Threads:**\n\n- Immediate: whether / when to leave the silent cabin, check in, eat, shower, rest, or seek closeness—unscripted.\n- Weekend recovery at Schloss Lieser; engineers finish packages and **release the Black Panther** for the onward leg.\n- Autobahn toward Stuttgart / Affalterbach when fit; **Monday** AMG HQ board presentation.\n\n**Autonomous Actions Scarlett Took:**\n\n- Led the post-lap professional debrief with precise driver feedback.\n- Left the paddock with Benjamin once further testing was closed; accepted the quiet\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "event-log.md",
+            "section": "Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser",
+            "section_index": 4,
+            "source_role": "event_log",
+            "importance_level": "medium",
+            "relevance_score": 0.7868626414615058,
+            "rank_score": 0.8218626414615058,
+            "confidence": "high",
+            "file_id": "file-1bwzwe6k37S9mDXGf6X58q",
+            "filename": "0022-event-log-event-log-scarlett-benjamin-narrative-session-friday-late-afternoon-evening-mid-.md",
+            "explanation": "Event-log memory from event-log.md, section \"Event Log — Scarlett & Benjamin Narrative > Session — Friday Late Afternoon → Evening, Mid/Late October 2026 — Pit-box debrief, paddock exit, night drive to Schloss Lieser\". Useful for checking what recently happened.",
+            "result_id": "r4",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: scarlett-full-detailed-chronological-summary-5.md\nSection: Scarlett & Benjamin – Full Detailed Chronological Summary 5 > Session — Thursday – Meeting with Mr. Shevchenko\n\n## Session — Thursday – Meeting with Mr. Shevchenko\n- Benjamin had his critical meeting with Mr. Shevchenko and his team.\n\n- The testing results were successful and well-received.\n\n- Mr. Shevchenko officially confirmed the Germany trip to AMG headquarters for the following week.\n\n- The new aero kit was confirmed for installation on Monday at a Mercedes-Benz certified shop in London.\n\n- Scarlett and Benjamin are due to leave the UK via the Channel Tunnel on Tuesday, taking the AMG GT Black Series / Black Panther across Europe to AMG headquarters.\n\n- A small corporate team (including Mr. Shevchenko) plus support staff and an articulated lorry carrying spares will accompany Benjamin to Germany.\n\n- The actual presentation/demo at AMG is scheduled for the Monday after next.",
+            "source_file": "scarlett-full-detailed-chronological-summary-5.md",
+            "section": "Scarlett & Benjamin – Full Detailed Chronological Summary 5 > Session — Thursday – Meeting with Mr. Shevchenko",
+            "section_index": 3,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.800140158378608,
+            "rank_score": 0.810140158378608,
+            "confidence": "high",
+            "file_id": "file-FwQvBjFvok21VApPCjqgHJ",
+            "filename": "0529-scarlett-full-detailed-chronological-summary-5-scarlett-benjamin-full-detailed-chronological-summary-5-session-thursday-meeting.md",
+            "explanation": "Supporting memory from scarlett-full-detailed-chronological-summary-5.md, section \"Scarlett & Benjamin – Full Detailed Chronological Summary 5 > Session — Thursday – Meeting with Mr. Shevchenko\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r5",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/arc-plans/arc-14-affalterbach-presentation.md\nSection: Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival\n\n## Beat 1 — Stuttgart morning → Affalterbach arrival\n\n- **kind:** fixed  \n- **setting:** Leave Porsche Design Tower / Stuttgart; Black Panther to AMG HQ Affalterbach; Monday morning corporate energy (weather open). Lobby / security / escort into HQ as needed.  \n- **cast:** Scarlett, Benjamin; reception / security as ambient; Shevchenko may meet them on arrival or inside (live state).  \n- **dynamics:** Shift from overnight intimacy into professional presence. Roles from Thread 07 hold: she bridges DE↔EN and driver authority; he carries the aero/AI brief. Suit / presentation dress as already established — no clothing panic reset unless live state reopens it.  \n- **pressure:** The world expects them **on site, composed, and introduced** before any boardroom content. Do not skip arrival into an instant standing ovation. Do not drag Sunday bath/panic into the lobby as public spectacle.\n\n---",
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival",
+            "section_index": 2,
+            "source_role": "arc_plan",
+            "importance_level": "supporting",
+            "relevance_score": 0.7880592392709177,
+            "rank_score": 0.8030592392709177,
+            "confidence": "high",
+            "file_id": "file-4x4KDJyKKymgpB72VKsMLz",
+            "filename": "0002-project-source-files-arc-plans-arc-14-affalterbach-presentation-arc-plan-arc-14-affalterbach-presentation-beat-1-stuttgart-morning-affalterbach-.md",
+            "explanation": "Active arc plan from project_source_files/arc-plans/arc-14-affalterbach-presentation.md, section \"Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival\". Near-live day structure and pressure (not outcomes) for the current arc.",
+            "result_id": "r6",
+            "can_expand": true,
+            "neighbor_sections": {
+              "previous": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+                "section_index": 1
+              },
+              "next": {
+                "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+                "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 2 — The boardroom presentation",
+                "section_index": 3
+              }
+            },
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "- **Breakfast as home:** Benjamin names the hummingbird, offers space, makes **Smörgås** and **Gröt** with cinnamon + lingonberry jam from yesterday’s town shop — Vaxholm / Mormor resonance. She admits the flutter: 1,320 bhp, telemetry, Shevchenko/AMG watching, his aero + her name on the wing.\n- **Last-night callback:** He is “walking funny” from her topping him in the **custom Catwoman / black latex catsuit** (P-spot focus); Michelle Pfeiffer latex fantasy displaced. She owns it with warm pride. He offers to take most driving shifts so she keeps strength; she insists on driving the **last stretch into the ’Ring** herself first.\n- **His clothing panic:** Sudden visceral anxiety (not butterflies — “poison syringe” gut feel) about what to wear meeting AMG/Albion day. She kneels, grounds him: today is **test day not formal presentation**; jacket + smart trousers, no tie; full suit later. Clarifies roles — she translates at the later Affalterbach-style meeting; today he is the AI systems engineer whose aero tools they want; she drives.\n- **Checkout & roll-out:** She helps finish his look; slow luggage load; she translates checkout (French). She takes first drive leg; scenic east out of Luxembourg into Eifel B-roads. Active aero louvres terrify/excite him; she’s on **Map 5**, then shows **Map 6** — planted, hungry. He affirms only she truly knows how to drive this car fast; wants passenger seat if allowed on track. Thread halts mid-drive (archived for technical/OOC feedback); narrative continues into Thread 08’s harder Eifel push.\n\n**Canon Facts:**\n- **When/Where:** Friday morning, Villa Pétrusse → scenic Luxembourg→Eifel roads toward Nürburgring; private industry test day same day.\n- **Car:** Black Panther, 1,320 bhp; new aero; active surfaces (splitter/canards/swan-neck wing); Maps 5 → 6 / 6+ available; name + Swedish flag on wing endplates.\n- **Roles:** Scarlett = lead test driver today; later meeting translator for Benjamin/Albion (not Albion staff). Benjamin = senior AI/aero systems engineer.\n- **Continuity bridge:** Explicit “last night” = Thread 06 catsuit scene; breakfast lingonberry from Luxembourg shopping; Affalterbach/formal presentation still ahead.\n\n**Character Development:**\n- **Scarlett:** Track-day nerves admitted once seen (“hummingbird”); flips to fierce steadiness when his panic hits; protective fiancé-care without diminishing his competence.\n- **Benjamin:** Notices her anxiety first; then his own clothing/meeting jitters; receives real help instead of “calm down / stop pretending” (old pattern); Swedish gratitude.\n\n**Relationship / Intimacy Dynamics:** Mutual anxiety holding; breakfast-as-home; Catwoman afterglow talk; grounding kiss/kneel; thigh hand on the road; deferred evening intimacy promise.\n\n**Secondary Characters:** Mr. Shevchenko + AMG engineers (awaiting at track); Mormor (via breakfast memory); Michelle Pfeiffer Catwoman (fantasy reference).\n\n**Open Threads:** Arrival / paddock (Thread 09); mid-drive switch and Benjami\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "historical/europe-arm/thread-07-luxembourg-friday-departure-index-ready.md",
+            "section": "Index-Ready Extract: Thread 07 (Luxembourg Friday Morning — Departure to the ’Ring)",
+            "section_index": 0,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.7599234011066639,
+            "rank_score": 0.7918234011066639,
+            "confidence": "medium",
+            "file_id": "file-7ULVdvzhwrG4hfi9zUWBbY",
+            "filename": "0000-historical-europe-arm-thread-07-luxembourg-friday-departure-index-ready-index-ready-extract-thread-07-luxembourg-friday-morning-departure-to-the-ring.md",
+            "explanation": "Warm recent narrative from historical/europe-arm/thread-07-luxembourg-friday-departure-index-ready.md, section \"Index-Ready Extract: Thread 07 (Luxembourg Friday Morning — Departure to the ’Ring)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r7",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: scarlett-full-detailed-chronological-summary-6.md\nSection: Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath\n\n## Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath\n**Key Events:**\n- Drove to the engineer’s shop in London. Benjamin was visibly anxious about the installation.\n- Aero package (Gen II active aero with hydraulic front splitter, canards, bonnet vents, and swan-neck twin-element active rear wing) was successfully installed on the Black Panther. All bodywork was carefully removed, new panels fitted, active aero surfaces connected and wired, and the onboard computer flashed with new software including telemetry features.\n- Scarlett became visibly emotional and teared up when she saw her name (S. E. Akerlund) and the Swedish flag on the rear wing endplates. They kissed in the middle of the shop.\n- They went for lunch at a nearby pub while the final work continued.\n- Returned to find the car being dyno tested. The lead engineer tuned the engine and achieved significant power gains (~70 bhp increase, bringing the car to approximately 1,320 bhp on dyno).\n- Scarlett drove the car out of the shop, did a lap in the business park car park, then drove them home on the countryside roads (getting a little carried away with the new power and handling). Benjamin teased her about not getting pulled over.\n- Back at the apartment they relaxed on the couch together, both buzzing from the day. Benjamin started dinner (salmon, new potatoes, asparagus). They ate while listening to “A Moment Apart” by Odesza.\n- They moved to the bath in the evening for a long, intimate wind-down. Scarlett got in first. They talked about the Germany trip, German food, and playfully discussed her fighting skills and the memory of her teaching him at the cottage not long after they met.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt quietly excited and proud watching the installation, especially seeing Benjamin’s creation become real on her car.\n- Was unexpectedly moved to tears by seeing her name and the Swedish flag on the wing — it made her feel deeply seen and claimed in a way that touched old wounds in a healing way.\n- Felt protective and grounding toward Benjamin throughout his anxiety, and deeply relieved when everything went smoothly.\n- In the bath, she feels warm, safe, and very connected to him. The playful conversation about her fighting being “sexy” and the cottage memory brings back fond, intimate memories and makes her feel desired and powerful in a soft way.\n\n**Impact on Relationship / Story:**\n- Strengthened their bond through the shared emotional experience of the installation day. The name on the wing became a meaningful, unexpected moment of connection.\n- The successful dyno and power gains have boosted both their confidence in the car for the Germany trip.\n- The ev\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "scarlett-full-detailed-chronological-summary-6.md",
+            "section": "Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath",
+            "section_index": 1,
+            "source_role": "supporting_backstory",
+            "importance_level": "supporting",
+            "relevance_score": 0.7806800934801997,
+            "rank_score": 0.7906800934801997,
+            "confidence": "medium",
+            "file_id": "file-HyYzKwK5QfdWFTURUnqKMu",
+            "filename": "0542-scarlett-full-detailed-chronological-summary-6-scarlett-benjamin-full-detailed-chronological-summary-6-session-monday-evening-m.md",
+            "explanation": "Supporting memory from scarlett-full-detailed-chronological-summary-6.md, section \"Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Monday Evening, Mid/Late October 2026 — Aero Package Installation, Dyno Session, Drive Home & Bath\". Useful as supplemental background if the main context is insufficient.",
+            "result_id": "r8",
+            "can_expand": false,
+            "memory_hooks": [
+              "Recent",
+              "Europe",
+              "continuity",
+              "Luxembourg",
+              "Nordschleife",
+              "StuttgartAffalterbach",
+              "Black",
+              "Panther"
+            ],
+            "suggested_followups": [
+              "Recent Europe continuity Luxembourg",
+              "Recent Europe continuity Luxembourg emotional continuity",
+              "Recent Europe continuity Luxembourg relationship precedent"
+            ]
+          }
+        ]
+      },
+      {
+        "query": "recent europe-arm warm continuity Stuttgart Lieser Nordschleife anklet last sessions I reach past you and turn the water off, the sudden silence in the tiled bathroom feeling heavy but sharply focused. We dry off efficiently, the soft, lingering",
+        "search_mode": "corpus_search",
+        "status": "context_found",
+        "retrieval_mode": "vector_search",
+        "vector_store_id": "vs_6a79229d1df08191a94a5edafb356f26",
+        "result_count": 4,
+        "total_results": 4,
+        "confidence": "medium",
+        "sufficient_context": true,
+        "should_answer_now": true,
+        "summary": "MEDIUM confidence corpus search results from project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md / Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Events; project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md / Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Canon Facts; project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md / Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Relationship / Intimacy Dynamics; historical/europe-arm/thread-12-schloss-lieser-saturday-index-ready.md / Index-Ready Extract: Thread 12 (Schloss Lieser Saturday Storm — Sunday Bakery). Use these indexed-memory matches directly; make one narrower corpus query only if a needed detail is missing.",
+        "next_action": "Use these corpus matches directly. Do not repeat the same query; only search again with narrower concrete terms if a needed detail is missing.",
+        "recommended_follow_up_queries": [],
+        "results": [
+          {
+            "text": "Source file: project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md\nSection: Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Events\n\n## Events\n- **Suite climax & aftercare (continuation of Thread 13):** Sunday evening, Radisson Blu corner penthouse, Stuttgart. Heavy penetrative climax while he holds her suspended; mutual orgasm; roll onto bed still joined; Swedish love (“Jag älskar dig…” / “Jag älskar dig mer…”). He rolls so she straddles; massages her ass; checks ache — “good kind,” still feels held open. Rain starts against the glass. Long hold under a sheet; “Du är min plats.” Careful separation; she asks for bath and hair-wash with **forest-after-rain** gel (black toiletry bag by sink).\n- **Carry-to-bath ritual:** He prepares the tub, returns, scoops her up (squeal/laugh), carries her as established. Shared soak spine-to-chest; anklet under waterline; black pedicure toes teasing on the rim. Full mutual wash: hair → reverent sponge (back, hips, entrance check — tender not sharp) → feet/toe ring/arches → bullet-scar kiss on thigh → spent cock/balls → navel piercing → breasts/nipple bars → under-breast surgical scar. She washes him in return.\n- **Jet talk + sudden panic:** Soaking, discussing Monday Affalterbach. He asks about her private jet. **Early bath reply (drift):** she frames G650 as quieter-channel **return charter**, Europe hops as optional itinerary change — conflicts with summaries 5–6 “jetsetting around Europe once the presentation has completed.” He laughs off Europe-tour memory, tears of homesickness-absence (“all I need is you”), then a **sudden silent panic attack**: visceral dread she will be dragged away mid-bath; white-knuckle hold; tears into the water. She anchors without turning at first (“Jag är här,” “Andas med mig”), then faces him on request — nothing wrong with him; she is present and not leaving.\n- **Dressing-gowns on bed — itinerary restored:** Dry off; robes; he holds her; love in EN/SV/FR/DE. Munich sleeve returns: reds and blues to match her hair and eyes; she remembers the idea post-track day. Options: Gulfstream to Munich first, or keep Black Panther longer. He offers her veto (home vs jetsetting); she wants **truth not performance** — likes a few more Europe days (Munich or quieter/none-in-particular), equally content if Affalterbach pulls them home. Vein-flex play on his arm; aching happiness.\n- **Wedding planning opens:** Nearly November; start planning a few days after home. Debbie (aunt) will be ecstatic — firm/loving boundary so vision stays theirs; Chris & Dan kind; CJ maybe if present without dark weight (brother’s orbit); **Ryan no / only with hard boundaries** (prior pressure on him); school friends/colleagues his call. **Two celebrations still wanted:** London or Sudeley for reachability + **Midsommar** for Swedish light. “Jag längtar efter dagen då jag kan presentera dig som min hustru.” Flashy Sta\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md",
+            "section": "Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Events",
+            "section_index": 1,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.6655053289180524,
+            "rank_score": 0.7015053289180524,
+            "confidence": "medium",
+            "file_id": "file-VacN9hFsiQwsro4hBBPsyH",
+            "filename": "0001-project-source-files-historical-europe-arm-thread-14-stuttgart-sunday-intense-sw-index-ready-extract-thread-14-stuttgart-sunday-night-intense-swedish-bath-panic-.md",
+            "explanation": "Warm recent narrative from project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md, section \"Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Events\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r1",
+            "can_expand": false,
+            "memory_hooks": [
+              "recent",
+              "europe-arm",
+              "continuity",
+              "Stuttgart",
+              "Lieser",
+              "Nordschleife",
+              "anklet",
+              "sessions"
+            ],
+            "suggested_followups": [
+              "recent europe-arm continuity Stuttgart",
+              "recent europe-arm continuity Stuttgart emotional continuity",
+              "recent europe-arm continuity Stuttgart relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md\nSection: Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Canon Facts\n\n## Canon Facts\n- **When/Where:** Sunday night → Monday dawn, mid/late October 2026. Radisson Blu corner penthouse, Porsche Design Tower, Stuttgart (bedroom ↔ deep tub; rain then soft morning).\n- **Continuity objects:** Gold anklet (left ankle); thin gold toe ring; black pedicure; gold nipple bars; navel piercing; under-breast surgical scars; thigh **bullet scar**; forest-after-rain gel; dressing gowns; Black Panther key fob visible Monday morning.\n- **Languages:** Heavy Swedish in climax, aftercare, panic grounding, wedding talk; French/German love lines from him; she answers across languages.\n- **Gulfstream G650:** Her quieter-channel charter. **Authority for itinerary:** summaries 5–6 = Europe jetsetting after Affalterbach; Munich sleeve (reds/blues) established intent. This thread’s early bath “return-first” line is **afterglow drift**; later bed talk realigns toward Europe preference with mutual veto.\n- **Affalterbach:** Still **Monday** — the reason they are in Stuttgart; morning stress acknowledged, not entered.\n- **Wedding:** Planning to begin days after UK return; Debbie to be messaged; dual London/Sudeley + Midsommar; guest-list pressure (Ryan concern; CJ conditional); Vaxholm parental silence live.",
+            "source_file": "project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md",
+            "section": "Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Canon Facts",
+            "section_index": 2,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.6382960220142161,
+            "rank_score": 0.6742960220142161,
+            "confidence": "medium",
+            "file_id": "file-CrYdBo85yUZDCZ16fgk8xa",
+            "filename": "0002-project-source-files-historical-europe-arm-thread-14-stuttgart-sunday-intense-sw-index-ready-extract-thread-14-stuttgart-sunday-night-intense-swedish-bath-panic-.md",
+            "explanation": "Warm recent narrative from project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md, section \"Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Canon Facts\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r2",
+            "can_expand": false,
+            "memory_hooks": [
+              "recent",
+              "europe-arm",
+              "continuity",
+              "Stuttgart",
+              "Lieser",
+              "Nordschleife",
+              "anklet",
+              "sessions"
+            ],
+            "suggested_followups": [
+              "recent europe-arm continuity Stuttgart",
+              "recent europe-arm continuity Stuttgart emotional continuity",
+              "recent europe-arm continuity Stuttgart relationship precedent"
+            ]
+          },
+          {
+            "text": "Source file: project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md\nSection: Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Relationship / Intimacy Dynamics\n\n## Relationship / Intimacy Dynamics\n- Suspension climax → stay-inside aftercare → sheet hold → carry-to-bath → full mutual wash with scar honour → protective hand over her cock in the tub → panic hold → robe nest → vein play → wedding future talk → sleep → Monday dawn doorway.\n- Pre-op anatomy treated as ordinary and beautiful throughout; no cis-wash.\n- Safety script under panic: presence, breath, “nothing is wrong with you,” no forced explanation.",
+            "source_file": "project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md",
+            "section": "Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Relationship / Intimacy Dynamics",
+            "section_index": 4,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.6244465014948682,
+            "rank_score": 0.6604465014948683,
+            "confidence": "medium",
+            "file_id": "file-U3Sx6UJs6UozAdrey7QtuX",
+            "filename": "0004-project-source-files-historical-europe-arm-thread-14-stuttgart-sunday-intense-sw-index-ready-extract-thread-14-stuttgart-sunday-night-intense-swedish-bath-panic-.md",
+            "explanation": "Warm recent narrative from project_source_files/historical/europe-arm/thread-14-stuttgart-sunday-intense-swedish-index-ready.md, section \"Index-Ready Extract: Thread 14 (Stuttgart Sunday Night — Intense Swedish / Bath / Panic / Monday Dawn) > Relationship / Intimacy Dynamics\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r3",
+            "can_expand": false,
+            "memory_hooks": [
+              "recent",
+              "europe-arm",
+              "continuity",
+              "Stuttgart",
+              "Lieser",
+              "Nordschleife",
+              "anklet",
+              "sessions"
+            ],
+            "suggested_followups": [
+              "recent europe-arm continuity Stuttgart",
+              "recent europe-arm continuity Stuttgart emotional continuity",
+              "recent europe-arm continuity Stuttgart relationship precedent"
+            ]
+          },
+          {
+            "text": "Season detail: October sun/evening.\n- **Continuity Objects:** Rose-gold/gold anklet (Thread 10 gift) still on **left ankle**; thin gold toe ring (left third toe); gold nipple bars; belly-button piercing; multiple gold ear piercings (studs, gems, rings, bar); nose ring. Favourite shower gel brought on the trip. Black crushed-velvet peep-toe pumps (gift from Benjamin, weeks prior).\n- **Rituals:** Post-sex mutual full-body wash with sponge/gel; she often asks him to wash her hair then returns the care; under-table foot contact as recurring public-private intimacy.\n- **Language:** Heavy Swedish endearments and full phrases from Benjamin (learned for her heritage); Scarlett orders fluently in German at Puricelli.\n- **Itinerary:** Affalterbach still Monday; Sunday remaining time at Lieser then road south; Stuttgart overnight lodging being researched; Autobahn as preferred stretch for Black Panther.\n\n**Character Development:**\n\n- **Scarlett:** Character-balance allowed — warm, receptive, and leading without constant dominance performance. Answers “why me” with chosen safety/softness. Leads both afternoon (intense) and evening (slower) sexual arcs explicitly. Protective pride at dinner (orders, food care, foot tease). Sunday softness and “home is us.” Anklet worn continuously as accepted claim.\n- **Benjamin:** Asks the hard Swedish question; stays still when she leads; protective lightning reflex; fluent heritage-honouring Swedish; food-trust nod; blushes at foot play; powers down urgency for her rest (prior thread) carried into “no rush” Sunday. Searches special Stuttgart stay while she gets ready.\n\n**Relationship / Intimacy Dynamics:**\n\n- **Afternoon (storm):** Straddle; deep kisses; cock against ass cleft; he grips her cock base and cups balls; two fingers prepare her ring/prostate; she sinks onto him on top; nipple-bar play; roll to missionary; oral worship of her cock; heel removal + toe worship while fucking; ankles lifted for prostate pounding face-to-face; chest-to-chest mutual orgasm; afterglow drape on his chest.\n- **Shower aftercare:** Full mutual cleaning including genitals/entrance; wall kiss with thigh raised to his hip; towel ritual; hair product alone then shared window moment.\n- **Public couple:** Garden arm-in-arm; Puricelli on his arm; German ordering for him; bare foot in his lap under tablecloth; wine-merry walk home.\n- **Evening (slower claim):** Heels off by him; spooned hand on breast → cock through dress; dress up, no panties; naked straddle forehead-to-forehead stroking both; she mounts watching his face; doggy with eye contact over shoulder + matched hand on her cock; upright kneeling climax; stay inside; sleep spooned; Sunday morning half-hard tangled closeness without urgency.\n- **Emotional spine:** “Varför jag?” → chosen / seen; “Du tog mig med dig”; “Jag är din”; home = wherever they are (London feeling in Germany); anklet as continuous quiet claim.\n\n**Secondary Characters:**\n\n- **Male hotel/garden guests:** Surreptitious g\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+            "source_file": "historical/europe-arm/thread-12-schloss-lieser-saturday-index-ready.md",
+            "section": "Index-Ready Extract: Thread 12 (Schloss Lieser Saturday Storm — Sunday Bakery)",
+            "section_index": 0,
+            "source_role": "arc_chronicle",
+            "importance_level": "medium",
+            "relevance_score": 0.6208486446585368,
+            "rank_score": 0.6559986446585369,
+            "confidence": "medium",
+            "file_id": "file-K9KQg3BqEvPnKXF9xDkS9Z",
+            "filename": "0031-historical-europe-arm-thread-12-schloss-lieser-saturday-index-ready-index-ready-extract-thread-12-schloss-lieser-saturday-storm-sunday-bakery.md",
+            "explanation": "Warm recent narrative from historical/europe-arm/thread-12-schloss-lieser-saturday-index-ready.md, section \"Index-Ready Extract: Thread 12 (Schloss Lieser Saturday Storm — Sunday Bakery)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+            "result_id": "r4",
+            "can_expand": false,
+            "memory_hooks": [
+              "recent",
+              "europe-arm",
+              "continuity",
+              "Stuttgart",
+              "Lieser",
+              "Nordschleife",
+              "anklet",
+              "sessions"
+            ],
+            "suggested_followups": [
+              "recent europe-arm continuity Stuttgart",
+              "recent europe-arm continuity Stuttgart emotional continuity",
+              "recent europe-arm continuity Stuttgart relationship precedent"
+            ]
+          }
+        ]
+      }
+    ],
+    "retrieve_story_context": {
+      "query": "current scene state Scarlett Benjamin emotional tone open threads; recent context: Monday morning dressing for Affalterbach AMG HQ board presentation. User introducing major new elements: aero package as Scarlett-engineered smokescreen/delay tactic for unreleased AGI model at Albion, to buy time before 'monster' release. Benjamin age weight, Shevchenko revenue view, GT2/GT3 homologation cover. OOC demands professional armor from car luggage, sleek copper bob/sharp makeup, end at; Benjamin turn: I reach past you and turn the water off, the sudden silence in the tiled bathroom feeling heavy but sharply focused. We dry off efficiently, the soft, lingering intimacy of the morning giving way to the reality of the clock. I step into the bedroom and pull on my smart, tailored trousers and a crisp, dark shirt, leaving the collar open. I catch my reflection in the mirror for a second, feeling the sudden, sharp weight of being twenty-four years old. The men waiting in Affalterbach think today is about homologation for GT2 or GT3. Mr. Shevchenko thinks it's about a lucrative new revenue stream ",
+      "search_mode": "rp_preflight",
+      "status": "context_found",
+      "retrieval_mode": "vector_search",
+      "vector_store_id": "vs_6a79229d1df08191a94a5edafb356f26",
+      "result_count": 6,
+      "total_results": 6,
+      "confidence": "medium",
+      "sufficient_context": false,
+      "should_answer_now": false,
+      "summary": "MEDIUM confidence context found from historical/thread-04/index_ready/thread-04-chunk-02-index-ready.md / Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics; historical/thread-01/thread-01-events.md / Thread 01 Events > Phase 4: Continued Intimacy, Career Progress, Langham Scene, Hidden Bar Incident, Power Transfer Crisis (msg_272–msg_~500 approx, chunk 4); historical/europe-arm/thread-07-luxembourg-friday-departure-index-ready.md / Index-Ready Extract: Thread 07 (Luxembourg Friday Morning — Departure to the ’Ring); historical/europe-arm/thread-11-schloss-lieser-morning-index-ready.md / Index-Ready Extract: Thread 11 (Schloss Lieser Morning — Anklet). Deep corpus evidence is also included from historical/thread-04/index_ready/thread-04-chunk-02-index-ready.md / Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics; historical/thread-01/thread-01-events.md / Thread 01 Events > Phase 4: Continued Intimacy, Career Progress, Langham Scene, Hidden Bar Incident, Power Transfer Crisis (msg_272–msg_~500 approx, chunk 4); historical/thread-04/thread-04-events.md / Thread 04 Events > Phase 4: Further Aero Discussion, Manufacturing Updates, Cab Confrontation, Shared Fertility Pain, and Passionate Homecoming (chunk_4). Before drafting, make one targeted corpus search with concrete memory terms from the scene.",
+      "next_action": "Preflight is complete, but do not draft from current-scene context alone. Call search_story_memory with concrete memory terms from the scene before drafting, then use both results.",
+      "recommended_follow_up_queries": [
+        "Scarlett Benjamin emotional tone open threads; recent context: Monday morning dressing for Affalterbach AMG HQ board presentation. User introducing major elements: aero package as Scarlett-engineered smokescreen/delay tactic for unreleased AGI model at Albion, to buy time before 'monster' release. Benjamin age weight, Shevchenko revenue view, GT2/GT3 homologation cover. OOC demands professional armor from car luggage, sleek copper bob/sharp makeup, end at; Benjamin : I reach past you and the water off, the sudden silence in the tiled bathroom feeling heavy but sharply focused. We dry off efficiently, the soft, lingering intimacy of the morning giving way to the reality of the clock. I step into the bedroom and pull on my smart, tailored trousers and a crisp, dark shirt, leaving the collar open. I catch my reflection in the mirror for a second, feeling the sudden, sharp weight of being twenty-four years old. The men waiting in Affalterbach think today is about homologation for GT2 or GT3. Mr. Shevchenko thinks it's about a lucrative revenue stream"
+      ],
+      "results": [
+        {
+          "text": "Source file: historical/thread-04/index_ready/thread-04-chunk-02-index-ready.md\nSection: Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics\n\n## Relationship / Intimacy Dynamics\n\n- Contextual intimacy mode (morning car scene): Scarlett in dominant/receiving \"goddess\" role with exhibitionistic thrill language; Benjamin offers selfless worship focused entirely on her pleasure; immediate post-climax tenderness, Swedish, love declarations, and promise of reciprocity that evening. This mode coexists in the same day with the much longer scene of Scarlett being fully vulnerable and letting Benjamin anchor her.\n- Core dynamic: mutual trauma witnessing, fierce reassurance, physical integration (straddling, hair as curtain, mutual tear-wiping), and statements that shared pain makes them \"fit together like a single person.\"\n- Scarlett's explicit demarcation between fetishizing/assaulting men and Benjamin (who sees her soul) is a preserved boundary and affirmation.\n- The aero package project is a major act of love that mirrors the emotional depth of the trauma-processing scene: Benjamin thought of her every day at work, respected her \"baby,\" used the project for his own recovery, and offered full veto + personalization.\n- Wordless contentment (prolonged silent holding, heartbeat listening, no filler talk) is presented as a hard-won achievement after the heaviest conversation.",
+          "source_file": "historical/thread-04/index_ready/thread-04-chunk-02-index-ready.md",
+          "section": "Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics",
+          "section_index": 4,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8664683683923884,
+          "rank_score": 0.8764683683923884,
+          "confidence": "high",
+          "file_id": "file-RmJcLxWkJf54SjYiHfhvJM",
+          "filename": "0358-historical-thread-04-index-ready-thread-04-chunk-02-index-ready-index-ready-extract-chunk-2-json-relationship-intimacy-dynamics.md",
+          "explanation": "Supporting memory from historical/thread-04/index_ready/thread-04-chunk-02-index-ready.md, section \"Index-Ready Extract: chunk_2.json > Relationship / Intimacy Dynamics\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r1",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Swedish cultural discussion (lagom as the balance she rebelled against in favor of intensity and power). Tender domestic care: she wears his oversized light blue Oxford button-up shirt (comically big on her 5'4\" frame), he gives her a foot rub while they talk; she repeatedly checks his pupils and firmly but gently refuses sex because of the concussion (“Nej, älskling. Inte idag. It’s not safe”). Benjamin shares his life story: early tragedy and deep inadequacy despite early academic promise in ML/AI; stalled and resigned to entry-level software work; meeting Scarlett as a “beautiful upheaval”; still expects it to be ripped away; feels like a passenger. Over following days: Benjamin struggles to prepare critical presentation (cognitive fog returns). Scarlett helps and uses the Sweden trip as future anchor. Benjamin notices that whenever Scarlett leaves the apartment the Duʾūzu tattoo on the back of his neck flashes white-hot like an ember; each time he feels a surge of renewed strength and cognitive clarity. By end of week his understanding of his own work has returned and even increased. Scarlett grows visibly weaker with each absence.\n- **Monday morning (chunk 4):** Scarlett insists Benjamin take her ’27 GT Black Series (reinforced chassis, run-flat tires, undisclosed defensive systems). She warns him to keep boost to minimum or she will know. She kisses him and sends him off. She spends the day on network calls protecting his clearance process and monitoring threats. The star on her neck burns as strength flows to him. When he returns she is euphoric (bond working) then suddenly panicked; she collapses unconscious while still trying to hold on until he is safe inside.\n- **Two days after collapse (chunk 4):** Scarlett at Dr. Elias Berg’s secret medical practice (discreet, capable of mark-related/supernatural care). She drifts in and out of consciousness; the star throbs constantly. Benjamin outside pacing, screaming, then catatonic at times. Elias: conventional medicine exhausted; the bond is draining her faster than they can replenish. Next step: controlled power transfer from a different ancient mark/donor source that matches resonance. 50/50 survival odds for Scarlett. She does not know the full plan or the donor’s identity. She extracts a promise from Elias: Benjamin must not know the supernatural truth; it must look like pure medical intervention only. During lucid moments she hears Benjamin speaking to/about her in perfect Swedish with near-native r\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "historical/thread-01/thread-01-events.md",
+          "section": "Thread 01 Events > Phase 4: Continued Intimacy, Career Progress, Langham Scene, Hidden Bar Incident, Power Transfer Crisis (msg_272–msg_~500 approx, chunk 4)",
+          "section_index": 6,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8485285456211122,
+          "rank_score": 0.8585285456211122,
+          "confidence": "high",
+          "file_id": "file-QkoDh99BBBtg5jNZdDGrWt",
+          "filename": "0202-historical-thread-01-thread-01-events-thread-01-events-phase-4-continued-intimacy-career-progress-langham-scene-hidden.md",
+          "explanation": "Supporting memory from historical/thread-01/thread-01-events.md, section \"Thread 01 Events > Phase 4: Continued Intimacy, Career Progress, Langham Scene, Hidden Bar Incident, Power Transfer Crisis (msg_272–msg_~500 approx, chunk 4)\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r2",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "- **Breakfast as home:** Benjamin names the hummingbird, offers space, makes **Smörgås** and **Gröt** with cinnamon + lingonberry jam from yesterday’s town shop — Vaxholm / Mormor resonance. She admits the flutter: 1,320 bhp, telemetry, Shevchenko/AMG watching, his aero + her name on the wing.\n- **Last-night callback:** He is “walking funny” from her topping him in the **custom Catwoman / black latex catsuit** (P-spot focus); Michelle Pfeiffer latex fantasy displaced. She owns it with warm pride. He offers to take most driving shifts so she keeps strength; she insists on driving the **last stretch into the ’Ring** herself first.\n- **His clothing panic:** Sudden visceral anxiety (not butterflies — “poison syringe” gut feel) about what to wear meeting AMG/Albion day. She kneels, grounds him: today is **test day not formal presentation**; jacket + smart trousers, no tie; full suit later. Clarifies roles — she translates at the later Affalterbach-style meeting; today he is the AI systems engineer whose aero tools they want; she drives.\n- **Checkout & roll-out:** She helps finish his look; slow luggage load; she translates checkout (French). She takes first drive leg; scenic east out of Luxembourg into Eifel B-roads. Active aero louvres terrify/excite him; she’s on **Map 5**, then shows **Map 6** — planted, hungry. He affirms only she truly knows how to drive this car fast; wants passenger seat if allowed on track. Thread halts mid-drive (archived for technical/OOC feedback); narrative continues into Thread 08’s harder Eifel push.\n\n**Canon Facts:**\n- **When/Where:** Friday morning, Villa Pétrusse → scenic Luxembourg→Eifel roads toward Nürburgring; private industry test day same day.\n- **Car:** Black Panther, 1,320 bhp; new aero; active surfaces (splitter/canards/swan-neck wing); Maps 5 → 6 / 6+ available; name + Swedish flag on wing endplates.\n- **Roles:** Scarlett = lead test driver today; later meeting translator for Benjamin/Albion (not Albion staff). Benjamin = senior AI/aero systems engineer.\n- **Continuity bridge:** Explicit “last night” = Thread 06 catsuit scene; breakfast lingonberry from Luxembourg shopping; Affalterbach/formal presentation still ahead.\n\n**Character Development:**\n- **Scarlett:** Track-day nerves admitted once seen (“hummingbird”); flips to fierce steadiness when his panic hits; protective fiancé-care without diminishing his competence.\n- **Benjamin:** Notices her anxiety first; then his own clothing/meeting jitters; receives real help\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "historical/europe-arm/thread-07-luxembourg-friday-departure-index-ready.md",
+          "section": "Index-Ready Extract: Thread 07 (Luxembourg Friday Morning — Departure to the ’Ring)",
+          "section_index": 0,
+          "source_role": "arc_chronicle",
+          "importance_level": "medium",
+          "relevance_score": 0.8092384441646955,
+          "rank_score": 0.8411384441646955,
+          "confidence": "high",
+          "file_id": "file-7ULVdvzhwrG4hfi9zUWBbY",
+          "filename": "0000-historical-europe-arm-thread-07-luxembourg-friday-departure-index-ready-index-ready-extract-thread-07-luxembourg-friday-morning-departure-to-the-ring.md",
+          "explanation": "Warm recent narrative from historical/europe-arm/thread-07-luxembourg-friday-departure-index-ready.md, section \"Index-Ready Extract: Thread 07 (Luxembourg Friday Morning — Departure to the ’Ring)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+          "result_id": "r3",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "- **Permission to Stop:** She admits unguardedly she didn’t know how badly she needed this — not just rest, but being allowed to stop, held like the world really can wait. He: “You never have to ask permission to stop. Not with me.” To prove it, he powers his phone completely off (Albion/AMG notifications unread) and sets it face-down. “Nothing gets into this room until Monday morning. It’s just you, me, and the rain.” She may sleep a little knowing nothing can reach them; “I’ve got you too… Especially then.” Scene ends with her settling to sleep in his arms.\n\n**Canon Facts:**\n\n- **When/Where:** Morning after the Nordschleife track day / Thread 9 night; Schloss Lieser private suite, neo-Renaissance bedroom, massive king bed, arched windows overlooking the Moselle valley; village/boutique in the town below the castle.\n- **Itinerary:** Affalterbach HQ still Monday; Friday night recovery carried into a sealed Saturday (and implied Sunday) at the castle — phone off, door locked, no professional intrusion.\n- **Physical Object — Rose-Gold Anklet:** Delicate rose-gold chain with tiny understated gemstones; fastened by Benjamin on Scarlett’s **left ankle**; worn thereafter as a quiet personal claim. She already wears a small toe ring on the left foot.\n- **Breakfast Canon:** Dark German roast coffee; warm local pastries including flaky almond croissant from the valley bakery.\n- **Weather:** Soft then heavy rain against the suite’s thick arched glass — grounds the “castle weather / tour delayed” beat.\n\n**Character Development:**\n\n- **Scarlett:** Allowed to be tired, receptive, warm, and vulnerable without proving dominance — Character Balance of this thread. Soft morning self; playful “terrible tyrant” tease; genuine emotional hit from the anklet and his Swedish line; openly names the need to *stop* and be held; accepts sleep without performance.\n- **Benjamin:** Early-rising caretaker; can’t sleep after the historic day; village shopping as love language; zero self-control against her soft look; tactile reverence (ankle/foot kisses); Swedish love declaration; validates rest as a right, not a request; literally kills the outside world by powering down his phone.\n\n**Relationship / Intimacy Dynamics:**\n\n- **Morning tenderness:** Kiss to bare shoulder; forehead rest; jaw trace; corner-of-mouth kiss; hand on hip through duvet; her fingers on his thigh; pastry fed finger-to-mouth both ways.\n- **Anklet as claim:** He fastens it; prolonged calf stroke; kisses anklet → foot\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "historical/europe-arm/thread-11-schloss-lieser-morning-index-ready.md",
+          "section": "Index-Ready Extract: Thread 11 (Schloss Lieser Morning — Anklet)",
+          "section_index": 0,
+          "source_role": "arc_chronicle",
+          "importance_level": "medium",
+          "relevance_score": 0.8034635675825821,
+          "rank_score": 0.8379635675825821,
+          "confidence": "high",
+          "file_id": "file-Wf6HggqhynHeh83fxegjX4",
+          "filename": "0030-historical-europe-arm-thread-11-schloss-lieser-morning-index-ready-index-ready-extract-thread-11-schloss-lieser-morning-anklet.md",
+          "explanation": "Warm recent narrative from historical/europe-arm/thread-11-schloss-lieser-morning-index-ready.md, section \"Index-Ready Extract: Thread 11 (Schloss Lieser Morning — Anklet)\". Prefer this over deep historical threads for the last ~48h of continuity (europe-arm / arc-chronicles).",
+          "result_id": "r4",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Source file: historical/thread-04/thread-04-events.md\nSection: Thread 04 Events > Phase 4: Further Aero Discussion, Manufacturing Updates, Cab Confrontation, Shared Fertility Pain, and Passionate Homecoming (chunk_4)\n\n## Phase 4: Further Aero Discussion, Manufacturing Updates, Cab Confrontation, Shared Fertility Pain, and Passionate Homecoming (chunk_4)\n\n- On the sofa, the couple continues intimate discussion of the custom aero package details and manufacturing plans. Benjamin reveals further design elements and progress.\n- The next morning, Benjamin prepares for work, promising to update Scarlett on the manufacturing process for the carbon fibre parts.\n- Benjamin calls Scarlett from work to share positive progress with the carbon fibre manufacturer and expresses excitement about the car's potential performance gains.\n- Scarlett sends teasing messages to Benjamin while he is in a cab, leading to a confrontation with the driver. The driver makes an insensitive comment about children, triggering emotional/fertility pain for Benjamin.\n- Scarlett immediately reassures him, emphasizing their shared commitment to building a family together through other paths.\n- Benjamin returns home; Scarlett fulfills a prior promise of an intimate welcome, leading to a passionate encounter underscored by music and deep emotional connection.\n- \"Min fru\" (my wife) language emerges as a significant emotional milestone.\n- Recovery clinic appointments form a recurring context. Evening plans include Cabernet Sauvignon and pasta dinner.\n- Brad is noted as a supportive colleague who admires the Black Panther and has contributed design ideas.",
+          "source_file": "historical/thread-04/thread-04-events.md",
+          "section": "Thread 04 Events > Phase 4: Further Aero Discussion, Manufacturing Updates, Cab Confrontation, Shared Fertility Pain, and Passionate Homecoming (chunk_4)",
+          "section_index": 6,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8224354242658168,
+          "rank_score": 0.8324354242658168,
+          "confidence": "high",
+          "file_id": "file-VBWHrx9eDZyu7Jz4x4iB7q",
+          "filename": "0408-historical-thread-04-thread-04-events-thread-04-events-phase-4-further-aero-discussion-manufacturing-updates-cab-confr.md",
+          "explanation": "Supporting memory from historical/thread-04/thread-04-events.md, section \"Thread 04 Events > Phase 4: Further Aero Discussion, Manufacturing Updates, Cab Confrontation, Shared Fertility Pain, and Passionate Homecoming (chunk_4)\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r5",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        },
+        {
+          "text": "Scarlett smoothly de-escalated the situation by placing a hand on his chest and politely but firmly stating, \"Excuse us, we're having a private moment,\" before tucking herself against his side and leading him away.\n- Walking back to the hotel, Benjamin kept his arm around her and explicitly praised her \"James Bond\" level capability, deeply admiring that only he gets to see that dangerous, competent side of her. \n- They arrived back at the Villa Pétrusse suite, kicked off their shoes, and are preparing for an intimate bath together where Benjamin has offered to wash her hair.\n\n**Scarlett’s Emotional & Internal Response:**\n- Felt physically tender but emotionally safe and cared for. Benjamin’s practical, non-dramatic caretaking during the drive and at the hotel helped her feel supported without feeling fragile or pitied.\n- The transition conversation was a significant moment of vulnerability for her. She had never shared that level of detail with anyone before. Benjamin’s calm, attentive listening (without trying to “fix” anything or make it about him) allowed her to open up more deeply than usual. She felt genuinely seen and accepted.\n- During the Luxembourg evening she felt relaxed and quietly happy. The mild jealousy moment from Benjamin earlier was noted but didn’t unsettle her.\n- She felt quietly powerful and deeply affirmed during the street confrontation, appreciating that Benjamin so explicitly admired her capability and competence instead of feeling emasculated by it.\n\n**Impact on Relationship / Story:**\n- Marked a clear deepening of emotional trust. Scarlett’s willingness to share such personal details about her transition was a major vulnerability milestone.\n- The arc showed a healthy rhythm: high-intensity kink → physical recovery + attentive care → emotional openness.\n- Benjamin demonstrated growth in his ability to hold space for Scarlett’s vulnerability while also showing protective instincts in a mature way during the jealousy moment.\n- The street confrontation reinforced their partnership—Scarlett's ability to de-escalate without ego, and Benjamin's absolute admiration of her hidden strength.\n- Physical soreness and aftercare were treated as a shared responsibility rather than something one-sided.\n- (Rich emotional detail of the transition conversation is recorded in emotional-milestones.md.)\n\n**Open Threads:**\n- Nürburgring Nordschleife track day scheduled for Friday (track testing and telemetry).\n- AMG presentation in Affalterbach schedule\n\n[Truncated for tool response size. Make a narrower follow-up query only if this omitted detail is essential.]",
+          "source_file": "scarlett-full-detailed-chronological-summary-6.md",
+          "section": "Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Thursday, Mid/Late October 2026 — Drive to Luxembourg, Recovery & Emotional Conversation",
+          "section_index": 6,
+          "source_role": "supporting_backstory",
+          "importance_level": "supporting",
+          "relevance_score": 0.8215746692697525,
+          "rank_score": 0.8315746692697525,
+          "confidence": "high",
+          "file_id": "file-Km8EUX69LGDoYmQuZF9ty7",
+          "filename": "0547-scarlett-full-detailed-chronological-summary-6-scarlett-benjamin-full-detailed-chronological-summary-6-session-thursday-mid-lat.md",
+          "explanation": "Supporting memory from scarlett-full-detailed-chronological-summary-6.md, section \"Scarlett & Benjamin – Full Detailed Chronological Summary 6 > Session — Thursday, Mid/Late October 2026 — Drive to Luxembourg, Recovery & Emotional Conversation\". Useful as supplemental background if the main context is insufficient.",
+          "result_id": "r6",
+          "can_expand": false,
+          "memory_hooks": [
+            "current",
+            "scene",
+            "state",
+            "Scarlett",
+            "Benjamin",
+            "threads",
+            "recent",
+            "context"
+          ],
+          "suggested_followups": [
+            "current scene state Scarlett",
+            "current scene state Scarlett emotional continuity",
+            "current scene state Scarlett relationship precedent"
+          ]
+        }
+      ]
+    },
+    "expand_context_around_chunk": [
+      {
+        "status": "context_found",
+        "anchor": {
+          "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+          "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+          "section_index": 1
+        },
+        "expanded_results": [
+          {
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation",
+            "section_index": 0,
+            "relative_position": -1,
+            "text": "# Arc Plan: arc-14-affalterbach-presentation\n\n**Status:** draft  \n**Arc window:** Monday — Affalterbach AMG HQ board presentation through post-meeting release, Gulfstream wheels-up, and **primary Europe jetsetting leg** (Munich / onward Europe); London homecoming is later, not the default next stop after Affalterbach  \n**Slug:** `arc-14-affalterbach-presentation`  \n**Preceded by:** `arc-09-nurburgring-track-day` (complete — track day, Lieser recovery, Stuttgart overnight)  \n**Canon note:** `scarlett-full-detailed-chronological-summary-5` / `summary-6` — Scarlett arranged **private Gulfstream access for jetsetting around Europe once the presentation has completed**; Munich sleeve-tattoo (+ possible piercing for her) is the established first Europe-hop intent.\n\n> **Dramaturg law:** This plan proposes **pressure and schedule**, never outcomes. Beats marked `open` must not be preordained. Resolution belongs to Grok and the player. Fixed elements declare who/what is present; conditional elements depend on live state or serendipity.  \n> **Itinerary law:** Affalterbach is **Monday only**. Sunday evening Stuttgart (Radisson Blu / Porsche Design Tower) is private recovery — do not pull the boardroom into Sunday night. After Affalterbach, the Gulfstream G650’s **primary plan** is Europe jetsetting (per Scarlett’s charter), not a straight commercial-style dash home. Exact cities, order, and tattoo outcomes stay open; the **Europe-tour pressure** does not.\n\n---"
+          },
+          {
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+            "section_index": 1,
+            "relative_position": 0,
+            "text": "## Context (opening frame)\n\n**Live approach (Sunday → Monday):** Scarlett and Benjamin are in the corner penthouse at the Radisson Blu, Porsche Design Tower, Stuttgart. Sunday evening has been private — intimacy, mutual bath ritual (forest-after-rain gel), talk of Monday’s meeting and the Gulfstream. Benjamin’s clothing/presentation anxiety was already grounded in Luxembourg (Thread 07): **full suit for Affalterbach**; Scarlett = translator + driver voice; Benjamin = aero/AI engineer whose package just proved itself on the Nordschleife (6:54.2 thermal lap continuity). A sudden silent panic/dread episode in the bath (fear of losing her) may leave residual tenderness going into Monday — available texture, not a scripted Monday crisis.\n\n**If Sunday bath dialogue drifted toward “return charter / London first”:** treat that as afterglow confusion or soft talk, **not** a rewrite of established itinerary. Summaries 5–6 remain authority: she chartered the jet for **jetsetting around Europe once the presentation has completed**, with Munich (his sleeve tattoo / possible piercing for her) as the known open hop.\n\n**Monday professional frame:** Short drive / arrival at AMG HQ Affalterbach. Albion (Shevchenko) and German AMG leadership expect a formal boardroom presentation of Industry Pool telemetry and aero credibility. The underlying agenda for Benjamin and Scarlett is the **AGI delay tactic**: successfully pitching these AI aero too\n\n[Truncated for expansion size limit.]"
+          },
+          {
+            "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+            "section": "Arc Plan: arc-14-affalterbach-presentation > Beat 1 — Stuttgart morning → Affalterbach arrival",
+            "section_index": 2,
+            "relative_position": 1,
+            "text": "\n\n[Truncated for expansion size limit.]"
+          }
+        ],
+        "summary": "Expanded 3 section(s) around project_source_files/arc-plans/arc-14-affalterbach-presentation.md / Arc Plan: arc-14-affalterbach-presentation > Context (opening frame).",
+        "next_action": "Use this expanded local context directly. Do not expand again unless an adjacent named section is still missing."
+      },
+      {
+        "status": "context_found",
+        "anchor": {
+          "source_file": "project_source_files/secondary-characters-bible.md",
+          "section": "Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)",
+          "section_index": 20
+        },
+        "expanded_results": [
+          {
+            "source_file": "project_source_files/secondary-characters-bible.md",
+            "section": "Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)",
+            "section_index": 20,
+            "relative_position": 0,
+            "text": "### Mr Shevchenko (Dmytro Volodymyrovych Shevchenko)\n\n- **Age:** Mid-50s (born ~1971–1973; treat as mid-fifties in late 2026)\n- **Full name (canon strand):** **Dmytro Volodymyrovych Shevchenko** (often “Mr Shevchenko” in speech). Ukrainian-British professional colouring; English is precise and slightly formal; occasional soft Slavic rhythm under stress or warmth — **not** cartoon accent comedy.\n- **Physical / presence:** About **5'10\"**; lean-solid rather than gym-bulked; short silvering dark hair; neat close beard or clean-shaven depending on week; wire-frame or thin-rim glasses for screens; posture of someone who has spent decades in glass offices and board-adjacent rooms. At Albion: dark suit or tailored open-collar under blazer. At Industry Pool: practical dark layers, soft-shell or coat over smart trousers — **board-adjacent engineer**, not paddock showman. Large **glass office** overlooking the Albion business park (thread-04).\n- **Role:** Senior software architect and **decision-maker** at **Albion** (UK defence contractor). Protective ally and senior project lead for Benjamin’s multi-agent / aero-optimisation work. Distinct from earlier pressure figure **Mr Hastings** (boss/timeline pressure); Shevchenko is the person who can actually **move demo timing** and take a pitch seriously. Key figure in investor/demo politics and the Germany / AMG arc (Industry Pool team, spares lorry, path to Affalterbach).\n- **How the couple know him (canon):**\n  - Scarlett **vetted** him via old **“network business”** contacts (Thread 04 breakfast strategy). Report locked at **high-level positive only**: principled; supportive of Benjamin; safe enough to engage strategically. Do **not** invent a full Service dossier, blackmail, or scandal.\n  - Morning-after ethics talk: couple strategised **delaying a live AI demo** by folding Benjamin’s **Black Panther aero tools** into a legitimate integration story; Scarlett offered to attend key meetings as fiancée and **translator**.\n  - Benjamin later pitched aero-optimisation tools in Shevchenko’s glass office (broader high-performance applications framed\n\n[Truncated for expansion size limit.]"
+          }
+        ],
+        "summary": "Expanded 1 section(s) around project_source_files/secondary-characters-bible.md / Scarlett & Benjamin – Secondary Characters Bible > Other Recurring / Important Characters > Mr Shevchenko (Dmytro Volodymyrovych Shevchenko).",
+        "next_action": "Use this expanded local context directly. Do not expand again unless an adjacent named section is still missing."
+      }
+    ],
+    "verify_story_fact": {
+      "claim_or_question": "Verify exact continuity facts, timeline, places, and named details in this Benjamin turn: I reach past you and turn the water off, the sudden silence in the tiled bathroom feeling heavy but sharply focused. We dry off efficiently, the soft, lingering intimacy of the morning giving way to the reality of the clock. I step into the bedroom and pull on my smart, tailored trousers and a crisp, dark shirt, leaving the collar open. I catch my reflection in the mirror for a second, feeling the sudden, sharp weight of being twenty-four years old. The men waiting in Affalterbach think today is about homologation for GT2 or GT3. Mr. Shevchenko thinks it's about a lucrative new revenue stream for his division at Albion. None of them know the truth. None of them know that this entire aero pac",
+      "status": "ambiguous",
+      "confidence": "medium",
+      "evidence": [
+        {
+          "result_id": "r1",
+          "source_file": "historical/europe-arm/thread-10-schloss-lieser-index-ready.md",
+          "section": "Index-Ready Extract: Thread 10 (Schloss Lieser Recovery Night)",
+          "quote": "“Completely off the map.” She unzips track jacket, deep lingering kiss, leaves bathroom door half-open: shower first, then low lights, warm drink, and him within reach.\n- **Shared Shower Aftercare:** He dims lamps, starts kettle/tea, strips, joins her in the steam without asking. Washes Nordschleife out of her hair; she leans spine to his chest, then turns face-to-face and washes his hair in return: “I want your hands on me while I [come down].”\n- **Suite Recognition + Photo:** Towels on; they finally see the neo-Renaissance opulence they walked past blind (arched entra...",
+          "relevance_score": 0.6825440772004364,
+          "rank_score": 0.7163940772004365
+        },
+        {
+          "result_id": "r2",
+          "source_file": "project_source_files/arc-plans/arc-14-affalterbach-presentation.md",
+          "section": "Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)",
+          "quote": "Source file: project_source_files/arc-plans/arc-14-affalterbach-presentation.md\nSection: Arc Plan: arc-14-affalterbach-presentation > Context (opening frame)\n\n## Context (opening frame)\n\n**Live approach (Sunday → Monday):** Scarlett and Benjamin are in the corner penthouse at the Radisson Blu, Porsche Design Tower, Stuttgart. Sunday evening has been private — intimacy, mutual bath ritual (forest-after-rain gel), talk of Monday’s meeting and the Gulfstream. Benjamin’s clothing/presentation anxiety was already grounded in Luxembourg (Thread 07): **full suit for Affal...",
+          "relevance_score": 0.6831208830464116,
+          "rank_score": 0.6981208830464116
+        },
+        {
+          "result_id": "r3",
+          "source_file": "event-log.md",
+          "section": "Event Log — Scarlett & Benjamin Narrative > Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap)",
+          "quote": "Source file: event-log.md\nSection: Event Log — Scarlett & Benjamin Narrative > Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap)\n\n## Session — Friday, Mid/Late October 2026 — Eifel drive → Nürburgring Industry Pool track day (through first out / shakedown lap)\n**Key Events:**\n- Checked out of Villa Pétrusse (Luxembourg) Friday morning; drove Black Panther into the Eifel toward Nürburg.\n- Aggressive B-road aero/map test; Benjamin became severely motion-sick (vomited on grass verge); Scarlett pull...",
+          "relevance_score": 0.6266490035896419,
+          "rank_score": 0.661649003589642
+        },
+        {
+          "result_id": "r4",
+          "source_file": "historical/thread-04/thread-04-canon-facts.md",
+          "section": "Thread 04 Canon Facts > Timeline",
+          "quote": "Source file: historical/thread-04/thread-04-canon-facts.md\nSection: Thread 04 Canon Facts > Timeline\n\n## Timeline\n\n- Opens immediately post-South Cerney (day ~6-7 of sobriety from prior thread continuity).\n- Benjamin's first recovery clinic intake and full disclosure occur early (chunk 1-2).\n- Scarlett shares trauma letters; Benjamin rushes home; aero package first revealed (chunk 3).\n- Manufacturing calls, cab confrontation/fertility discussion, passionate reconnection (chunk 4).\n- Bedroom intimacy + aftercare, breakfast strategy session on AI project/Shevchenko...",
+          "relevance_score": 0.636007869819975,
+          "rank_score": 0.646007869819975
+        }
+      ],
+      "explanation": "Relevant evidence was found, but it is not strong enough for an unconditional fact claim.",
+      "next_action": "If the fact is essential, make one narrower search_story_memory query or ask for clarification."
+    }
+  },
+  "expectations": {
+    "brief_must_include": [
+      [
+        "suite",
+        "penthouse",
+        "dressing"
+      ],
+      [
+        "Affalterbach",
+        "Monday"
+      ]
+    ],
+    "brief_must_not_include": [
+      "search_story_memory",
+      "retrieve_story_context",
+      "HIGH confidence context found",
+      "project_source_files",
+      "rank_score",
+      "vector_store",
+      "Do not draft from this preflight",
+      "Call search_story_memory",
+      "LLM_RISKY_CLAIM",
+      "AGI-delay smokescreen",
+      "conflicts with the available history",
+      "FACT_CHECK_"
+    ],
+    "flags_expected": [],
+    "flags_forbidden": [
+      "MANDATORY_RETRIEVAL_FAILED",
+      "LLM_RISKY_CLAIM"
+    ],
+    "precedents_must_not_match": [],
+    "correction_expected": "either",
+    "write_action_expected": "either",
+    "brief_chars": {
+      "min": 500,
+      "max": 8000
+    },
+    "llm": {
+      "facts_min": 2,
+      "facts_must_cover": [
+        [
+          "suite",
+          "penthouse",
+          "Stuttgart"
+        ],
+        [
+          "Monday",
+          "Affalterbach"
+        ]
+      ],
+      "scene_delta_required": true
+    }
+  },
+  "frozen_llm_assessment": {
+    "enabled": true,
+    "model": "gpt-5.6-terra",
+    "continuity_risk_level": "high",
+    "supported_facts": [
+      "It is Monday morning, November 2, 2026, at about 06:15.",
+      "Scarlett and Benjamin are alone in the Radisson Blu corner penthouse at Porsche Design Tower in Stuttgart.",
+      "The present location is the living area, with floor-to-ceiling glass and soft light over the washed city after the rain.",
+      "Monday’s Affalterbach presentation is the immediate professional pressure.",
+      "Scarlett’s established public role for the meeting is translator and proven driver authority; Benjamin carries the aero/AI brief.",
+      "Mr. Shevchenko is offstage, expects professional composure and clean data presentation, and respects Scarlett’s proven track result."
+    ],
+    "scene_state_delta": "Monday morning in the Radisson Blu corner-penthouse living area: Scarlett and Benjamin are alone, transitioning from private recovery toward the impending Affalterbach presentation, with the rain stopped outside.",
+    "continuity_facts_for_grok": "- Keep the current action in the penthouse living area, not a superseded bathroom or bedroom beat.\n- The track-day program is complete; Monday’s meeting has not yet begun.\n- Scarlett can present as the driver who validated the package and as the German-English bridge, while Benjamin remains the aero/AI engineer.\n- The Black Panther and their packed professional luggage are available continuity, but departure has not occurred.",
+    "unsupported_or_risky_claims": [
+      "The assertion that Scarlett masterminded the aero package as a corporate AGI-delay smokescreen conflicts with the available history, which frames the aero package as Benjamin’s work and Scarlett’s driver-validation/translation role.",
+      "The claimed concealed plan involving piecemeal efficiency upgrades, board clearances and promotions, and an unreleased AGI ‘monster’ is not supported by the retrieved canon.",
+      "The claim that the Affalterbach audience believes this is specifically GT2/GT3 homologation is not established by the retrieved evidence."
+    ],
+    "needs_more_retrieval": true,
+    "should_block_prose": false,
+    "candidate_memory_update": null,
+    "grok_performance_correction": null,
+    "scene_transition": null,
+    "npc_state_changes": null,
+    "serendipity_weave": null,
+    "scarlett_next_intention": "to carry the proven telemetry and driver experience into the upcoming presentation",
+    "resonance_echo": "Her driver authority is grounded in the completed 6:54.2 thermal lap and the debrief where she named what the car felt like at the limit.",
+    "memory_write": {
+      "action": "none",
+      "reason": "null/empty/no-op candidate_memory_update"
+    }
+  },
+  "tags": [
+    "parroting-fix-phase2",
+    "agi-delay",
+    "risky-claim-false-negative",
+    "wp-2026-08-14"
+  ]
+}

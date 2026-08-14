@@ -205,6 +205,8 @@ export type GuardianReport = {
     }>;
     background: string[];
     summary: string;
+    /** True when LIVE BEAT Present is couple-only (parroting-fix 1.3 quiet-scene defense). */
+    couple_only_present?: boolean;
   };
   retrieval_plan: {
     preflight_query: string;

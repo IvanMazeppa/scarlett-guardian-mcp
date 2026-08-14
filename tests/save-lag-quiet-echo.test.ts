@@ -275,9 +275,116 @@ function testTelemetryEchoAndSaveLag() {
   console.log("ok telemetry echo + save_lag rates");
 }
 
+// Parroting-fix 1.4 (2026-08-14): intra-suite beat lag — sofa → shower → dressing all
+// score suite_hotel, so cross-cluster detection was blind while forward play got rewound.
+function testIntraSuiteBeatLag() {
+  const lag = detectSaveLag({
+    liveBeat: {
+      lastUpdated: "Monday dawn — still on the sofa",
+      locationLine: "Corner penthouse living area, Stuttgart",
+      timeLine: "Monday ~06:15",
+      liveCues: ["sofa", "living area", "have not dressed"],
+      supersededCues: [],
+      antiResetNotes: [],
+      presentCast: ["Scarlett", "Benjamin"]
+    },
+    userMessage: "I hold the shirt for you, then step into my trousers by the wardrobe.",
+    scarlettPreviousMessage: "Steam still on the mirror; I fasten the last button of your shirt.",
+    recentContext: "Shared shower finished in the suite bathroom; both dressing for Affalterbach."
+  });
+  assert.equal(lag.suspected, true, lag.reason);
+  assert.equal(lag.liveCluster, "suite_hotel");
+  assert.equal(lag.playedCluster, "suite_hotel");
+  assert.equal(lag.liveBeatStage, "sofa_living");
+  assert.equal(lag.playedBeatStage, "dressing");
+  console.log("ok intra-suite beat lag detected (sofa vs dressing)");
+}
+
+// Same cluster, play NOT ahead of disk — must stay silent (no false lag on aligned beats).
+function testNoBeatLagWhenBeatsAligned() {
+  const lag = detectSaveLag({
+    liveBeat: {
+      lastUpdated: "Monday morning — dressing",
+      locationLine: "Penthouse suite, dressing for Affalterbach",
+      timeLine: "Monday",
+      liveCues: ["suite", "shirt", "trousers"],
+      supersededCues: [],
+      antiResetNotes: [],
+      presentCast: ["Scarlett", "Benjamin"]
+    },
+    userMessage: "I fasten the cufflinks and reach for the jacket in the suite.",
+    scarlettPreviousMessage: "I smooth the blouse and step into my heels.",
+    recentContext: "Both dressing in the hotel suite."
+  });
+  assert.equal(lag.suspected, false, lag.reason);
+  console.log("ok no beat lag when beats aligned");
+}
+
+// The 14 Aug Director phrasing must now count as a location/beat rewind…
+function testBeatRewindPhrasingRecognized() {
+  assert.ok(isLocationRewindCorrection("Rewind to the live sofa beat in the living area."));
+  assert.ok(isLocationRewindCorrection("Return Scarlett to the sofa; they have not dressed."));
+  // …but anatomy/identity rewinds must NOT match — they hold even during save lag.
+  assert.ok(
+    !isLocationRewindCorrection(
+      "Rewind the turn: restore Scarlett's pre-op anatomy; generic substitution is a severe continuity error."
+    )
+  );
+  console.log("ok beat-rewind phrasing recognized; anatomy rewind untouched");
+}
+
+// Beat lag + rewind correction → softened with beat-aware message, prose unblocked.
+function testBeatLagSofteningMessage() {
+  const soft = applySaveLagSoftening({
+    saveLag: {
+      suspected: true,
+      liveCluster: "suite_hotel",
+      playedCluster: "suite_hotel",
+      liveScore: 2,
+      playedScore: 3,
+      liveBeatStage: "sofa_living",
+      playedBeatStage: "dressing",
+      reason: "test beat lag"
+    },
+    correction: "Rewind to the live sofa beat; the prior reply moved Scarlett through a dressing sequence.",
+    shouldBlockProse: true
+  });
+  assert.equal(soft.softened, true);
+  assert.equal(soft.shouldBlockProse, false);
+  assert.match(soft.correction ?? "", /SAVE LAG \(intra-scene beat\)/i);
+  assert.match(soft.correction ?? "", /sofa_living/);
+  assert.match(soft.correction ?? "", /dressing/);
+  assert.ok(!/rewind to the live sofa/i.test(soft.correction ?? ""));
+  console.log("ok beat lag softening message");
+}
+
+// Parroting-fix 1.3 defense: couple_only_present + talked-about NPC stays a quiet scene.
+function testQuietDefenseIgnoresTalkedAboutNpc() {
+  const report = suiteReport({
+    scene_roster: {
+      active: [
+        { id: "shevchenko", displayName: "Mr. Shevchenko", activation: "addressed" }
+      ],
+      background: [],
+      summary: "Active: Mr. Shevchenko(addressed)",
+      couple_only_present: true
+    }
+  });
+  assert.equal(isQuietPrivateCoupleScene(report), true);
+  const brief = compileGrokBrief(report);
+  assert.ok(!brief.includes("**Story Momentum:**"), "momentum must stay out of quiet couple room");
+  assert.ok(!/Scene Cast/i.test(brief), "scene cast must stay out of quiet couple room");
+  console.log("ok quiet defense ignores talked-about NPC when couple-only present");
+}
+
 testDetectSaveLagSuiteVsCabin();
 testNoLagWhenAligned();
 testSofteningRewindsLocation();
+testIntraSuiteBeatLag();
+testNoBeatLagWhenBeatsAligned();
+testBeatRewindPhrasingRecognized();
+testBeatLagSofteningMessage();
+testQuietDefenseIgnoresTalkedAboutNpc();
 testCoupleOnlyPresentAndRosterQuiet();
 testAddressedNpcStillActivatesInCoupleOnly();
 testQuietPrivateBrief();

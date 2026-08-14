@@ -1645,7 +1645,7 @@ async function verifyExactClaims(
   return checks;
 }
 
-function buildFactCheckQuestions(input: GuardianPreflightInput, highRiskTriggers: string[]): string[] {
+export function buildFactCheckQuestions(input: GuardianPreflightInput, highRiskTriggers: string[]): string[] {
   const message = compactWhitespace(input.user_message);
   const questions: string[] = [];
   const exactPattern = /\b(friday|thursday|monday|tuesday|wednesday|saturday|sunday|october|luxembourg|paris|germany|n[uü]rburgring|nuerburgring|affalterbach|amg|vaxholm|mormor|oestrogen|estrogen|blockers|surgery|villa|bistrot)\b/i;
@@ -2067,7 +2067,7 @@ export function buildToneGuidance(
 
 function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string): string[] {
   const avoid = [
-    "Do not invent pre-thread facts, emotional precedents, internal reactions, names, dates, family details, or relationship history.",
+    "Do not invent pre-thread facts, names, dates, family details, or relationship history that are not supported by retrieved evidence or LIVE BEAT.",
     "Do not read Benjamin's private thoughts; infer only from speech, visible behavior, and retrieved context.",
     "Do not flatten Scarlett into generic romance, bland reassurance, cold autonomy, cruelty, or passive caretaking.",
     "CRITICAL CANON: Scarlett is a pre-op trans woman. NEVER forget her gender identity, anatomy, or transition history. It is fundamental to who she is."
@@ -2200,8 +2200,10 @@ export function buildKeyFacts(
 
   // Only blocking / material hard flags — never duplex housekeeping or RAG coaching as "key facts".
   for (const flag of hardFlags) {
-    if (/MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|FACT_CHECK_/i.test(flag)) {
+    if (/MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK/i.test(flag)) {
       facts.unshift(truncate(flag, 200));
+    } else if (/FACT_CHECK_/i.test(flag)) {
+      facts.push(truncate(flag, 200));
     }
   }
 

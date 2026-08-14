@@ -3,6 +3,7 @@ import {
   applyNpcStateChangesToRegistryMarkdown,
   decideNpcStateWrite,
   decideMemoryWrite,
+  detectSleepOrCalendarDayTransition,
   formatBeatAdvanceSessionContent,
   hasLiveBeatDelta,
   isMaterialMemoryUpdate,
@@ -202,8 +203,71 @@ const transitionOnly = decideMemoryWrite({
 });
 assert.equal(transitionOnly.action, "stage_transition");
 if (transitionOnly.action === "stage_transition") {
-  assert.match(transitionOnly.content, /Scene transition/);
+  assert.match(transitionOnly.content, /Scene transition|Sleep\/calendar day/);
 }
+
+// Sleep / calendar day boundary: same hotel suite, night → morning must stage even if
+// auditor returns null candidate and null scene_transition (the Stuttgart bug).
+const sundayPenthouseBeat = {
+  lastUpdated: "Sunday evening — post-bath wedding talk",
+  locationLine: "Radisson Blu corner penthouse, Porsche Design Tower, Stuttgart — main bedroom",
+  timeLine: "Sunday evening, Mid/Late October 2026",
+  liveCues: ["dressing gown", "wedding planning", "parents", "rain"],
+  supersededCues: ["shared bath", "panic attack"],
+  antiResetNotes: []
+};
+
+const sleepDetect = detectSleepOrCalendarDayTransition({
+  liveBeat: sundayPenthouseBeat,
+  hints: {
+    userMessage:
+      "the next morning i wake up with the alarm - 6am, but i notice you're up and your side of the bed has cooled",
+    scarlettPreviousMessage:
+      "God morgon. I couldn’t stay asleep. Affalterbach is today. I wanted a little time alone with the thought of it.",
+    recentContext:
+      "Sunday evening Stuttgart penthouse bedroom. Wedding/family talk then sleep. Monday morning Affalterbach day."
+  }
+});
+assert.ok(sleepDetect);
+assert.equal(sleepDetect?.occurred, true);
+assert.equal(sleepDetect?.kind, "time_jump");
+assert.match(sleepDetect?.from ?? "", /Sunday evening/i);
+
+const sleepFallbackWrite = decideMemoryWrite({
+  candidateUpdate: null,
+  assessment: {
+    enabled: true,
+    continuity_risk_level: "low",
+    scene_transition: null
+  },
+  highRiskTriggers: [],
+  proceedRecommendation: "proceed",
+  writeMode: "stage",
+  liveBeat: sundayPenthouseBeat,
+  turnHints: {
+    userMessage:
+      "the next morning i wake up with the alarm - 6am, but i notice you're up and your side of the bed has cooled",
+    scarlettPreviousMessage: "God morgon. Affalterbach is today.",
+    recentContext: "Sunday evening Stuttgart penthouse bedroom after wedding talk; now Monday morning."
+  }
+});
+assert.equal(sleepFallbackWrite.action, "stage_transition");
+if (sleepFallbackWrite.action === "stage_transition") {
+  assert.equal(sleepFallbackWrite.transition.kind, "time_jump");
+  assert.match(sleepFallbackWrite.reason, /sleep_cycle_fallback=yes/);
+  assert.match(sleepFallbackWrite.content, /Sleep\/calendar day transition|Monday morning|morning/i);
+}
+
+// Same-hour continuous talk in the bedroom must NOT inject a sleep transition.
+const noSleep = detectSleepOrCalendarDayTransition({
+  liveBeat: sundayPenthouseBeat,
+  hints: {
+    userMessage: "no more questions, we have all the time in the world for the wedding.",
+    scarlettPreviousMessage: "Det är det som gör mig lycklig. Stay like this.",
+    recentContext: "Sunday evening Stuttgart penthouse bedroom, still talking about the wedding."
+  }
+});
+assert.equal(noSleep, null);
 
 const blocked = decideMemoryWrite({
   candidateUpdate: "They moved to the villa overnight.",

@@ -130,10 +130,75 @@ function testPrivateVenueSuppressesEngineers() {
   console.log("ok private venue suppresses engineers/Shevchenko bleed");
 }
 
+// Parroting-fix 1.3 (2026-08-14): a name inside narration/interior monologue is a
+// reference, not an address — it must not pull Scene Cast into a private couple room.
+function testInteriorMonologueDoesNotAddress() {
+  const r = resolveSceneRoster({
+    userMessage:
+      "I button my shirt slowly. Shevchenko believes this is GT2 homologation — he cannot see the delay tactic underneath. I keep the thought to myself and watch you dress.",
+    scarlettPreviousMessage: "I step into my trousers and hold your eyes.",
+    liveBeat: {
+      lastUpdated: "",
+      locationLine: "Radisson Blu corner penthouse suite, Stuttgart",
+      timeLine: "Monday morning",
+      liveCues: ["suite", "dressing"],
+      supersededCues: [],
+      antiResetNotes: [],
+      presentCast: ["Scarlett", "Benjamin"]
+    }
+  });
+  assert.ok(
+    !r.active.some((a) => a.id === "shevchenko"),
+    `interior monologue must not activate Shevchenko in a private suite: ${r.summary}`
+  );
+  console.log("ok interior monologue does not address (private suite)");
+}
+
+// Same narration reference in a non-private scene downgrades to weakest activation.
+function testNarrationMentionDowngrades() {
+  const r = resolveSceneRoster({
+    userMessage: "Shevchenko wants the heat numbers before lunch, I think, scanning the pit wall.",
+    liveBeat: {
+      lastUpdated: "",
+      locationLine: "pit box",
+      timeLine: "",
+      liveCues: ["pit box"],
+      supersededCues: [],
+      antiResetNotes: [],
+      presentCast: ["Scarlett", "Benjamin", "AMG engineers"]
+    }
+  });
+  const shev = r.active.find((a) => a.id === "shevchenko");
+  assert.ok(shev, r.summary);
+  assert.equal(shev!.activation, "mentioned", "narration naming is a mention, not an address");
+  console.log("ok narration mention downgrades to mentioned");
+}
+
+// Quoted dialogue still addresses — words said aloud are on-record in the scene.
+function testQuotedDialogueStillAddresses() {
+  const r = resolveSceneRoster({
+    userMessage: '"Shevchenko will push back on the timeline," I say, reaching for my jacket.',
+    liveBeat: {
+      lastUpdated: "",
+      locationLine: "pit box",
+      timeLine: "",
+      liveCues: ["pit box"],
+      supersededCues: [],
+      antiResetNotes: [],
+      presentCast: ["Scarlett", "Benjamin", "AMG engineers"]
+    }
+  });
+  assert.equal(r.active.find((a) => a.id === "shevchenko")?.activation, "addressed", r.summary);
+  console.log("ok quoted dialogue still addresses");
+}
+
 testAddressedWins();
 testPresentCastActivation();
 testCapAtFour();
 testParsePresentField();
 testNoFalseRyanOnDinner();
 testPrivateVenueSuppressesEngineers();
+testInteriorMonologueDoesNotAddress();
+testNarrationMentionDowngrades();
+testQuotedDialogueStillAddresses();
 console.log("All WP-5.7 scene-roster tests passed.");

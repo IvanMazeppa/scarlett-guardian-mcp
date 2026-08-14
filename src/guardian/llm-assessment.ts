@@ -259,9 +259,14 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
       : "",
     "When STORY MOMENTUM is present: it is day/arc schedule pressure only. You describe pressure and possibility — never outcomes, dialogue, or results of open beats. LIVE BEAT still wins for present location and story-time.",
     "CRITICAL: Do NOT fact-check the user's current RP actions, dialogue, or creative prose (e.g., washing a partner, kissing, saying a specific phrase).",
-    "Only flag 'unsupported_or_risky_claims' if the user attempts to assert a major historical canon fact (like a character's backstory, a past location, or a permanent physical trait) that contradicts the database.",
+    "Never audit the user's current turn as a risky claim. Risky-claim candidates may only come from asserted past history (a character's backstory, a past location, or a permanent physical trait).",
+    "Strategy, plans, and motives that characters voice or think in play are creative content, never canon assertions to audit.",
+    // Parroting-fix 2.1 (2026-08-14): contradiction-only; quoted evidence required.
+    "Only flag 'unsupported_or_risky_claims' when a retrieved evidence line CONTRADICTS that past-canon assertion. Quote the contradicting evidence line inside the flag using quotation marks. Absence of support is never risky — set needs_more_retrieval true instead. Flags without a quoted evidence line will be discarded.",
     "If 'scarlett_previous_message' is provided, critique character balance: correct only clear character erasure, unsupported coldness/cruelty/dismissal toward Benjamin without scene warrant, mechanical parroting across the actual reply, or genuine ensemble displacement. Write one concise sentence in 'grok_performance_correction', or null.",
     "These are NOT passivity by themselves: agreeing; receiving care; letting Benjamin lead; chosen yielding or submission; resting, silence, fatigue, uncertainty, or vulnerability; responding rather than introducing a new action.",
+    // Parroting-fix 2.2 (2026-08-14): beat-for-beat restatement is parroting; receptivity stays protected.
+    "Re-narrating the user's completed sequence with no Scarlett-added interior beat, sensation, choice, or offer IS mechanical parroting — write one concise sentence in grok_performance_correction. Receiving, following, and yielding remain protected.",
     "Confidence and dominance do not authorize disrespect or dismissal toward Benjamin without current scene evidence. Professional register must not be imposed on a private scene merely because the wider arc is professional. Sexual dominance is intimate and role-fluid, not a default command posture.",
     "IDENTITY DILUTION: If the scene involves physical intimacy and Scarlett's pre-op anatomy is omitted, cis-washed, or replaced with generic tropes, issue a critical grok_performance_correction rewinding the turn. Softness does not licence the erasure of her specific anatomy or sensual confidence.",
     // WP-5.8 ensemble dilution (duplex path)
@@ -271,10 +276,11 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
     "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",
     "Fill scene_state_delta with one tight scene summary sentence or two for the novelist — grounded on LIVE BEAT location/time when present.",
     "Set candidate_memory_update to null unless a durable canon change should be written; empty/no-op updates should be null.",
-    "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, or relationship milestone worth the notebook.",
-    "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes.",
+    "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, relationship milestone worth the notebook, OR a sleep cycle / calendar day change that closes the prior day's events.",
+    "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes that stay in the same place AND same story-hour.",
     "If you set candidate_memory_update, write 1–3 continuity sentences a human would paste into current-state 'Where We Are' / Recent Key Events — not a timestamped chat log line.",
     "Set scene_transition only when the scene's location or story-time has durably changed versus the LIVE BEAT block. Continuous action in the same place and hour is not a transition — use null.",
+    "SLEEP / CALENDAR DAY BOUNDARY (hard rule): If play jumps from night/evening to the next morning (alarm, woke up, God morgon, Monday morning, slept through, etc.), that is ALWAYS a durable scene_transition even when the physical location is unchanged (same hotel suite / same bed). Use kind time_jump (or both if they also leave the room). YOU MUST set occurred=true and a non-null candidate_memory_update that (1) closes out the prior day's durable beats (e.g. Sunday wedding/family talk, sleep) and (2) states the new morning present. Do not leave candidate_memory_update null because 'Beat N remains live' or the room did not change.",
     "When scene_transition.occurred is true, fill from/to as short human snapshots and kind as location|time_jump|both; also set a non-null candidate_memory_update summarizing the durable move.",
     "npc_state_changes: set only at scene close, when scene_transition.occurred is true, and only for a durable change a named active supporting NPC demonstrably played on screen. Do not emit groups or crowds. Use the exact registry NPC name and one kind: disposition, wants, last_seen, or knowledge. For volatile kinds, change is the complete replacement field value; for knowledge, change is only the newly learned fact. Include a short evidence quote/beat. Never infer a knowledge change; knowledge proposals are always human-reviewed. Otherwise return null.",
     "When a SERENDIPITY WORLD EVENT block is present: set serendipity_weave to exactly ONE grounded background sentence at the event's tier (or null to veto). Never invent a different event. Never put tool names or 'SERENDIPITY EVENT' labels in the weave.",
@@ -287,6 +293,27 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/**
+ * Parroting-fix 2.1 (2026-08-14): a risky claim is only real when it quotes the
+ * contradicting retrieved evidence line. Unquoted "not supported" flags are
+ * absence-of-support false negatives (the AGI delay tactic on 14 Aug) and must
+ * not reach the novelist brief or operator hard flags.
+ */
+const EVIDENCE_QUOTE_RE = /["“]([^"”]{12,400})["”]/;
+
+export function riskyClaimHasEvidenceQuote(claim: string): boolean {
+  if (typeof claim !== "string") return false;
+  return EVIDENCE_QUOTE_RE.test(claim);
+}
+
+export function filterQuotedRiskyClaims(claims: unknown): string[] {
+  if (!Array.isArray(claims)) return [];
+  return claims
+    .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
+    .map((c) => c.trim())
+    .filter(riskyClaimHasEvidenceQuote);
 }
 
 /**
@@ -338,7 +365,8 @@ export function normalizeAssessmentFields(
     npc_state_changes,
     serendipity_weave,
     scarlett_next_intention,
-    resonance_echo
+    resonance_echo,
+    unsupported_or_risky_claims: filterQuotedRiskyClaims(raw.unsupported_or_risky_claims)
   } as Partial<GuardianLlmAssessmentWithNpcState> & {
     npc_state_changes: NpcStateChange[] | null;
   };

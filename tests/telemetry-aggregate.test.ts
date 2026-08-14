@@ -68,6 +68,11 @@ assert.equal(
 
 {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tel-agg-"));
+  // Hermetic fix 2026-08-14: fixtures used absolute July timestamps against the
+  // relative `days: 30` window, so the test started failing by calendar drift
+  // (time bomb). Keep both events inside the window relative to now.
+  const ts1 = new Date(Date.now() - 20 * 86_400_000).toISOString();
+  const ts2 = new Date(Date.now() - 5 * 86_400_000).toISOString();
   const e1 = eventFromSavedReport(
     {
       confidence_score: 70,
@@ -78,7 +83,7 @@ assert.equal(
       current_state_summary: "HIGH confidence context found from project_source_files",
       llm_assessment: { supported_facts: [] }
     },
-    { preflight_id: "2026-07-10T00-00-00-000Z", report_path: "r1.json", ts: "2026-07-10T00:00:00.000Z" }
+    { preflight_id: "2026-07-10T00-00-00-000Z", report_path: "r1.json", ts: ts1 }
   );
   const e2 = eventFromSavedReport(
     {
@@ -93,7 +98,7 @@ assert.equal(
       current_state_summary: "clean",
       memory_write: { action: "none", reason: "noop" }
     },
-    { preflight_id: "2026-07-15T02-51-26-420Z", report_path: "r2.json", ts: "2026-07-15T02:51:26.420Z" }
+    { preflight_id: "2026-07-15T02-51-26-420Z", report_path: "r2.json", ts: ts2 }
   );
   appendEventLineSync(dir, e1);
   appendEventLineSync(dir, e2);

@@ -83,8 +83,9 @@ function pickKeyFacts(report: GuardianReport): string[] {
   }
 
   // Surface only blocking / high-signal hard flags — not RAG coaching or duplex-input housekeeping.
+  // Parroting-fix 1.1: FACT_CHECK_* never becomes a novelist-facing key fact (clerk mode).
   const blocking = (report.hard_flags ?? []).filter((flag) =>
-    /MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|NO_DEEP_MEMORY|FACT_CHECK_|PARTIAL_RETRIEVAL/i.test(flag)
+    /MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK|NO_DEEP_MEMORY|PARTIAL_RETRIEVAL/i.test(flag)
   );
   if (blocking.length > 0) {
     return blocking.slice(0, 4).map((f) => stripRagMeta(f) || f);
@@ -138,8 +139,15 @@ function pickScarlettIntention(report: GuardianReport): string | undefined {
  * Suppresses Story Momentum + Scene Cast so private Scarlett is not managed like a board meeting.
  */
 export function isQuietPrivateCoupleScene(report: GuardianReport): boolean {
-  const active = report.scene_roster?.active ?? [];
-  if (active.length > 0) return false;
+  const roster = report.scene_roster;
+  const active = roster?.active ?? [];
+  // Parroting-fix 1.3 defense (2026-08-14): when LIVE BEAT Present is couple-only,
+  // talked-about NPCs (addressed/speaker/mentioned) must not turn a private room into
+  // an ensemble scene — only physically-present cast blocks quiet-couple suppression.
+  const blocking = roster?.couple_only_present
+    ? active.filter((m) => m.activation === "present_cast")
+    : active;
+  if (blocking.length > 0) return false;
   const summary = (report.scene_roster?.summary ?? "").toLowerCase();
   if (summary.includes("couple-only")) return true;
   const scene = `${report.grok_scene_summary ?? ""} ${report.current_state_summary ?? ""}`.toLowerCase();

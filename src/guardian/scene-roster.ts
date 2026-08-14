@@ -230,6 +230,44 @@ function normalizeHay(...parts: string[]): string {
     .trim();
 }
 
+/** Quoted dialogue spans ("…" or “…”) — words said aloud in the scene. */
+function extractDialogueSpans(text: string): string {
+  const spans: string[] = [];
+  for (const re of [/"([^"]{2,400})"/g, /“([^”]{2,400})”/g]) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) spans.push(m[1]);
+  }
+  return spans.join(" ");
+}
+
+/**
+ * Physical arrival/presence markers that put an NPC on-stage
+ * rather than inside someone's head.
+ */
+const PRESENCE_MARKERS =
+  /\b(outside the (suite )?door|at the door|knock(s|ing|ed)?|arriv(es?|ing|ed)|walks? in|enters?|entering|comes? in|coming in|let (him|her|them) in|shows? up|showed up|wait(s|ing)? (in|at|by|beside|outside|downstairs)|joins? (us|them|me)|is here|are here|stands? (in|at|by) the)\b/i;
+
+/**
+ * Parroting-fix 1.3 (2026-08-14): "addressed" requires the NPC to be on-stage in the
+ * user's turn — named inside quoted dialogue, or named alongside physical arrival/
+ * presence markers in the same sentence. A name inside narration or interior monologue
+ * (e.g. Benjamin privately thinking about his boss) is a reference, not an address; it
+ * must not break quiet-couple suppression or pull Scene Cast into a private room.
+ */
+function isOnStageInUserTurn(rawUserMessage: string, aliases: string[]): boolean {
+  if (!rawUserMessage.trim()) return false;
+  const dialogueHay = normalizeHay(extractDialogueSpans(rawUserMessage));
+  if (dialogueHay && aliases.some((a) => hayIncludesAlias(dialogueHay, a))) return true;
+  for (const sentence of rawUserMessage.split(/[.!?…]+(?:\s+|$)|\n+/)) {
+    if (!sentence?.trim()) continue;
+    const hay = normalizeHay(sentence);
+    if (aliases.some((a) => hayIncludesAlias(hay, a)) && PRESENCE_MARKERS.test(sentence)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Build scene roster from messages + live beat + optional arc-plan cast text.
  */
@@ -266,7 +304,7 @@ export function resolveSceneRoster(input: {
   const hits: RosterMember[] = [];
   for (const npc of registry) {
     let activation: RosterActivation | null = null;
-    if (npc.aliases.some((a) => hayIncludesAlias(userHay, a))) {
+    if (isOnStageInUserTurn(input.userMessage, npc.aliases)) {
       activation = "addressed";
     } else if (npc.aliases.some((a) => hayIncludesAlias(scarlettHay, a))) {
       activation = "speaker";
@@ -277,6 +315,9 @@ export function resolveSceneRoster(input: {
       activation = "present_cast";
     } else if (!suppressPassive && npc.aliases.some((a) => hayIncludesAlias(arcHay, a))) {
       activation = "arc_cast";
+    } else if (!suppressPassive && npc.aliases.some((a) => hayIncludesAlias(userHay, a))) {
+      // Parroting-fix 1.3: named in user narration/interiority — a reference, not presence.
+      activation = "mentioned";
     } else if (!suppressPassive && npc.aliases.some((a) => hayIncludesAlias(combinedMention, a))) {
       // location/cue only — weaker
       if (npc.aliases.some((a) => hayIncludesAlias(cueHay, a))) {

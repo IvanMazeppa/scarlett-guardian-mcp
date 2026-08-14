@@ -6,6 +6,7 @@ import {
   LIVE_BEAT_SUPERSESSION_INSTRUCTION,
   buildAuditorSystemPrompt,
   buildAuditorUserMessage,
+  filterQuotedRiskyClaims,
   normalizeAssessmentFields,
   normalizeNpcStateChanges
 } from "../src/guardian/llm-assessment.js";
@@ -78,6 +79,8 @@ function testSystemPromptSupersession() {
   assert.match(sys, /resonance_echo/i);
   assert.match(sys, /npc_state_changes/i);
   assert.match(sys, /knowledge proposals are always human-reviewed/i);
+  assert.match(sys, /SLEEP \/ CALENDAR DAY BOUNDARY/i);
+  assert.match(sys, /same hotel suite|physical location is unchanged/i);
 }
 
 function testNpcStateChangeNormalization() {
@@ -180,10 +183,26 @@ function testParseThenFormatRoundTrip() {
   assert.ok(beat.liveCues.length > 0 || beat.locationLine.length > 0);
 }
 
+function testQuotedRiskyClaimFilter() {
+  const kept =
+    'The delay tactic contradicts retrieved canon: "Scarlett engineers the aero-package pivot to distract Albion."';
+  const dropped =
+    "Scarlett masterminded the aero package as a corporate AGI-delay smokescreen conflicts with the available history, which frames the aero package as Benjamin’s work.";
+  const filtered = filterQuotedRiskyClaims([dropped, kept, "", 12, null]);
+  assert.deepEqual(filtered, [kept]);
+
+  const fields = normalizeAssessmentFields({
+    unsupported_or_risky_claims: [dropped, kept]
+  });
+  assert.deepEqual(fields.unsupported_or_risky_claims, [kept]);
+  console.log("ok quoted risky-claim filter");
+}
+
 testFormatLiveBeatBlock();
 testUserMessageOrder();
 testSystemPromptSupersession();
 testNpcStateChangeNormalization();
 testSerendipityBlockInUserMessage();
 testParseThenFormatRoundTrip();
+testQuotedRiskyClaimFilter();
 console.log("llm-assessment-live-beat.test.ts: all passed");

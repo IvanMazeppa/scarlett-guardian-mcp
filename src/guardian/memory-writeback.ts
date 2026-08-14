@@ -230,10 +230,171 @@ const NOOP_PATTERNS = [
 
 /** Generic verbs/phrases that signal a beat advance (place-agnostic). */
 const ADVANCE_LANGUAGE =
-  /\b(moved to|arrived at|left for|departed|entered|exited|completed|finished|began|started|rolled out|relocated|transitioned to|now (?:at|in|on)|first time|milestone|open thread|new open thread|resolved thread|relationship milestone)\b/i;
+  /\b(moved to|arrived at|left for|departed|entered|exited|completed|finished|began|started|rolled out|relocated|transitioned to|now (?:at|in|on)|first time|milestone|open thread|new open thread|resolved thread|relationship milestone|woke up|waking up|next morning|this morning|slept|fell asleep|went to sleep|alarm)\b/i;
 
 const SAME_SCENE_LANGUAGE =
   /\b(no location change|same room|still in|remains? (in|at)|continues? (in|at)|talking softly|no major|unchanged)\b/i;
+
+/** Played-turn cues that the story crossed into a new morning / wake. */
+const WAKE_OR_MORNING_CUES =
+  /\b(next morning|this morning|monday morning|tuesday morning|wednesday morning|thursday morning|friday morning|saturday morning|sunday morning|god morgon|good morning|alarm(?:\s+goes?\s+off)?|woke up|waking up|already awake|got up so early|side of the bed has cooled|6\s*a\.?m\.?|06:00|slept through|sound asleep|fell asleep|went to sleep|we(?:'re| are) both (?:sound )?asleep)\b/i;
+
+/** Live-beat / prior-frame cues that the closed beat was still night/evening. */
+const NIGHT_OR_EVENING_LIVE =
+  /\b(evening|tonight|last night|late night|sunday (?:evening|night)|saturday (?:evening|night)|in bed|bedroom|after(?:care)?|dressing gown|rain|penthouse bedroom|hotel-recovery|recovery frame)\b/i;
+
+const WEEKDAY_WORDS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday"
+] as const;
+
+export type SleepCycleTurnHints = {
+  userMessage?: string;
+  scarlettPreviousMessage?: string;
+  recentContext?: string;
+};
+
+function joinTurnHaystack(hints: SleepCycleTurnHints): string {
+  return [hints.userMessage, hints.scarlettPreviousMessage, hints.recentContext]
+    .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+    .join("\n");
+}
+
+function joinLiveHaystack(liveBeat?: LiveBeat | null): string {
+  if (!liveBeat) return "";
+  return [liveBeat.timeLine, liveBeat.lastUpdated, liveBeat.locationLine, ...(liveBeat.liveCues ?? [])]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function extractWeekday(text: string): (typeof WEEKDAY_WORDS)[number] | null {
+  const lower = text.toLowerCase();
+  for (const day of WEEKDAY_WORDS) {
+    if (new RegExp(`\\b${day}\\b`, "i").test(lower)) return day;
+  }
+  return null;
+}
+
+/**
+ * Deterministic sleep / calendar-day boundary detector.
+ * Same physical location (hotel suite) must still count as a durable time_jump when
+ * play crosses night → next morning, otherwise write-back skips and current-state lags.
+ */
+export function detectSleepOrCalendarDayTransition(input: {
+  liveBeat?: LiveBeat | null;
+  hints: SleepCycleTurnHints;
+}): NonNullable<GuardianLlmAssessment["scene_transition"]> | null {
+  const played = joinTurnHaystack(input.hints);
+  if (!played.trim()) return null;
+  if (!WAKE_OR_MORNING_CUES.test(played)) return null;
+
+  const liveHay = joinLiveHaystack(input.liveBeat);
+  const recent = input.hints.recentContext ?? "";
+  const priorNight =
+    NIGHT_OR_EVENING_LIVE.test(liveHay) ||
+    NIGHT_OR_EVENING_LIVE.test(recent) ||
+    /\b(sunday|saturday)\b.*\b(evening|night|bed)\b/i.test(`${liveHay}\n${recent}`);
+
+  const liveDay = extractWeekday(liveHay);
+  const playedDay = extractWeekday(played);
+  const calendarDayChanged = Boolean(liveDay && playedDay && liveDay !== playedDay);
+
+  // Explicit "next morning" / wake after sleep language is enough even if live beat is sparse,
+  // as long as recent_context or live hay still smells like the prior evening frame.
+  const explicitNextMorning = /\b(next morning|monday morning|this morning after|alarm)\b/i.test(played);
+  if (!priorNight && !calendarDayChanged && !explicitNextMorning) {
+    return null;
+  }
+
+  const from =
+    [input.liveBeat?.timeLine, input.liveBeat?.locationLine].filter(Boolean).join(" — ").trim() ||
+    (recent.trim() ? recent.trim().slice(0, 160) : "prior evening / night beat");
+  const toMatch = played.match(
+    /\b((?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+morning|[^.!\n]{0,40}(?:alarm|woke|god morgon|good morning)[^.!\n]{0,60})/i
+  );
+  const to = (toMatch?.[1] ?? "next morning (same location)").trim().slice(0, 160);
+
+  return {
+    occurred: true,
+    from,
+    to,
+    kind: "time_jump"
+  };
+}
+
+export function synthesizeSleepCycleMemoryUpdate(transition: {
+  from?: string;
+  to?: string;
+}): string {
+  const from = transition.from?.trim() || "prior evening beat";
+  const to = transition.to?.trim() || "next morning";
+  return (
+    `Sleep/calendar day transition (same location allowed): closed ${from}; ` +
+    `present is now ${to}. Summarize the prior day's durable events into current-state ` +
+    `(Where We Are / Recent Key Events) and advance story-time to the new morning.`
+  );
+}
+
+/**
+ * If the auditor omitted scene_transition on a clear sleep/day boundary, inject time_jump
+ * and ensure a non-null candidate_memory_update so decideMemoryWrite can stage it.
+ */
+export function enrichAssessmentForSleepCycleBoundary(input: {
+  assessment: GuardianLlmAssessment;
+  candidateUpdate: string | null | undefined;
+  liveBeat?: LiveBeat | null;
+  hints?: SleepCycleTurnHints;
+}): {
+  assessment: GuardianLlmAssessment;
+  candidateUpdate: string | null | undefined;
+  injected: boolean;
+} {
+  if (input.assessment.scene_transition?.occurred === true) {
+    return {
+      assessment: input.assessment,
+      candidateUpdate: input.candidateUpdate,
+      injected: false
+    };
+  }
+  if (!input.hints) {
+    return {
+      assessment: input.assessment,
+      candidateUpdate: input.candidateUpdate,
+      injected: false
+    };
+  }
+
+  const detected = detectSleepOrCalendarDayTransition({
+    liveBeat: input.liveBeat,
+    hints: input.hints
+  });
+  if (!detected) {
+    return {
+      assessment: input.assessment,
+      candidateUpdate: input.candidateUpdate,
+      injected: false
+    };
+  }
+
+  const candidate =
+    typeof input.candidateUpdate === "string" && input.candidateUpdate.trim() && !isNoOpMemoryUpdate(input.candidateUpdate)
+      ? input.candidateUpdate
+      : synthesizeSleepCycleMemoryUpdate(detected);
+
+  return {
+    assessment: {
+      ...input.assessment,
+      scene_transition: detected
+    },
+    candidateUpdate: candidate,
+    injected: true
+  };
+}
 
 /** True if the auditor proposal is empty or a no-op micro-log. */
 export function isNoOpMemoryUpdate(value: string | null | undefined): boolean {
@@ -390,6 +551,8 @@ export function decideMemoryWrite(input: {
   writeMode?: MemoryWriteMode;
   /** Current live beat — used for material delta (WP-2.4). */
   liveBeat?: LiveBeat | null;
+  /** Optional played-turn text for sleep/day-boundary fallback when auditor omits transition. */
+  turnHints?: SleepCycleTurnHints;
 }): MemoryWriteDecision {
   const mode = input.writeMode ?? "stage";
   if (mode === "off") {
@@ -404,14 +567,22 @@ export function decideMemoryWrite(input: {
     return { action: "none", reason: "LLM assessment unavailable" };
   }
 
-  const raw =
-    typeof input.candidateUpdate === "string"
-      ? input.candidateUpdate
-      : input.candidateUpdate == null
-        ? ""
-        : String(input.candidateUpdate);
+  const enriched = enrichAssessmentForSleepCycleBoundary({
+    assessment: input.assessment,
+    candidateUpdate: input.candidateUpdate,
+    liveBeat: input.liveBeat,
+    hints: input.turnHints
+  });
+  const assessment = enriched.assessment;
 
-  const transition = input.assessment.scene_transition;
+  const raw =
+    typeof enriched.candidateUpdate === "string"
+      ? enriched.candidateUpdate
+      : enriched.candidateUpdate == null
+        ? ""
+        : String(enriched.candidateUpdate);
+
+  const transition = assessment.scene_transition;
   const transitionOccurred = Boolean(transition && transition.occurred === true);
 
   // Scene transition may still need a non-noop candidate; if auditor set transition but
@@ -421,7 +592,10 @@ export function decideMemoryWrite(input: {
     if (transitionOccurred && transition) {
       const from = transition.from?.trim() || "prior scene";
       const to = transition.to?.trim() || "new scene";
-      rawForWrite = `Scene transition (${transition.kind ?? "location"}): ${from} → ${to}.`;
+      rawForWrite =
+        transition.kind === "time_jump"
+          ? synthesizeSleepCycleMemoryUpdate(transition)
+          : `Scene transition (${transition.kind ?? "location"}): ${from} → ${to}.`;
     } else {
       return { action: "none", reason: "null/empty/no-op candidate_memory_update" };
     }
@@ -430,7 +604,7 @@ export function decideMemoryWrite(input: {
   // Transitions are always material when auditor declared them; otherwise use existing gate.
   if (
     !transitionOccurred &&
-    !isMaterialMemoryUpdate(rawForWrite, input.assessment, input.highRiskTriggers, input.liveBeat)
+    !isMaterialMemoryUpdate(rawForWrite, assessment, input.highRiskTriggers, input.liveBeat)
   ) {
     return {
       action: "none",
@@ -440,13 +614,14 @@ export function decideMemoryWrite(input: {
 
   const delta = hasLiveBeatDelta(rawForWrite, input.liveBeat);
   const rationale = [
-    `risk=${input.assessment.continuity_risk_level ?? "unknown"}`,
+    `risk=${assessment.continuity_risk_level ?? "unknown"}`,
     input.highRiskTriggers.length ? `triggers=${input.highRiskTriggers.slice(0, 3).join("|")}` : "triggers=none",
-    input.assessment.scene_state_delta ? "has_scene_delta" : "no_scene_delta",
+    assessment.scene_state_delta ? "has_scene_delta" : "no_scene_delta",
     delta ? "live_beat_delta=yes" : "live_beat_delta=no",
     transitionOccurred
       ? `scene_transition=yes kind=${transition?.kind ?? "unknown"}`
-      : "scene_transition=no"
+      : "scene_transition=no",
+    enriched.injected ? "sleep_cycle_fallback=yes" : "sleep_cycle_fallback=no"
   ].join("; ");
 
   if (mode === "live") {

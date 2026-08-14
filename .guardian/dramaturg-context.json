@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 78,
+  "turnCounter": 107,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "done",
-        "pressure": "The world expects them on site, introduced, and professionally present before any lap.",
+        "pressure": "The world expects them on site, introduced, and professionally present before any lap. Motion-sickness aftercare should not erase the Industry Pool frame.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The world is ready for return, telemetry debrief, and grounding; correlation and aftercare remain unscripted.",
+        "pressure": "The world is ready for return → telemetry debrief → grounding. Whether the aero \"proves\" the simulation is open. Aftercare is available pressure, not a scripted monologue.",
         "cues": [
           "aftercare",
           "green hell",
@@ -95,8 +95,8 @@
         "index": 4,
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
-        "status": "live",
-        "pressure": "The hotel-recovery frame remains active; private recovery has room to continue without forcing an Affalterbach arrival, board preparation, or a return to the circuit.",
+        "status": "dormant",
+        "pressure": "The world is ready for rest and private recovery. Do not force same-day Affalterbach arrival, board prep, or a long Autobahn push Friday night. Do not reset to the changing room or pit box. Exit from cabin / check-in / suite remain open — pressure only, not scripted outcomes.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,16 +121,27 @@
         ]
       }
     ],
-    "momentumLine": "Beat 4 remains live in the hotel-recovery frame; no further plan beats are scheduled today, while Monday Affalterbach pressure remains offstage.",
-    "npcIntersections": [],
-    "planWarnings": [
-      "The LIVE BEAT is Sunday evening in a Stuttgart penthouse, while Beat 4 is framed as Friday-evening post-circuit recovery; its broad recovery frame matches, but its original timing and location do not.",
-      "plan_status is marked complete while the deterministic diff and LIVE BEAT frame still identify Beat 4 as live."
+    "momentumLine": "No beat from this completed Friday track-day plan is live in the Monday-morning Affalterbach boardroom; its remaining schedule pressure has passed, while the Monday board window is outside this plan.",
+    "npcIntersections": [
+      {
+        "npc": "Mr. Shevchenko",
+        "agenda": "The Monday Affalterbach/board window intersects his need for clean telemetry, aero-package validation, and Albion’s professional readiness.",
+        "suggestedTier": "engaging"
+      },
+      {
+        "npc": "AMG telemetry engineers",
+        "agenda": "Their weekend data packaging and sensor/correlation work intersects the Monday HQ presentation window.",
+        "suggestedTier": "peripheral"
+      }
     ],
-    "generatedAtTurn": 70,
+    "planWarnings": [
+      "No live beat match: this plan ends with Friday hotel recovery, while the LIVE BEAT is Monday morning in the AMG Affalterbach executive boardroom.",
+      "The plan is marked complete; the current Monday boardroom pressure requires a subsequent or separate plan."
+    ],
+    "generatedAtTurn": 104,
     "source": "llm",
     "planHash": "6cc69e232567cf81",
-    "refreshedAt": "2026-08-11T02:20:41.213Z",
-    "liveSceneFingerprint": "831d151c24b667ff"
+    "refreshedAt": "2026-08-14T15:58:31.055Z",
+    "liveSceneFingerprint": "97075dc05350f58d"
   }
 }

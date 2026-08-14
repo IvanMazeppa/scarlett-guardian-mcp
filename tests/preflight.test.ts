@@ -8,6 +8,8 @@ import {
 } from "../src/guardian/report/text-clean.js";
 import type { GuardianReport } from "../src/guardian/report/models.js";
 import {
+  buildFactCheckQuestions,
+  buildKeyFacts,
   buildPreflightQuery,
   detectHighRiskTriggers,
   selectPrecedents
@@ -166,6 +168,68 @@ const mid =
 const cut = truncateAtSentence(mid, 90);
 assert.ok(!/translat\.\.\.$/.test(cut), `should not hard-cut mid-word: ${cut}`);
 assert.ok(cut.endsWith(".") || cut.endsWith("…") || cut.length <= 90);
+
+// Parroting-fix 1.1 (2026-08-14) — Key Fact #1 must stay live scene grounding:
+// FACT_CHECK_* verdicts never become key facts (clerk mode); blocking flags append last.
+{
+  const keyFacts = buildKeyFacts(
+    [],
+    {
+      enabled: true,
+      supported_facts: [
+        "They are dressing in the suite for the Affalterbach presentation.",
+        "Monday morning ~07:15; Black Panther drive ahead."
+      ]
+    } as never,
+    [
+      "FACT_CHECK_AMBIGUOUS: Verify exact continuity facts — I reach past you and turn the water off…",
+      "LLM_GUARDIAN_BLOCK: Guardian assessment recommends blocking prose until continuity is repaired."
+    ],
+    []
+  );
+  assert.ok(
+    !keyFacts.some((f) => /FACT_CHECK_/i.test(f)),
+    `FACT_CHECK_ must never be a novelist key fact: ${keyFacts.join(" | ")}`
+  );
+  assert.match(
+    keyFacts[0],
+    /dressing in the suite/i,
+    "Key Fact #1 must be live scene grounding, not a flag"
+  );
+  assert.ok(
+    /LLM_GUARDIAN_BLOCK/.test(keyFacts[keyFacts.length - 1]),
+    "blocking flags append last, never first"
+  );
+  console.log("ok buildKeyFacts: fact-check excluded, block flag last");
+}
+
+// Parroting-fix 2.3 (2026-08-14) — never dump present-tense play as claim_or_question.
+{
+  const crisisTurn =
+    "I reach past you and turn the water off, then hold your shirt while you dress. Trousers next. Shevchenko believes this is GT2 homologation — Monday, Affalterbach, AMG HQ. I keep that thought to myself.";
+  const none = buildFactCheckQuestions({ user_message: crisisTurn }, [
+    "AMG, Germany trip, Luxembourg, Nuerburgring, Affalterbach, or track-day logistics"
+  ]);
+  assert.equal(
+    none.length,
+    0,
+    `present-tense play must not become a fact-check: ${JSON.stringify(none)}`
+  );
+
+  const past = buildFactCheckQuestions(
+    {
+      user_message:
+        "I button my shirt. Your surgery was in 2024 after Vaxholm — that's the year Mormor died, wasn't it?"
+    },
+    ["Family history, Vaxholm, Mormor, or childhood trauma"]
+  );
+  assert.equal(past.length, 1, JSON.stringify(past));
+  assert.match(past[0], /Verify past-canon assertion:/);
+  assert.match(past[0], /surgery|Vaxholm|Mormor/i);
+  assert.ok(!/I button my shirt/i.test(past[0]), "present-tense play clause must be stripped");
+  assert.ok(past[0].length < 280, `one-clause cap: ${past[0].length}`);
+  console.log("ok buildFactCheckQuestions: past-canon only, one clause");
+}
 
 console.log("preflight tests passed");
 console.log("\n--- sample compileGrokBrief output ---\n");

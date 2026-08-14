@@ -54,6 +54,7 @@ export type L3SuiteResult = {
 
 export function liveEvalConfig(overrides?: Partial<EvalConfig>): EvalConfig {
   const key = process.env.OPENAI_API_KEY;
+  const auditorMs = Number(process.env.GUARDIAN_BUDGET_AUDITOR_MS);
   return {
     ...baseHermetic(),
     GUARDIAN_LLM_ENABLED: true,
@@ -62,6 +63,10 @@ export function liveEvalConfig(overrides?: Partial<EvalConfig>): EvalConfig {
     GUARDIAN_LLM_REASONING_EFFORT: "low",
     GUARDIAN_MEMORY_WRITE_MODE: "off", // L3: do not stage during eval
     GUARDIAN_AUTO_APPROVE: "none",
+    // Hermetic config uses 200ms so llm-off never waits; live terra needs the real budget.
+    GUARDIAN_BUDGET_AUDITOR_MS:
+      Number.isFinite(auditorMs) && auditorMs > 1000 ? auditorMs : 12000,
+    GUARDIAN_BUDGET_TOTAL_PREFLIGHT_MS: 45000,
     ...overrides
   };
 }

@@ -68,7 +68,12 @@ const samplePlan = fs.existsSync(arcPlanPath)
 
 function testParseArcPlan() {
   const plan = parseArcPlan(samplePlan, arcPlanPath);
-  assert.equal(plan.status, "active");
+  // Hermetic fix 2026-08-14: samplePlan prefers the live arc-09 file, whose Status
+  // moved to `complete` when the story advanced (arc lifecycle). Assert the parser
+  // extracts exactly the status the parsed document declares, not a frozen value.
+  const expectedStatus =
+    /\*\*Status:\*\*\s*`?(\w+)`?/.exec(samplePlan)?.[1] ?? "active";
+  assert.equal(plan.status, expectedStatus);
   assert.match(plan.slug, /arc-09/i);
   assert.equal(plan.beats.length, 4);
   assert.equal(plan.beats[0].kind, "fixed");
@@ -198,10 +203,34 @@ function testLoadActiveFromSibling() {
     console.log("skip loadActive (arc plan file not on disk)");
     return;
   }
-  assert.ok(loaded, "should find active arc plan beside guardian via rag-memory-mcp path");
-  assert.match(loaded!.sourcePath, /arc-09-nurburgring-track-day\.md/);
-  assert.match(loaded!.markdown, /\*\*Status:\*\*\s*active/i);
-  console.log("ok loadActiveArcPlan", path.basename(loaded!.sourcePath));
+  // Hermetic fix 2026-08-14: the arc lifecycle moved past arc-09 (Status: complete) and
+  // may sit between active plans. Assert the loader CONTRACT, not frozen canon:
+  // an arc-* plan is found, and a non-active result is only legal when no plan on disk
+  // is active (documented first-arc-file fallback).
+  assert.ok(loaded, "should find an arc plan beside guardian via rag-memory-mcp path");
+  assert.match(path.basename(loaded!.sourcePath), /^arc-/i);
+  // Line-anchored: the Status META line only — arc plans mention statuses in
+  // lifecycle prose too (e.g. arc-14: "set this file **Status:** `active`").
+  const statusMetaRe = /^\*\*Status:\*\*\s*`?(\w+)`?/im;
+  const loadedStatus = statusMetaRe.exec(loaded!.markdown)?.[1]?.toLowerCase();
+  if (loadedStatus !== "active") {
+    const dir = path.dirname(arcPlanPath);
+    const anyActiveOnDisk = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md")
+      .some(
+        (f) =>
+          statusMetaRe
+            .exec(fs.readFileSync(path.join(dir, f), "utf8"))?.[1]
+            ?.toLowerCase() === "active"
+      );
+    assert.equal(
+      anyActiveOnDisk,
+      false,
+      "loader returned a non-active plan while an active plan exists on disk"
+    );
+  }
+  console.log("ok loadActiveArcPlan", path.basename(loaded!.sourcePath), `status=${loadedStatus}`);
 }
 
 function testShouldRefreshTriggers() {
