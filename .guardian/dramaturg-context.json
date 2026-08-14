@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 107,
+  "turnCounter": 109,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "done",
-        "pressure": "The world expects them on site, introduced, and professionally present before any lap. Motion-sickness aftercare should not erase the Industry Pool frame.",
+        "pressure": "The track-day arrival is behind the current Monday Affalterbach boardroom scene.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -38,7 +38,7 @@
         "name": "The Green Hell (afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The day expects real track time and live telemetry.",
+        "pressure": "The planned Friday track-time window is behind the current Monday scene; no lap or telemetry outcome is implied.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The world is ready for return → telemetry debrief → grounding. Whether the aero \"proves\" the simulation is open. Aftercare is available pressure, not a scripted monologue.",
+        "pressure": "The planned late-Friday return and debrief window is behind the current Monday scene; its professional and personal resolution remains unspecified.",
         "cues": [
           "aftercare",
           "green hell",
@@ -96,7 +96,7 @@
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
         "status": "dormant",
-        "pressure": "The world is ready for rest and private recovery. Do not force same-day Affalterbach arrival, board prep, or a long Autobahn push Friday night. Do not reset to the changing room or pit box. Exit from cabin / check-in / suite remain open — pressure only, not scripted outcomes.",
+        "pressure": "This conditional Friday recovery beat has no live confirmation of its condition or resolution and does not match the current Monday boardroom setting.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,27 +121,28 @@
         ]
       }
     ],
-    "momentumLine": "No beat from this completed Friday track-day plan is live in the Monday-morning Affalterbach boardroom; its remaining schedule pressure has passed, while the Monday board window is outside this plan.",
+    "momentumLine": "No beat from this Friday track-day plan is live in the current Monday Affalterbach boardroom scene; the plan provides no remaining schedule pressure for today.",
     "npcIntersections": [
       {
         "npc": "Mr. Shevchenko",
-        "agenda": "The Monday Affalterbach/board window intersects his need for clean telemetry, aero-package validation, and Albion’s professional readiness.",
+        "agenda": "His Monday Affalterbach board and telemetry-readiness deadline intersects the current executive-boardroom context.",
         "suggestedTier": "engaging"
       },
       {
         "npc": "AMG telemetry engineers",
-        "agenda": "Their weekend data packaging and sensor/correlation work intersects the Monday HQ presentation window.",
+        "agenda": "Their data-package and Monday HQ presentation work intersects the current Affalterbach context without establishing their presence in the room.",
         "suggestedTier": "peripheral"
       }
     ],
     "planWarnings": [
-      "No live beat match: this plan ends with Friday hotel recovery, while the LIVE BEAT is Monday morning in the AMG Affalterbach executive boardroom.",
-      "The plan is marked complete; the current Monday boardroom pressure requires a subsequent or separate plan."
+      "The live beat is Monday morning at AMG HQ Affalterbach, while this completed plan covers Friday at the Nürburgring through Friday-evening recovery; no live beat matches.",
+      "The deterministic diff is stale against the supplied live-beat snapshot: it marks the Friday recovery beat live despite the current Monday boardroom setting."
     ],
-    "generatedAtTurn": 104,
+    "generatedAtTurn": 108,
     "source": "llm",
     "planHash": "6cc69e232567cf81",
-    "refreshedAt": "2026-08-14T15:58:31.055Z",
-    "liveSceneFingerprint": "97075dc05350f58d"
+    "refreshedAt": "2026-08-14T23:15:18.455Z",
+    "liveSceneFingerprint": "97075dc05350f58d",
+    "lastInvalidationReason": "live_scene_changed"
   }
 }

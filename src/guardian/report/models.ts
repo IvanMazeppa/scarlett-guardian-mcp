@@ -208,6 +208,16 @@ export type GuardianReport = {
     /** True when LIVE BEAT Present is couple-only (parroting-fix 1.3 quiet-scene defense). */
     couple_only_present?: boolean;
   };
+  /**
+   * Live garment card + optional change-beat menu (disk closet, not RAG).
+   */
+  wardrobe?: {
+    change_beat: boolean;
+    brief_markdown: string;
+    register?: string;
+    kit?: string;
+    writeback_pending?: boolean;
+  };
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

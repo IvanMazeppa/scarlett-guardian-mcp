@@ -109,6 +109,7 @@ import {
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 import { planMemoryQueries, warmRecentMemoryQuery } from "../query-planner.js";
+import { resolveWardrobe } from "../wardrobe.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
@@ -854,6 +855,13 @@ async function runGuardianPreflightInner(
     .filter(Boolean)
     .join(" ");
 
+  const wardrobe = resolveWardrobe(input, liveBeat, { persistWriteback: false });
+  if (wardrobe.changeBeat) {
+    console.log(
+      `${Date.now()} Wardrobe change-beat: register=${wardrobe.targetRegister ?? "?"} kit=${wardrobe.kit ?? "?"} options=${wardrobe.options.map((o) => o.id).join(",") || "none"}`
+    );
+  }
+
   const report: GuardianReport = {
     retrieval_status: retrievalStatus,
     confidence_score: confidenceScore,
@@ -889,6 +897,13 @@ async function runGuardianPreflightInner(
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,
     grok_emotional_context: emotionalTone,
+    wardrobe: {
+      change_beat: wardrobe.changeBeat,
+      brief_markdown: wardrobe.briefMarkdown,
+      register: wardrobe.targetRegister ?? wardrobe.live?.register,
+      kit: wardrobe.kit,
+      writeback_pending: Boolean(wardrobe.writebackCandidate)
+    },
     retrieval_plan: {
       preflight_query: preflightQuery,
       memory_queries: [...memoryQueries, warmRecentMemoryQuery(input)],
@@ -1645,24 +1660,48 @@ async function verifyExactClaims(
   return checks;
 }
 
+// Parroting-fix 2.3 (2026-08-14): a fact-check claim is a PAST-canon assertion the user
+// makes about established history — never the present-tense play itself. Dumping the raw
+// turn into claim_or_question turned every RP action into FACT_CHECK_AMBIGUOUS noise.
+const EXACT_CANON_PATTERN = /\b(friday|thursday|monday|tuesday|wednesday|saturday|sunday|october|luxembourg|paris|germany|n[uü]rburgring|nuerburgring|affalterbach|amg|vaxholm|mormor|oestrogen|estrogen|blockers|surgery|villa|bistrot)\b/i;
+
+const PAST_CANON_MARKER = /\b(was|were|had|did|didn['’]t|died|happened|met|used to|back (?:in|then)|years? ago|last (?:year|month|week|night|time)|(?:in|since) (?:19|20)\d{2})\b/i;
+
+function splitIntoSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?…])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+/** True when the sentence asserts something about established past canon. */
+export function isPastCanonAssertion(sentence: string): boolean {
+  return PAST_CANON_MARKER.test(sentence);
+}
+
+/** Reduce a sentence to the single clause carrying the past-canon marker, capped at 180 chars. */
+function oneClause(sentence: string): string {
+  const clauses = sentence.split(/\s+—\s+|\s+–\s+|;\s+/).map((clause) => clause.trim()).filter(Boolean);
+  const carrier = clauses.find((clause) => PAST_CANON_MARKER.test(clause)) ?? clauses[0] ?? sentence;
+  return truncate(carrier, 180);
+}
+
 export function buildFactCheckQuestions(input: GuardianPreflightInput, highRiskTriggers: string[]): string[] {
   const message = compactWhitespace(input.user_message);
+
+  // Territory gate: only bother when the turn touches named canon or a high-risk family fired.
+  if (!EXACT_CANON_PATTERN.test(message) && highRiskTriggers.length === 0) {
+    return [];
+  }
+
   const questions: string[] = [];
-  const exactPattern = /\b(friday|thursday|monday|tuesday|wednesday|saturday|sunday|october|luxembourg|paris|germany|n[uü]rburgring|nuerburgring|affalterbach|amg|vaxholm|mormor|oestrogen|estrogen|blockers|surgery|villa|bistrot)\b/i;
-
-  if (exactPattern.test(message)) {
-    questions.push(`Verify exact continuity facts, timeline, places, and named details in this Benjamin turn: ${message.slice(0, 700)}`);
+  for (const sentence of splitIntoSentences(message)) {
+    // Present-tense play (actions, offers, in-scene beats) is creative content, not a claim.
+    if (!isPastCanonAssertion(sentence)) continue;
+    questions.push(`Verify past-canon assertion: ${oneClause(sentence)}`);
   }
 
-  if (highRiskTriggers.some((trigger) => /Family|transition|trauma|Vaxholm|Mormor|milestone/i.test(trigger))) {
-    questions.push(`Verify family, transition, timeline, and milestone facts raised by this turn: ${message.slice(0, 700)}`);
-  }
-
-  if (highRiskTriggers.some((trigger) => /AMG|Germany|Luxembourg|Nuerburgring/i.test(trigger))) {
-    questions.push(`Verify Germany trip, Luxembourg, AMG, Affalterbach, and Nuerburgring timeline facts raised by this turn: ${message.slice(0, 700)}`);
-  }
-
-  return uniqueQueries(questions);
+  return uniqueQueries(questions).slice(0, 2);
 }
 
 async function callJson<T>(
@@ -2198,11 +2237,11 @@ export function buildKeyFacts(
     }
   }
 
-  // Only blocking / material hard flags — never duplex housekeeping or RAG coaching as "key facts".
+  // Parroting-fix 1.1 (2026-08-14): FACT_CHECK_* is clerk housekeeping and must never
+  // become a novelist-facing key fact. Blocking flags are appended last so Key Fact #1
+  // stays live scene grounding instead of a verification directive.
   for (const flag of hardFlags) {
     if (/MANDATORY_RETRIEVAL_FAILED|LLM_GUARDIAN_BLOCK/i.test(flag)) {
-      facts.unshift(truncate(flag, 200));
-    } else if (/FACT_CHECK_/i.test(flag)) {
       facts.push(truncate(flag, 200));
     }
   }

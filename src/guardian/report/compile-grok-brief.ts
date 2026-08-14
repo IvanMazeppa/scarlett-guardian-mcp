@@ -189,6 +189,12 @@ export function compileGrokBrief(report: GuardianReport): string {
   essentialParts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
   essentialParts.push("");
 
+  const wardrobeBlock = report.wardrobe?.brief_markdown?.trim();
+  if (wardrobeBlock) {
+    essentialParts.push(wardrobeBlock);
+    essentialParts.push("");
+  }
+
   const quietPrivate = isQuietPrivateCoupleScene(report);
 
   const momentum = typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
