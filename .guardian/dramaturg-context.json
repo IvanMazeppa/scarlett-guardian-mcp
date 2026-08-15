@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 111,
+  "turnCounter": 112,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -9,7 +9,7 @@
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
         "status": "done",
-        "pressure": "The track-day arrival is behind the current Monday Affalterbach boardroom scene.",
+        "pressure": "The world expected them on site, introduced, and professionally present before any lap.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -38,7 +38,7 @@
         "name": "The Green Hell (afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The planned Friday track-time window is behind the current Monday scene; no lap or telemetry outcome is implied.",
+        "pressure": "The day expected real track time and live telemetry.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -67,7 +67,7 @@
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
         "status": "done",
-        "pressure": "The planned late-Friday return and debrief window is behind the current Monday scene; its professional and personal resolution remains unspecified.",
+        "pressure": "The world was ready for return, telemetry debrief, and grounding; any technical conclusion remained open.",
         "cues": [
           "aftercare",
           "green hell",
@@ -96,7 +96,7 @@
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
         "status": "dormant",
-        "pressure": "This conditional Friday recovery beat has no live confirmation of its condition or resolution and does not match the current Monday boardroom setting.",
+        "pressure": "Private recovery remains conditional on the track-day obligations having wound down and live telemetry needs no longer requiring them in the paddock.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,28 +121,16 @@
         ]
       }
     ],
-    "momentumLine": "No beat from this Friday track-day plan is live in the current Monday Affalterbach boardroom scene; the plan provides no remaining schedule pressure for today.",
-    "npcIntersections": [
-      {
-        "npc": "Mr. Shevchenko",
-        "agenda": "His Monday Affalterbach board and telemetry-readiness deadline intersects the current executive-boardroom context.",
-        "suggestedTier": "engaging"
-      },
-      {
-        "npc": "AMG telemetry engineers",
-        "agenda": "Their data-package and Monday HQ presentation work intersects the current Affalterbach context without establishing their presence in the room.",
-        "suggestedTier": "peripheral"
-      }
-    ],
+    "momentumLine": "No beat from the Friday Nürburgring track-day plan is live at the current Monday-morning aviation-terminal scene; this plan supplies no immediate schedule pressure here.",
+    "npcIntersections": [],
     "planWarnings": [
-      "The live beat is Monday morning at AMG HQ Affalterbach, while this completed plan covers Friday at the Nürburgring through Friday-evening recovery; no live beat matches.",
-      "The deterministic diff is stale against the supplied live-beat snapshot: it marks the Friday recovery beat live despite the current Monday boardroom setting."
+      "Current LIVE BEAT does not match this plan’s Nürburgring or hotel settings.",
+      "Conditional beat 4 is not confirmed complete by the LIVE BEAT and remains dormant."
     ],
-    "generatedAtTurn": 108,
+    "generatedAtTurn": 112,
     "source": "llm",
     "planHash": "6cc69e232567cf81",
-    "refreshedAt": "2026-08-14T23:15:18.455Z",
-    "liveSceneFingerprint": "97075dc05350f58d",
-    "lastInvalidationReason": "live_scene_changed"
+    "refreshedAt": "2026-08-15T23:08:31.416Z",
+    "liveSceneFingerprint": "3ade47ca2508c5b2"
   }
 }
