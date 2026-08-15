@@ -75,24 +75,34 @@ Expected shallow response:
 {"ok":true,"name":"scarlett-guardian-mcp","version":"0.1.0"}
 ```
 
-## Remote Tunnel
+## Remote Tunnel (Hobbyist Mission Control)
 
-Expose Guardian, not the sibling RAG MCP:
-
-```bash
-ngrok http --url=deceiving-pummel-ajar.ngrok-free.dev 8790
-```
-
-Remote health:
+Expose Guardian only — never RAG. Prefer the Hobbyist static domain + path-scoped Basic Auth:
 
 ```bash
-curl https://deceiving-pummel-ajar.ngrok-free.dev/health
+# One-time: set NGROK_STATIC_DOMAIN in .env and copy ngrok/traffic-policy.example.yml
+# → ngrok/traffic-policy.local.yml (replace USER:PASSWORD). See docs/mission-control-ngrok.md
+
+npm run tunnel
+# equivalent: ngrok http --url="$NGROK_STATIC_DOMAIN" 8790 --traffic-policy-file=ngrok/traffic-policy.local.yml
 ```
 
-Remote MCP endpoint:
+Remote health (no password):
+
+```bash
+curl "https://$NGROK_STATIC_DOMAIN/health"
+```
+
+Remote MCP endpoint (must stay free of edge Basic Auth / OAuth):
 
 ```text
-https://deceiving-pummel-ajar.ngrok-free.dev/mcp
+https://YOUR_DOMAIN/mcp
+```
+
+Mission Control UI (edge Basic Auth):
+
+```text
+https://YOUR_DOMAIN/dashboard
 ```
 
 Keep the RAG server, Guardian server, and tunnel running while external MCP clients are connected.

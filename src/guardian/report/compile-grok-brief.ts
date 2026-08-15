@@ -5,6 +5,10 @@
 
 import { enforceResonanceEchoBudget } from "../llm-assessment.js";
 import {
+  formatSceneModeBriefBlock,
+  type SceneModeId
+} from "../mission-control.js";
+import {
   formatSceneCastBlock,
   loadRegistryTailMap
 } from "../npc-registry.js";
@@ -186,6 +190,18 @@ export function compileGrokBrief(report: GuardianReport): string {
   const optionalParts: string[] = [];
 
   essentialParts.push(`**Status:** ${statusLabel(report.proceed_recommendation)} (Confidence: ${report.confidence_score}%)`);
+
+  const modeId = (report.scene_mode ?? "default") as SceneModeId;
+  const modeBlock = formatSceneModeBriefBlock(
+    modeId === "explicit_slow_burn" || modeId === "tactical" || modeId === "banter"
+      ? modeId
+      : "default"
+  );
+  if (modeBlock) {
+    essentialParts.push(modeBlock);
+    essentialParts.push("");
+  }
+
   essentialParts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
   essentialParts.push("");
 

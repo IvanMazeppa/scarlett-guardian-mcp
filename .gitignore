@@ -7,3 +7,7 @@ docs/guardian-reports/
 evals/runs/
 .guardian/telemetry/
 .guardian/serendipity-state.json
+.guardian/mission-control-state.json
+.guardian/location-progress-state.json
+.guardian/dramaturg-context.json
+ngrok/traffic-policy.local.yml

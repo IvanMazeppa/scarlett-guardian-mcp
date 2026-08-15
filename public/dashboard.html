@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guardian Telemetry</title>
+  <title>Mission Control — Scarlett Guardian</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg: #0f1419;
@@ -26,10 +27,11 @@
       padding: 1.25rem 1.5rem 3rem;
     }
     h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.25rem; }
+    h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
     .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
     .row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
     label { color: var(--muted); font-size: 0.85rem; }
-    select, button {
+    select, button, input {
       background: var(--card);
       color: var(--text);
       border: 1px solid var(--border);
@@ -39,9 +41,16 @@
     }
     button { cursor: pointer; }
     button:hover { border-color: var(--accent); }
+    button.primary { border-color: var(--accent); background: #243447; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 0.75rem;
       margin-bottom: 1.5rem;
     }
@@ -54,6 +63,17 @@
     .card .label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
     .card .value { font-size: 1.55rem; font-weight: 600; margin-top: 0.25rem; }
     .card .hint { color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--accent);
+    }
+    .badge.warn { color: var(--warn); border-color: var(--warn); }
+    .badge.bad { color: var(--bad); border-color: var(--bad); }
+    .badge.ok { color: var(--good); border-color: var(--good); }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); font-weight: 500; }
@@ -64,49 +84,118 @@
     #status { color: var(--muted); font-size: 0.85rem; }
     #error { color: var(--bad); white-space: pre-wrap; }
     code { font-size: 0.8rem; color: var(--accent); }
+    .live-beat { font-size: 0.95rem; margin-top: 0.35rem; }
+    .chart-wrap { position: relative; height: 220px; margin-top: 0.5rem; }
+    .band { margin-bottom: 1.5rem; }
+    .steer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      align-items: end;
+    }
+    .steer-grid label { display: flex; flex-direction: column; gap: 0.35rem; }
   </style>
 </head>
 <body>
-  <h1>Guardian telemetry</h1>
-  <p class="sub">Local operational view — latency, duplex, facts, write-back. Data from <code>.guardian/telemetry/</code> (live + backfill).</p>
+  <h1>Mission Control</h1>
+  <p class="sub">Steer Scarlett live — narrative health, scene modes, lore packs.</p>
+  <p class="sub" style="border-left:3px solid var(--warn);padding-left:0.75rem;color:var(--warn);">
+    <strong>Story time ≠ real time.</strong> Narrative calendar comes only from LIVE BEAT / <code>current-state.md</code>.
+    It can skip, hold, or run several days in a row. Telemetry “ops window” and event timestamps are wall-clock when a preflight <em>ran on your machine</em> — never treat them as in-story date.
+  </p>
+
+  <div class="band">
+    <h2>Status (story canon)</h2>
+    <div class="grid" id="statusCards"></div>
+  </div>
+
+  <div class="band card">
+    <h2>Steer</h2>
+    <div class="steer-grid">
+      <label>Scene mode
+        <select id="sceneMode">
+          <option value="default">Default</option>
+          <option value="explicit_slow_burn">EXPLICIT / SLOW-BURN</option>
+          <option value="tactical">TACTICAL</option>
+          <option value="banter">BANTER</option>
+        </select>
+      </label>
+      <label>Targeted lore
+        <select id="lorePack">
+          <option value="none">None</option>
+        </select>
+      </label>
+      <div>
+        <button type="button" class="primary" id="applyControl">Apply</button>
+        <span id="controlStatus" class="hint" style="margin-left:0.5rem;color:var(--muted);font-size:0.8rem;"></span>
+      </div>
+    </div>
+  </div>
 
   <div class="row">
-    <label>Days <select id="days">
-      <option value="7" selected>7</option>
-      <option value="14">14</option>
-      <option value="30">30</option>
-      <option value="90">90</option>
-      <option value="365">365</option>
+    <label>Ops window (wall-clock, not story date)
+      <select id="days">
+      <option value="7" selected>7 real days</option>
+      <option value="14">14 real days</option>
+      <option value="30">30 real days</option>
+      <option value="90">90 real days</option>
+      <option value="365">365 real days</option>
     </select></label>
     <button type="button" id="refresh">Refresh</button>
     <span id="status">Loading…</span>
   </div>
   <div id="error"></div>
-  <div class="grid" id="cards"></div>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <div class="label">Recent events</div>
-    <div style="overflow-x: auto; margin-top: 0.5rem;">
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Src</th>
-            <th>Conf</th>
-            <th>Facts</th>
-            <th>Duplex</th>
-            <th>Corr</th>
-            <th>Write</th>
-            <th>ms</th>
-            <th>Id</th>
-          </tr>
-        </thead>
-        <tbody id="recent"></tbody>
-      </table>
+  <div class="band">
+    <h2>Health (ops metrics)</h2>
+    <div class="grid" id="cards"></div>
+  </div>
+
+  <div class="band">
+    <h2>Narrative</h2>
+    <div class="charts">
+      <div class="card">
+        <div class="label">Serendipity / Parroting</div>
+        <div class="chart-wrap"><canvas id="chartRatio"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="label">Scene pacing / stagnation</div>
+        <div class="chart-wrap"><canvas id="chartPacing"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="label">RAG tool utilization</div>
+        <div class="chart-wrap"><canvas id="chartTools"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="label">Autonomy (correction) kinds</div>
+        <div class="chart-wrap"><canvas id="chartCorrections"></canvas></div>
+      </div>
     </div>
   </div>
 
-  <p class="sub">Run <code>npm run telemetry:backfill -- --force</code> once to index the report archive. Live preflights append automatically (WP-1.6).</p>
+  <div class="card" style="margin-bottom: 1rem;">
+    <div class="label">Recent events (ops timestamps = when preflight ran on your PC, not story date)</div>
+    <div style="overflow-x: auto; margin-top: 0.5rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Src</th>
+          <th>Conf</th>
+          <th>Facts</th>
+          <th>Duplex</th>
+          <th>Corr</th>
+          <th>Write</th>
+          <th>ms</th>
+          <th>Id</th>
+        </tr>
+      </thead>
+      <tbody id="recent"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <p class="sub">Edge Basic Auth (ngrok) protects this UI remotely. MCP paths stay unauthenticated at the edge — see <code>docs/mission-control-ngrok.md</code>.</p>
 
   <script src="/dashboard.js"></script>
 </body>

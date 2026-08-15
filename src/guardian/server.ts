@@ -10,8 +10,18 @@ import { compileGrokBrief } from "./report/compile-grok-brief.js";
 import {
   loadTelemetryEvents,
   summarizeTelemetryEvents,
+  summarizeNarrativeTelemetry,
   telemetryHealth
 } from "./telemetry-aggregate.js";
+import {
+  isLorePackId,
+  isSceneModeId,
+  readMissionControlState,
+  writeMissionControlState
+} from "./mission-control.js";
+import { listLorePacks } from "./lore-packs.js";
+import { readLocationProgress } from "./location-progress.js";
+import { readLiveBeatFromDisk } from "./live-beat-snapshot.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
 import {
@@ -176,13 +186,18 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Static dashboard (WP-1.7) — same auth as other Guardian routes when bearer set
+// Mission Control dashboard — authenticated routes only (no world-readable static leak).
 const publicDir = path.join(process.cwd(), "public");
-app.use(express.static(publicDir, { index: false }));
 
 app.get("/dashboard", (req, res) => {
   if (!requireGuardianAuth(req, res)) return;
   res.sendFile(path.join(publicDir, "dashboard.html"));
+});
+
+app.get("/dashboard.js", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  res.type("application/javascript");
+  res.sendFile(path.join(publicDir, "dashboard.js"));
 });
 
 app.get("/telemetry/api/health", (req, res) => {
@@ -226,6 +241,34 @@ app.get("/telemetry/api/summary", (req, res) => {
   }
 });
 
+app.get("/telemetry/api/narrative", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    const days = Math.max(1, Math.min(365, Number(req.query.days ?? 7) || 7));
+    const events = loadTelemetryEvents({ days });
+    const sourcesRaw = typeof req.query.sources === "string" ? req.query.sources : "live";
+    const sources =
+      sourcesRaw === "all"
+        ? ("all" as const)
+        : (sourcesRaw
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s === "live" || s === "eval" || s === "backfill") as Array<
+            "live" | "eval" | "backfill"
+          >);
+    res.json(
+      summarizeNarrativeTelemetry(events, {
+        days,
+        sources: sources.length ? sources : ["live"]
+      })
+    );
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 app.get("/telemetry/api/recent", (req, res) => {
   if (!requireGuardianAuth(req, res)) return;
   try {
@@ -238,6 +281,90 @@ app.get("/telemetry/api/recent", (req, res) => {
       error: error instanceof Error ? error.message : String(error)
     });
   }
+});
+
+const ControlStateBodySchema = z.object({
+  sceneMode: z.string().optional(),
+  lorePack: z.string().optional()
+});
+
+app.get("/control/state", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    const state = readMissionControlState();
+    const loc = readLocationProgress();
+    const liveBeat = readLiveBeatFromDisk();
+    res.json({
+      ok: true,
+      ...state,
+      /**
+       * Story calendar — from current-state.md LIVE BEAT only.
+       * Never use wall-clock / real-world "today" for narrative time.
+       */
+      live_beat: {
+        story_clock: liveBeat.storyClock,
+        time_in_story: liveBeat.timeLine,
+        last_updated: liveBeat.lastUpdated,
+        location: liveBeat.locationLine,
+        present: liveBeat.presentCast,
+        source_path: liveBeat.sourcePath
+          ? path.relative(process.cwd(), liveBeat.sourcePath)
+          : null
+      },
+      location: loc
+        ? {
+            fingerprint: loc.fingerprint,
+            consecutiveTurns: loc.consecutiveTurns,
+            locationLine: loc.locationLine,
+            /** Wall-clock when the streak sidecar was written (ops only). */
+            updatedAt: loc.updatedAt
+          }
+        : null
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.post("/control/state", async (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  const parsed = ControlStateBodySchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid control state", issues: parsed.error.issues });
+    return;
+  }
+  if (parsed.data.sceneMode != null && !isSceneModeId(parsed.data.sceneMode)) {
+    res.status(400).json({ error: `Invalid sceneMode: ${parsed.data.sceneMode}` });
+    return;
+  }
+  if (parsed.data.lorePack != null && !isLorePackId(parsed.data.lorePack)) {
+    res.status(400).json({ error: `Invalid lorePack: ${parsed.data.lorePack}` });
+    return;
+  }
+  try {
+    const next = await writeMissionControlState({
+      ...(parsed.data.sceneMode ? { sceneMode: parsed.data.sceneMode } : {}),
+      ...(parsed.data.lorePack ? { lorePack: parsed.data.lorePack } : {})
+    });
+    console.log(
+      `${Date.now()} Mission Control state: mode=${next.sceneMode} lore=${next.lorePack}`
+    );
+    res.json({ ok: true, ...next });
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.get("/control/lore-packs", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  res.json({
+    ok: true,
+    packs: listLorePacks().map((p) => ({ id: p.id, label: p.label }))
+  });
 });
 
 function hasValidBearerToken(req: express.Request): boolean {
@@ -462,7 +589,7 @@ app.post("/mcp-v2", async (req, res) => {
 
 const httpServer = app.listen(config.GUARDIAN_PORT, config.GUARDIAN_HOST, () => {
   console.log(`Scarlett Guardian MCP listening on http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/mcp`);
-  console.log(`Dashboard: http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/dashboard`);
+  console.log(`Mission Control: http://${config.GUARDIAN_HOST}:${config.GUARDIAN_PORT}/dashboard`);
   console.log(`Forwarding retrieval calls to ${config.RAG_MCP_URL}`);
   console.log("(leave this terminal open — Ctrl+C to stop)");
 });

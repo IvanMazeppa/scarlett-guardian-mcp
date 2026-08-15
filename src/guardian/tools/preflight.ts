@@ -110,6 +110,15 @@ import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 import { planMemoryQueries, warmRecentMemoryQuery } from "../query-planner.js";
 import { resolveWardrobe } from "../wardrobe.js";
+import {
+  resolveMissionControlForPreflight,
+  type MissionControlState
+} from "../mission-control.js";
+import {
+  lorePackSearchQuery,
+  resolveLorePackSourceFiles
+} from "../lore-packs.js";
+import { tickLocationProgress } from "../location-progress.js";
 
 export type GuardianPreflightInput = {
   user_message: string;
@@ -282,6 +291,15 @@ async function runGuardianPreflightInner(
   };
   const duplexSource: DuplexSource = duplexResolved.duplexSource;
 
+  // WP-R3 / Mission Control: hermetic eval never reads live overrides or location sidecars.
+  const isolateSidecars =
+    Boolean(options?.isolateSidecars) ||
+    Boolean(options?.disableTelemetry) ||
+    Boolean(options?.frozenLlmAssessment);
+  const missionControl: MissionControlState = resolveMissionControlForPreflight({
+    isolateSidecars
+  });
+
   const preflightQuery = buildPreflightQuery(input);
   const highRiskTriggers = detectHighRiskTriggers(input.user_message);
   const toolCalls: RagToolCall[] = [];
@@ -360,6 +378,13 @@ async function runGuardianPreflightInner(
   // Dedicated warm lane: europe-arm / arc_chronicle (Recency upgrade 2026-08).
   // Soft-optional on cassette miss so frozen goldens don't PLAN_DRIFT-warn.
   const warmMemoryPromise = callWarmStoryMemory(toolCalls, limitedRagClient, input, totalController.signal);
+  const lorePackPromise = callLorePackMemory(
+    toolCalls,
+    limitedRagClient,
+    input,
+    missionControl,
+    totalController.signal
+  );
 
   console.log(`${Date.now()} Awaiting indexStatus...`);
   const indexStatus = await indexStatusPromise;
@@ -370,11 +395,13 @@ async function runGuardianPreflightInner(
   console.log(`${Date.now()} Awaiting memoryResults...`);
   const memoryCallResults = await Promise.all(memoryPromises);
   const warmMemoryCall = await warmMemoryPromise;
+  const lorePackCall = await lorePackPromise;
   const memoryResponses = [
     ...memoryCallResults
       .filter((call) => call.ok && call.response)
       .map((call) => call.response as RagRetrieveResponse),
-    ...(warmMemoryCall ? [warmMemoryCall] : [])
+    ...(warmMemoryCall ? [warmMemoryCall] : []),
+    ...(lorePackCall ? [lorePackCall] : [])
   ];
   collector.mark("rag_batch");
 
@@ -413,11 +440,7 @@ async function runGuardianPreflightInner(
     : buildDramaturgSnapshot(null, liveBeat);
   const planHash = arcPlanLoaded ? hashArcPlanMarkdown(arcPlanLoaded.markdown) : "";
   const dramaturgCache = readDramaturgCache();
-  // WP-R3: hermetic/eval must not advance live dramaturg turnCounter on disk.
-  const isolateSidecars =
-    Boolean(options?.isolateSidecars) ||
-    Boolean(options?.disableTelemetry) ||
-    Boolean(options?.frozenLlmAssessment);
+  // isolateSidecars already resolved at top of preflight (Mission Control + eval).
   const {
     snapshot: dramaturgRaw,
     turnCounter: dramaturgTurn,
@@ -808,6 +831,18 @@ async function runGuardianPreflightInner(
       `SCENE_CONFIDENCE_PROVISIONAL: ${sceneConfidence.reason}. Optional systems degraded (passive cast off, serendipity ambient-only, neutral momentum, canon writes held).`
     );
   }
+
+  // Mission Control: location stagnation pacing signal (does not force a move).
+  const locationTick = tickLocationProgress({
+    locationLine: liveBeat.locationLine,
+    sceneMode: missionControl.sceneMode,
+    persist: !isolateSidecars
+  });
+  if (locationTick.stagnation) {
+    hardFlags.push(
+      `LOCATION_STAGNATION_${locationTick.threshold}_TURNS: LIVE BEAT location unchanged for ${locationTick.consecutiveTurns} turns (threshold ${locationTick.threshold}). Pacing warning only — do not invent a forced location change.`
+    );
+  }
   const currentStateSummary = summarizeCurrentState(
     preflight.response,
     memoryResponses,
@@ -904,9 +939,17 @@ async function runGuardianPreflightInner(
       kit: wardrobe.kit,
       writeback_pending: Boolean(wardrobe.writebackCandidate)
     },
+    scene_mode: missionControl.sceneMode,
+    lore_pack: missionControl.lorePack,
     retrieval_plan: {
       preflight_query: preflightQuery,
-      memory_queries: [...memoryQueries, warmRecentMemoryQuery(input)],
+      memory_queries: [
+        ...memoryQueries,
+        warmRecentMemoryQuery(input),
+        ...(missionControl.lorePack !== "none"
+          ? [lorePackSearchQuery(missionControl.lorePack, input.user_message)]
+          : [])
+      ],
       high_risk_triggers: highRiskTriggers
     },
     tool_calls: toolCalls
@@ -922,7 +965,19 @@ async function runGuardianPreflightInner(
         preflight_id: options?.preflight_id,
         report_path: options?.report_path,
         llm_assessment_ms: llmAssessmentMs,
-        source: options?.telemetrySource ?? (isolateSidecars ? "eval" : "live")
+        source: options?.telemetrySource ?? (isolateSidecars ? "eval" : "live"),
+        narrative: {
+          serendipity: {
+            fired: Boolean(serendipityNudge?.trim()),
+            tier: serendipityPick.event?.tier ?? null,
+            category: serendipityPick.event?.category ?? null,
+            deferred: Boolean(serendipityPick.deferredInstead)
+          },
+          location_fingerprint: locationTick.fingerprint,
+          location_streak: locationTick.consecutiveTurns,
+          scene_mode: missionControl.sceneMode,
+          lore_pack: missionControl.lorePack
+        }
       });
       recordPreflightTelemetry(event, options?.telemetrySink ?? getDefaultTelemetrySink());
     } catch {
@@ -1752,6 +1807,56 @@ async function callWarmStoryMemory(
     const msg = stringifyError(error);
     if (/PLAN_DRIFT|CassetteMissError/i.test(msg)) {
       console.warn(`${Date.now()} warm arc_chronicle lane skipped (cassette miss)`);
+      return undefined;
+    }
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: false, error: msg });
+    return undefined;
+  }
+}
+
+/**
+ * Mission Control targeted lore pack — prioritizes exact source_files; never
+ * replaces unfiltered live-state retrieve. Soft-skip on cassette miss.
+ */
+async function callLorePackMemory(
+  toolCalls: RagToolCall[],
+  ragClient: RagToolCaller,
+  input: GuardianPreflightInput,
+  missionControl: MissionControlState,
+  signal?: AbortSignal
+): Promise<RagRetrieveResponse | undefined> {
+  if (missionControl.lorePack === "none") return undefined;
+  const sourceFiles = resolveLorePackSourceFiles(missionControl.lorePack);
+  if (!sourceFiles.length) {
+    console.warn(
+      `${Date.now()} lore pack ${missionControl.lorePack}: no source files resolved`
+    );
+    return undefined;
+  }
+  const args = {
+    query: lorePackSearchQuery(missionControl.lorePack, input.user_message),
+    source_files: sourceFiles.slice(0, 24),
+    max_results: 6,
+    rewrite_query: true,
+    max_chars_per_result: 3000
+  };
+  try {
+    const response = await ragClient.callJsonTool<RagRetrieveResponse>(
+      "search_story_memory",
+      args,
+      signal
+    );
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: true, response });
+    console.log(
+      `${Date.now()} Lore pack search: pack=${missionControl.lorePack} files=${sourceFiles.length} results=${response.result_count ?? response.results?.length ?? 0}`
+    );
+    return response;
+  } catch (error) {
+    const msg = stringifyError(error);
+    if (/PLAN_DRIFT|CassetteMissError/i.test(msg)) {
+      console.warn(
+        `${Date.now()} lore pack ${missionControl.lorePack} skipped (cassette miss)`
+      );
       return undefined;
     }
     toolCalls.push({ tool: "search_story_memory", arguments: args, ok: false, error: msg });

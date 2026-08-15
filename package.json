@@ -8,13 +8,14 @@
     "dev": "tsx src/guardian/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/guardian/server.js",
-    "test": "tsx tests/preflight.test.ts && tsx tests/memory-writeback.test.ts && tsx tests/state-rewrite.test.ts && tsx tests/serendipity-weaver.test.ts && tsx tests/recency.test.ts && tsx tests/llm-assessment-live-beat.test.ts && tsx tests/dramaturg.test.ts && tsx tests/intention-echo.test.ts && tsx tests/character-balance-hotfix.test.ts && tsx tests/scene-roster.test.ts && tsx tests/scene-cast.test.ts && tsx tests/save-lag-quiet-echo.test.ts && tsx tests/scene-confidence.test.ts && tsx tests/scene-fingerprint-intel2.test.ts && tsx tests/eval-harness-1.1.test.ts && tsx tests/curate-golden.test.ts && tsx tests/eval-runner.test.ts && tsx tests/eval-mutants-1.5.test.ts && tsx tests/eval-l3.test.ts && tsx tests/telemetry.test.ts && tsx tests/telemetry-aggregate.test.ts && tsx tests/duplex-cache.test.ts && tsx tests/sidecar-isolation.test.ts && tsx tests/wardrobe.test.ts",
+    "test": "tsx tests/preflight.test.ts && tsx tests/memory-writeback.test.ts && tsx tests/state-rewrite.test.ts && tsx tests/serendipity-weaver.test.ts && tsx tests/recency.test.ts && tsx tests/llm-assessment-live-beat.test.ts && tsx tests/dramaturg.test.ts && tsx tests/intention-echo.test.ts && tsx tests/character-balance-hotfix.test.ts && tsx tests/scene-roster.test.ts && tsx tests/scene-cast.test.ts && tsx tests/save-lag-quiet-echo.test.ts && tsx tests/scene-confidence.test.ts && tsx tests/scene-fingerprint-intel2.test.ts && tsx tests/eval-harness-1.1.test.ts && tsx tests/curate-golden.test.ts && tsx tests/eval-runner.test.ts && tsx tests/eval-mutants-1.5.test.ts && tsx tests/eval-l3.test.ts && tsx tests/telemetry.test.ts && tsx tests/telemetry-aggregate.test.ts && tsx tests/duplex-cache.test.ts && tsx tests/sidecar-isolation.test.ts && tsx tests/wardrobe.test.ts && tsx tests/mission-control.test.ts",
     "curate:golden": "tsx scripts/curate-golden.ts",
     "eval:fast": "tsx evals/runner.ts --llm-mode off",
     "eval:llm": "tsx evals/runner.ts --llm-mode live",
     "eval:baseline": "tsx evals/runner.ts --llm-mode off --write-baseline",
     "telemetry:backfill": "tsx scripts/backfill-telemetry.ts",
-    "review:staged": "tsx scripts/review-staged.ts"
+    "review:staged": "tsx scripts/review-staged.ts",
+    "tunnel": "bash scripts/start-ngrok.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",

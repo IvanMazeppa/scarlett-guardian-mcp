@@ -1,0 +1,26 @@
+# Mission Control — ngrok Traffic Policy (Hobbyist)
+#
+# CRITICAL: Never put Basic Auth / OAuth on /mcp, /preflight, /duplex-cache, or /health.
+# Grok's connector treats HTML auth challenges as "OAuth Credentials Required".
+#
+# Setup:
+#   1. Copy to traffic-policy.local.yml (gitignored)
+#   2. Replace USER and PASSWORD with your credentials
+#   3. npm run tunnel  (or scripts/start-ngrok.sh)
+#
+# Docs: docs/mission-control-ngrok.md
+
+on_http_request:
+  - expressions:
+      - "req.url.path.startsWith('/dashboard') || req.url.path.startsWith('/telemetry') || req.url.path.startsWith('/control')"
+    actions:
+      - type: basic-auth
+        config:
+          realm: Scarlett Mission Control
+          credentials:
+            - "USER:PASSWORD"
+  - actions:
+      - type: add-headers
+        config:
+          headers:
+            ngrok-skip-browser-warning: "2"

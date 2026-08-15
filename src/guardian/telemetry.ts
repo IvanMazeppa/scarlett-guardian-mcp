@@ -18,6 +18,16 @@ export type ToolTimingSample = {
   ok: boolean;
 };
 
+export type IntentionKind = "initiate" | "receive" | "rest" | "unknown";
+
+export type CorrectionKind =
+  | "cis_wash"
+  | "parroting"
+  | "location_rewind"
+  | "ensemble"
+  | "other"
+  | "none";
+
 export type PreflightTelemetryEvent = {
   v: typeof TELEMETRY_SCHEMA_VERSION;
   ts: string;
@@ -76,6 +86,15 @@ export type PreflightTelemetryEvent = {
     deferred: boolean;
   };
 
+  /** Mission Control narrative fields (additive; older NDJSON omit these). */
+  intention?: IntentionKind;
+  correction_kind?: CorrectionKind;
+  location_fingerprint?: string | null;
+  location_streak?: number;
+  tools_invoked?: string[];
+  scene_mode?: string;
+  lore_pack?: string;
+
   memory: {
     preflight_result_count: number;
     search_result_counts: number[];
@@ -92,6 +111,55 @@ export type PreflightTelemetryEvent = {
   hard_flags_count: number;
   triggers: string[];
 };
+
+/** Classify scarlett_next_intention for Serendipity / Parroting charts. */
+export function classifyIntention(raw: string | null | undefined): IntentionKind {
+  if (typeof raw !== "string") return "unknown";
+  const t = raw.trim().toLowerCase();
+  if (!t || t === "null") return "unknown";
+  if (
+    /\b(rest|recover|pause|still|quiet|receive|let him|wait|soften|yield|listen|accept)\b/.test(t) &&
+    !/\b(initiate|lead|pull|start|open|reach|take|drive|choose|steer)\b/.test(t)
+  ) {
+    if (/\b(rest|recover|pause|still|quiet)\b/.test(t)) return "rest";
+    return "receive";
+  }
+  if (/\b(rest|recover|pause|stillness|quiet)\b/.test(t)) return "rest";
+  if (/\b(receive|let him|wait for|soften|yield|listen|accept his)\b/.test(t)) return "receive";
+  if (
+    /\b(initiate|lead|pull|start|open|reach|take|drive|choose|steer|kiss|touch|draw|invite|nudge)\b/.test(
+      t
+    )
+  ) {
+    return "initiate";
+  }
+  return "unknown";
+}
+
+/** Classify Director's Correction text into taxonomy buckets. */
+export function classifyCorrectionKind(raw: string | null | undefined): CorrectionKind {
+  if (typeof raw !== "string") return "none";
+  const t = raw.trim();
+  if (!t || t === "null") return "none";
+  const lower = t.toLowerCase();
+  if (
+    /\b(cis-?wash|cis wash|pre-?op|anatom|hardware|genital|phallus|whatever sits beneath)\b/.test(
+      lower
+    )
+  ) {
+    return "cis_wash";
+  }
+  if (/\b(parrot|parroting|echo|mechanical agree|only-agree|hollow passivity)\b/.test(lower)) {
+    return "parroting";
+  }
+  if (/\b(rewind|location|wrong (room|suite|place)|scene reset|save.?lag)\b/.test(lower)) {
+    return "location_rewind";
+  }
+  if (/\b(ensemble|npc|cast|crowd|dilut|supporting)\b/.test(lower)) {
+    return "ensemble";
+  }
+  return "other";
+}
 
 /** In-process collector for one preflight turn. */
 export class PreflightTelemetryCollector {
@@ -230,6 +298,7 @@ export type BuildEventInput = {
       scene_state_delta?: string | null;
       grok_performance_correction?: string | null;
       resonance_echo?: string | null;
+      scarlett_next_intention?: string | null;
     };
     current_state_summary?: string;
     grok_scene_summary?: string;
@@ -240,6 +309,9 @@ export type BuildEventInput = {
       ok?: boolean;
       response?: unknown;
     }>;
+    /** Optional Mission Control fields already on the report. */
+    scene_mode?: string;
+    lore_pack?: string;
   };
   input: {
     scarlett_previous_message?: string | null;
@@ -250,6 +322,19 @@ export type BuildEventInput = {
   llm_assessment_ms?: number;
   /** WP-R3: defaults to live; eval harness tags as eval when emitted. */
   source?: "live" | "backfill" | "eval";
+  /** Optional narrative enrichments from preflight (Mission Control). */
+  narrative?: {
+    serendipity?: {
+      fired?: boolean;
+      tier?: string | null;
+      category?: string | null;
+      deferred?: boolean;
+    };
+    location_fingerprint?: string | null;
+    location_streak?: number;
+    scene_mode?: string;
+    lore_pack?: string;
+  };
 };
 
 /**
@@ -320,12 +405,25 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
   const correction = report.llm_assessment?.grok_performance_correction;
   const correctionFired =
     typeof correction === "string" && correction.trim().length > 0 && correction.trim() !== "null";
+  const correctionKind = classifyCorrectionKind(correction);
+  const intention = classifyIntention(report.llm_assessment?.scarlett_next_intention);
+  const toolsInvoked = [
+    ...new Set(
+      (report.tool_calls ?? [])
+        .map((c) => c.tool)
+        .filter((t): t is string => typeof t === "string" && t.length > 0)
+    )
+  ];
 
   const scene = report.grok_scene_summary ?? report.current_state_summary ?? "";
   const facts = report.llm_assessment?.supported_facts ?? [];
 
   const phases: Record<string, number> = {};
   for (const [k, v] of collector.phaseMarks) phases[k] = v;
+
+  const narr = input.narrative;
+  const serendipityFired =
+    narr?.serendipity?.fired ?? Boolean(report.serendipity_nudge?.trim());
 
   return {
     v: TELEMETRY_SCHEMA_VERSION,
@@ -371,11 +469,18 @@ export function buildPreflightTelemetryEvent(input: BuildEventInput): PreflightT
       suspected: (report.hard_flags ?? []).some((f) => /SAVE_LAG_SUSPECTED/i.test(f))
     },
     serendipity: {
-      fired: Boolean(report.serendipity_nudge?.trim()),
-      tier: null,
-      category: null,
-      deferred: false
+      fired: serendipityFired,
+      tier: narr?.serendipity?.tier ?? null,
+      category: narr?.serendipity?.category ?? null,
+      deferred: narr?.serendipity?.deferred ?? false
     },
+    intention,
+    correction_kind: correctionKind,
+    location_fingerprint: narr?.location_fingerprint ?? null,
+    location_streak: narr?.location_streak,
+    tools_invoked: toolsInvoked,
+    scene_mode: narr?.scene_mode ?? report.scene_mode,
+    lore_pack: narr?.lore_pack ?? report.lore_pack,
     memory: {
       preflight_result_count: preflightResultCount,
       search_result_counts: searchCounts,

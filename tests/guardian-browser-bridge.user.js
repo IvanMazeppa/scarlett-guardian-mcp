@@ -2,7 +2,7 @@
 // @name         Scarlett Guardian Bridge v2 (Shadow Duplex)
 // @namespace    http://tampermonkey.net/
 // @version      2.0.0
-// @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. Optional legacy interceptor mode.
+// @description  STALE COPY — use scripts/guardian-browser-bridge.user.js (v2.2+). Do not install this file.
 // @author       Grok Build (WP-3.2)
 // @match        *://grok.com/*
 // @match        *://*.x.ai/*
@@ -17,6 +17,9 @@
 // ==/UserScript==
 
 /**
+ * STALE — canonical bridge is scripts/guardian-browser-bridge.user.js (v2.2 Mission Control).
+ * This tests/ copy is kept only for historical reference; do not paste into Tampermonkey.
+ *
  * WP-3.2 — Userscript v2
  *
  * Modes (Tampermonkey menu or GM storage key guardian_mode):

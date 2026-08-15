@@ -7,8 +7,14 @@ import {
   defaultReportsDir,
   defaultTelemetryDir,
   detectMetaPollution,
+  classifyCorrectionKind,
+  classifyIntention,
+  type CorrectionKind,
+  type IntentionKind,
   type PreflightTelemetryEvent
 } from "./telemetry.js";
+import { readLocationProgress } from "./location-progress.js";
+import { readMissionControlState } from "./mission-control.js";
 
 export function parsePreflightIdFromFilename(name: string): string | null {
   const m = name.match(/preflight-full-(.+)\.json$/);
@@ -40,6 +46,7 @@ type LooseReport = {
     scene_state_delta?: string | null;
     grok_performance_correction?: string | null;
     resonance_echo?: string | null;
+    scarlett_next_intention?: string | null;
     enabled?: boolean;
   };
   current_state_summary?: string;
@@ -160,6 +167,15 @@ export function eventFromSavedReport(
       category: null,
       deferred: false
     },
+    intention: classifyIntention(report.llm_assessment?.scarlett_next_intention),
+    correction_kind: classifyCorrectionKind(correction),
+    tools_invoked: [
+      ...new Set(
+        (report.tool_calls ?? [])
+          .map((c) => c.tool)
+          .filter((t): t is string => typeof t === "string" && t.length > 0)
+      )
+    ],
     memory: {
       preflight_result_count: preflightResultCount,
       search_result_counts: searchCounts,
@@ -415,5 +431,179 @@ export function telemetryHealth(options?: {
     events_today: eventsToday,
     reports_dir_count: reportsCount,
     telemetry_dir: dir
+  };
+}
+
+const NARRATIVE_TOOLS = [
+  "retrieve_story_context",
+  "search_story_memory",
+  "expand_context_around_chunk",
+  "verify_story_fact",
+  "get_live_story_state"
+] as const;
+
+export type NarrativeTelemetrySummary = {
+  days: number;
+  event_count: number;
+  intention: Record<IntentionKind, number>;
+  serendipity_fired: number;
+  parroting_corrections: number;
+  /** initiate + serendipity vs receive + parroting — chart-friendly rates */
+  serendipity_parroting: {
+    initiate_plus_serendipity: number;
+    receive_plus_parroting: number;
+    initiate: number;
+    receive: number;
+    rest: number;
+    serendipity: number;
+    parroting: number;
+  };
+  location: {
+    current_streak: number;
+    current_fingerprint: string | null;
+    current_location_line: string;
+    threshold: number;
+    stagnation: boolean;
+    streak_series: Array<{ ts: string; streak: number }>;
+  };
+  tools: {
+    counts: Record<string, number>;
+    neglected: string[];
+  };
+  corrections: {
+    total_fired: number;
+    rate: number;
+    by_kind: Record<CorrectionKind, number>;
+    series: Array<{ ts: string; kind: CorrectionKind }>;
+  };
+  mission_control: {
+    scene_mode: string;
+    lore_pack: string;
+    updated_at: string;
+  };
+};
+
+function emptyIntention(): Record<IntentionKind, number> {
+  return { initiate: 0, receive: 0, rest: 0, unknown: 0 };
+}
+
+function emptyCorrectionKinds(): Record<CorrectionKind, number> {
+  return {
+    cis_wash: 0,
+    parroting: 0,
+    location_rewind: 0,
+    ensemble: 0,
+    other: 0,
+    none: 0
+  };
+}
+
+/**
+ * Mission Control narrative aggregates for Chart.js.
+ * Defaults to live-only events (same as summary).
+ */
+export function summarizeNarrativeTelemetry(
+  events: PreflightTelemetryEvent[],
+  options?: {
+    days?: number;
+    sources?: Array<"live" | "backfill" | "eval"> | "all";
+    cwd?: string;
+  }
+): NarrativeTelemetrySummary {
+  const days = options?.days ?? 7;
+  const scoped =
+    options?.sources === "all"
+      ? events
+      : events.filter((e) => {
+          const src = e.source ?? "live";
+          const allow = options?.sources ?? ["live"];
+          return allow.includes(src as "live" | "backfill" | "eval");
+        });
+
+  const intention = emptyIntention();
+  let serendipityFired = 0;
+  let parrotingCorrections = 0;
+  const toolCounts: Record<string, number> = {};
+  for (const name of NARRATIVE_TOOLS) toolCounts[name] = 0;
+  const byKind = emptyCorrectionKinds();
+  const correctionSeries: Array<{ ts: string; kind: CorrectionKind }> = [];
+  const streakSeries: Array<{ ts: string; streak: number }> = [];
+  let correctionFired = 0;
+
+  for (const e of scoped) {
+    const intent = e.intention ?? "unknown";
+    intention[intent] = (intention[intent] ?? 0) + 1;
+    if (e.serendipity?.fired) serendipityFired += 1;
+    const kind = e.correction_kind ?? (e.duplex.correction_fired ? "other" : "none");
+    byKind[kind] = (byKind[kind] ?? 0) + 1;
+    if (kind === "parroting") parrotingCorrections += 1;
+    if (e.duplex.correction_fired || kind !== "none") {
+      correctionFired += 1;
+      correctionSeries.push({ ts: e.ts, kind });
+    }
+    if (typeof e.location_streak === "number") {
+      streakSeries.push({ ts: e.ts, streak: e.location_streak });
+    }
+    const tools = e.tools_invoked?.length
+      ? e.tools_invoked
+      : [
+          ...(e.latency_ms.rag.retrieve != null ? ["retrieve_story_context"] : []),
+          ...(e.latency_ms.rag.search?.length ? ["search_story_memory"] : []),
+          ...(e.latency_ms.rag.expand != null ? ["expand_context_around_chunk"] : []),
+          ...(e.latency_ms.rag.verify != null ? ["verify_story_fact"] : []),
+          ...(e.latency_ms.rag.other?.some((o) => o.tool === "get_live_story_state")
+            ? ["get_live_story_state"]
+            : [])
+        ];
+    for (const t of tools) {
+      if (NARRATIVE_TOOLS.includes(t as (typeof NARRATIVE_TOOLS)[number])) {
+        toolCounts[t] = (toolCounts[t] ?? 0) + 1;
+      }
+    }
+  }
+
+  const loc = readLocationProgress(options?.cwd);
+  const mc = readMissionControlState(options?.cwd);
+  const threshold = mc.sceneMode === "explicit_slow_burn" ? 25 : 15;
+  const currentStreak = loc?.consecutiveTurns ?? 0;
+
+  return {
+    days,
+    event_count: scoped.length,
+    intention,
+    serendipity_fired: serendipityFired,
+    parroting_corrections: parrotingCorrections,
+    serendipity_parroting: {
+      initiate_plus_serendipity: intention.initiate + serendipityFired,
+      receive_plus_parroting: intention.receive + parrotingCorrections,
+      initiate: intention.initiate,
+      receive: intention.receive,
+      rest: intention.rest,
+      serendipity: serendipityFired,
+      parroting: parrotingCorrections
+    },
+    location: {
+      current_streak: currentStreak,
+      current_fingerprint: loc?.fingerprint ?? null,
+      current_location_line: loc?.locationLine ?? "",
+      threshold,
+      stagnation: currentStreak >= threshold && Boolean(loc?.fingerprint && loc.fingerprint !== "empty"),
+      streak_series: streakSeries.slice(-60)
+    },
+    tools: {
+      counts: toolCounts,
+      neglected: NARRATIVE_TOOLS.filter((t) => (toolCounts[t] ?? 0) === 0)
+    },
+    corrections: {
+      total_fired: correctionFired,
+      rate: scoped.length ? correctionFired / scoped.length : 0,
+      by_kind: byKind,
+      series: correctionSeries.slice(-80)
+    },
+    mission_control: {
+      scene_mode: mc.sceneMode,
+      lore_pack: mc.lorePack,
+      updated_at: mc.updatedAt
+    }
   };
 }

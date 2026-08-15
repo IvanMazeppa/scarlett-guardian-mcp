@@ -218,6 +218,11 @@ export type GuardianReport = {
     kit?: string;
     writeback_pending?: boolean;
   };
+  /**
+   * Mission Control scene-mode / lore-pack active for this turn (diagnostics + brief).
+   */
+  scene_mode?: string;
+  lore_pack?: string;
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

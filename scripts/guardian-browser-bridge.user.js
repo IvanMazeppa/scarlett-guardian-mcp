@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Scarlett Guardian Bridge v2 (Shadow Duplex)
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
-// @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. WP-R1 smart scrape + GM snapshot seed.
+// @version      2.2.0
+// @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. WP-R1 + Mission Control static domain menu.
 // @author       Grok Build (WP-3.2 / WP-R1)
 // @match        *://grok.com/*
 // @match        *://*.x.ai/*
@@ -17,7 +17,7 @@
 // ==/UserScript==
 
 /**
- * WP-3.2 / WP-R1 — Userscript v2.1
+ * WP-3.2 / WP-R1 / Mission Control — Userscript v2.2
  *
  * Modes (Tampermonkey menu or GM storage key guardian_mode):
  *   shadow      (default) — watch DOM, POST /duplex-cache; never touches composer/send
@@ -28,10 +28,12 @@
  *        GM-storage last-good snapshot seeds new threads after URL change.
  *
  * Secrets / tunnel URL: set via Tampermonkey menu or GM_setValue — do not hardcode tokens.
+ * Menu "use Mission Control domain…" sets https://YOUR_DOMAIN (origin only, no /mcp).
+ * Edge Basic Auth covers /dashboard only — leave /duplex-cache unauthenticated at ngrok.
  *
  * Install: Tampermonkey → Create new script → paste this file → save.
  * Local Guardian: guardian_base_url = http://127.0.0.1:8790
- * Remote: guardian_base_url = https://your-tunnel.example  (no trailing path)
+ * Remote: guardian_base_url = https://your-name.ngrok.app  (no trailing path)
  * After upgrade: re-paste this file into Tampermonkey (or update the existing script).
  */
 
@@ -713,6 +715,32 @@
         gmSet("guardian_base_url", next.replace(/\/+$/, ""));
         showPill("🛡 base URL saved (reload)", "info");
       }
+    });
+    GM_registerMenuCommand("Guardian: use Mission Control domain…", () => {
+      const hint =
+        CONFIG.guardianBaseUrl.startsWith("https://") && !/127\.0\.0\.1|localhost/.test(CONFIG.guardianBaseUrl)
+          ? CONFIG.guardianBaseUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "")
+          : "your-name.ngrok.app";
+      const host = prompt(
+        "Mission Control hostname only (no https://, no /mcp)\nExample: scarlett-guardian.ngrok.app",
+        hint
+      );
+      if (!host) return;
+      const cleaned = String(host)
+        .trim()
+        .replace(/^https?:\/\//i, "")
+        .replace(/\/+$/, "")
+        .replace(/\/(mcp|dashboard|preflight).*$/i, "");
+      if (!cleaned) {
+        showPill("🛡 empty domain", "err");
+        return;
+      }
+      gmSet("guardian_base_url", `https://${cleaned}`);
+      showPill("🛡 Mission Control URL saved (reload)", "info");
+    });
+    GM_registerMenuCommand("Guardian: use local 8790", () => {
+      gmSet("guardian_base_url", "http://127.0.0.1:8790");
+      showPill("🛡 local URL saved (reload)", "info");
     });
     GM_registerMenuCommand("Guardian: set bearer token…", () => {
       const next = prompt("Bearer token (empty to clear)", CONFIG.bearerToken || "");
