@@ -1,7 +1,5 @@
 # Mission Control UI Dashboard — Cursor/Grok Master Prompt
 
-**Status (2026-08-16):** Implemented as Vite + React SPA in `dashboard-ui/` (build → `public/dashboard-app`, served at `/dashboard`). See `docs/mission-control-status-2026-08-15.md`.
-
 **Target:** Fable (or Grok 4.5 in Cursor)
 **Task:** Build the React UI for the Scarlett Guardian Mission Control Dashboard.
 **Context:** We have a working backend API exposing telemetry and state control on `localhost:8790`. We need a beautiful, tactical, dark-mode React UI to visualize this data and steer the agent.

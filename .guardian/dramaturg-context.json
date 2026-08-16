@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 112,
+  "turnCounter": 117,
   "context": {
     "arcSlug": "`arc-09-nurburgring-track-day`",
     "beats": [
@@ -8,8 +8,8 @@
         "index": 1,
         "name": "Arrival at the Nordschleife paddock (midday)",
         "kind": "fixed",
-        "status": "done",
-        "pressure": "The world expected them on site, introduced, and professionally present before any lap.",
+        "status": "dormant",
+        "pressure": "The world expects them on site, introduced, and professionally present before any lap. Motion-sickness aftercare should not erase the Industry Pool frame.",
         "cues": [
           "motion-sickness",
           "nordschleife",
@@ -37,8 +37,8 @@
         "index": 2,
         "name": "The Green Hell (afternoon)",
         "kind": "open",
-        "status": "done",
-        "pressure": "The day expected real track time and live telemetry.",
+        "status": "dormant",
+        "pressure": "The day expects real track time and live telemetry.",
         "cues": [
           "pit wall",
           "nordschleife",
@@ -66,8 +66,8 @@
         "index": 3,
         "name": "Adrenaline crash and debrief (late afternoon)",
         "kind": "open",
-        "status": "done",
-        "pressure": "The world was ready for return, telemetry debrief, and grounding; any technical conclusion remained open.",
+        "status": "dormant",
+        "pressure": "The world is ready for return → telemetry debrief → grounding. Whether the aero proves the simulation is open. Aftercare is available pressure, not a scripted monologue.",
         "cues": [
           "aftercare",
           "green hell",
@@ -96,7 +96,7 @@
         "name": "Leave circuit → luxury hotel recovery (Friday evening; not Affalterbach)",
         "kind": "conditional",
         "status": "dormant",
-        "pressure": "Private recovery remains conditional on the track-day obligations having wound down and live telemetry needs no longer requiring them in the paddock.",
+        "pressure": "The world is ready for rest and private recovery once track-day professional obligations are winding down and departure would not abandon live telemetry needs.",
         "cues": [
           "changing room",
           "b-road",
@@ -121,16 +121,17 @@
         ]
       }
     ],
-    "momentumLine": "No beat from the Friday Nürburgring track-day plan is live at the current Monday-morning aviation-terminal scene; this plan supplies no immediate schedule pressure here.",
+    "momentumLine": "No Nürburgring beat is live at the Monday private-aviation terminal; this Friday track-day sequence has no current schedule handoff in the snapshot.",
     "npcIntersections": [],
     "planWarnings": [
-      "Current LIVE BEAT does not match this plan’s Nürburgring or hotel settings.",
-      "Conditional beat 4 is not confirmed complete by the LIVE BEAT and remains dormant."
+      "No live beat match: the plan is a Friday Nürburgring sequence, while the LIVE BEAT is Monday morning at a private aviation terminal.",
+      "Plan status is marked complete, but the LIVE BEAT does not establish which, if any, plan beats were completed."
     ],
-    "generatedAtTurn": 112,
+    "generatedAtTurn": 114,
     "source": "llm",
     "planHash": "6cc69e232567cf81",
-    "refreshedAt": "2026-08-15T23:08:31.416Z",
-    "liveSceneFingerprint": "3ade47ca2508c5b2"
+    "refreshedAt": "2026-08-16T02:33:18.105Z",
+    "liveSceneFingerprint": "48d18631686b4f38",
+    "lastInvalidationReason": "live_scene_changed"
   }
 }
