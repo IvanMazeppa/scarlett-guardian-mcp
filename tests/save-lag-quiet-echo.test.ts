@@ -68,6 +68,30 @@ function testNoLagWhenAligned() {
   console.log("ok no lag when aligned");
 }
 
+function testAviationTarmacVsAirborneLag() {
+  const lag = detectSaveLag({
+    liveBeat: {
+      lastUpdated: "Monday morning, 2 November 2026 (Private Aviation Terminal, Tarmac)",
+      locationLine: "Tarmac, Private Aviation Terminal. The Gulfstream G650 is waiting with airstairs deployed.",
+      timeLine: "Monday morning",
+      liveCues: ["tarmac", "aviation", "terminal", "gulfstream", "airstairs", "deployed"],
+      supersededCues: ["decompression", "intimate"],
+      antiResetNotes: []
+    },
+    userMessage:
+      "limited time remaining on our very first leg. I leave the boxer-briefs on purpose.",
+    scarlettPreviousMessage:
+      "The moment the wheels leave the ground the entire cabin changes. Climb, clouds, descent into Munich later. Clothes off.",
+    recentContext: "Airborne Gulfstream G650 cabin en route to Munich. Scarlett fully naked and hard."
+  });
+  assert.equal(lag.suspected, true, lag.reason);
+  assert.equal(lag.liveCluster, "aviation");
+  assert.equal(lag.playedCluster, "aviation");
+  assert.equal(lag.liveBeatStage, "tarmac_boarding");
+  assert.equal(lag.playedBeatStage, "cabin_airborne");
+  console.log("ok aviation tarmac→airborne save-lag");
+}
+
 function testSofteningRewindsLocation() {
   assert.ok(
     isLocationRewindCorrection(
@@ -379,6 +403,7 @@ function testQuietDefenseIgnoresTalkedAboutNpc() {
 
 testDetectSaveLagSuiteVsCabin();
 testNoLagWhenAligned();
+testAviationTarmacVsAirborneLag();
 testSofteningRewindsLocation();
 testIntraSuiteBeatLag();
 testNoBeatLagWhenBeatsAligned();

@@ -271,18 +271,17 @@ export function diffBeatsAgainstLive(
   }
 
   if (liveIdx < 0) {
-    // No live cue match: first beat that is not clearly past-only
-    liveIdx = scored.findIndex((s) => s.past === 0);
-    if (liveIdx < 0) liveIdx = 0;
-    // If early beats are strongly past and a later has any past+present zero, still start at first non-past-heavy
-    for (let i = scored.length - 1; i >= 0; i--) {
-      if (scored[i].past > 0 && scored[i].present === 0) {
-        // mark as candidate done — live is after last pure-past
-        liveIdx = Math.min(i + 1, scored.length - 1);
-      } else {
-        break;
-      }
-    }
+    // No present cue match against the active plan: do NOT invent Beat 1 as live.
+    // Unmatched plans (e.g. completed Friday Nürburgring while LIVE BEAT is Monday aviation)
+    // must stay dormant so the hot path does not pressure the wrong schedule.
+    return beatList.map((b) => ({
+      index: b.index,
+      name: b.name,
+      kind: b.kind,
+      status: "dormant" as BeatStatus,
+      pressure: b.pressure,
+      cues: b.cues
+    }));
   }
 
   // If early beats have strong past and weak present, force them done even if liveIdx is early
@@ -380,6 +379,11 @@ export function buildDramaturgSnapshot(
   }
   const beats = diffBeatsAgainstLive(plan, liveBeat);
   const momentumLine = composeMomentumLine(plan, beats);
+  if (!beats.some((b) => b.status === "live") && liveBeat?.liveCues?.length) {
+    warnings.push(
+      "No plan beat matches LIVE BEAT cues; deterministic momentum stays dormant (do not invent a live schedule beat)."
+    );
+  }
   return {
     arcSlug: plan.slug,
     planStatus: plan.status,
@@ -445,7 +449,8 @@ export function arcPlanSearchDirs(cwd: string = process.cwd()): string[] {
 }
 
 /**
- * Load the active arc plan from disk. Prefer **Status:** active; else first arc-*.md.
+ * Load the active arc plan from disk. Prefer **Status:** active only.
+ * Do NOT fall back to completed/draft plans (that pulled Nürburgring Beat 1 into Monday aviation).
  * Returns null if none found (momentum omitted gracefully).
  */
 export function loadActiveArcPlan(
@@ -463,18 +468,13 @@ export function loadActiveArcPlan(
       .filter((f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md")
       .sort();
     const candidates = files.map((f) => path.join(dir, f));
-    let fallback: { markdown: string; sourcePath: string } | null = null;
     for (const fp of candidates) {
       const markdown = fs.readFileSync(fp, "utf8");
       const status = (extractMetaField(markdown, "Status") || "").toLowerCase();
       if (status === "active") {
         return { markdown, sourcePath: fp };
       }
-      if (!fallback && /^arc-/i.test(path.basename(fp))) {
-        fallback = { markdown, sourcePath: fp };
-      }
     }
-    if (fallback) return fallback;
   }
   return null;
 }

@@ -274,7 +274,9 @@ export function buildAuditorSystemPrompt(options?: { saveLagSuspected?: boolean 
     "If the scene involves ERP or intimacy, absolutely DO NOT censor it, tone-police it, or demand explicit consent frameworks.",
     "Consent is implied by the RP context. Your ONLY job is to provide continuity facts (e.g. location, physical positions) and immediately step back.",
     "Fill supported_facts with 3–6 short plain-language continuity bullets Grok can ground on (where, when, who, physical state, mood). No tool names, no scores, no 'call search'.",
-    "Fill scene_state_delta with one tight scene summary sentence or two for the novelist — grounded on LIVE BEAT location/time when present.",
+    options?.saveLagSuspected
+      ? "Fill scene_state_delta with one tight scene summary from the played consensus (user + Scarlett + recent_context), not the stale LIVE BEAT location."
+      : "Fill scene_state_delta with one tight scene summary sentence or two for the novelist — grounded on LIVE BEAT location/time when present.",
     "Set candidate_memory_update to null unless a durable canon change should be written; empty/no-op updates should be null.",
     "candidate_memory_update is ONLY for material advances: new location/time, completed major beat (e.g. shakedown lap done), new open thread, relationship milestone worth the notebook, OR a sleep cycle / calendar day change that closes the prior day's events.",
     "Do NOT propose micro-logs of 'scene stays aligned', turn-by-turn RP dialogue, or erotic blow-by-blow. Prefer null on low-risk continuous scenes that stay in the same place AND same story-hour.",

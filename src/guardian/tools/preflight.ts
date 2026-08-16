@@ -694,13 +694,51 @@ async function runGuardianPreflightInner(
     reason: "not evaluated"
   };
   try {
+    // Safety net: SAVE LAG + null candidate → synthesize a durable location note so write-back
+    // is not permanently skipped while disk remains hours/scenes behind play.
+    let candidateForWrite = llmAssessment.candidate_memory_update;
+    if (
+      saveLag.suspected &&
+      (candidateForWrite == null ||
+        (typeof candidateForWrite === "string" && candidateForWrite.trim().length < 24))
+    ) {
+      const from =
+        liveBeat.locationLine?.trim() ||
+        liveBeat.liveCues.slice(0, 4).join(", ") ||
+        "stale LIVE BEAT location";
+      const to =
+        (input.recent_context && input.recent_context.trim().slice(0, 220)) ||
+        saveLag.playedBeatStage ||
+        saveLag.playedCluster;
+      candidateForWrite =
+        `Played consensus has advanced past disk LIVE BEAT (${saveLag.reason}). ` +
+        `Update current-state: from "${from}" toward "${to}".`;
+      llmAssessment.candidate_memory_update = candidateForWrite;
+      if (!llmAssessment.scene_transition || llmAssessment.scene_transition.occurred !== true) {
+        llmAssessment.scene_transition = {
+          occurred: true,
+          kind: "location",
+          from: from.slice(0, 160),
+          to: String(to).slice(0, 160)
+        };
+      }
+      console.log(
+        `${Date.now()} Memory write-back safety net: synthesized candidate under SAVE LAG (${saveLag.liveBeatStage ?? saveLag.liveCluster} → ${saveLag.playedBeatStage ?? saveLag.playedCluster})`
+      );
+    }
+
     const writeDecision = decideMemoryWrite({
-      candidateUpdate: llmAssessment.candidate_memory_update,
+      candidateUpdate: candidateForWrite,
       assessment: llmAssessment,
       highRiskTriggers,
       proceedRecommendation,
       writeMode: config.GUARDIAN_MEMORY_WRITE_MODE,
-      liveBeat
+      liveBeat,
+      turnHints: {
+        userMessage: input.user_message,
+        scarlettPreviousMessage: input.scarlett_previous_message,
+        recentContext: input.recent_context
+      }
     });
 
     if (writeDecision.action === "none") {
@@ -715,7 +753,7 @@ async function runGuardianPreflightInner(
     } else if (writeDecision.action === "stage") {
       memoryWrite = await applyBeatStageWrite({
         writeDecision,
-        candidateRaw: llmAssessment.candidate_memory_update,
+        candidateRaw: candidateForWrite,
         liveBeat,
         ragClient,
         toolCalls,
@@ -848,7 +886,8 @@ async function runGuardianPreflightInner(
     memoryResponses,
     llmAssessment,
     input,
-    liveBeat
+    liveBeat,
+    saveLag.suspected
   );
   const emotionalTone = buildToneGuidance(
     preflight.response,
@@ -859,6 +898,12 @@ async function runGuardianPreflightInner(
   );
   const openThreads = collectOpenThreads(preflight.response, memoryResponses, llmAssessment);
   const keyFacts = buildKeyFacts(allResults, llmAssessment, hardFlags, highRiskTriggers, input);
+  if (saveLag.suspected) {
+    const playedSummary = (input.recent_context || "").trim();
+    if (playedSummary && !isPlaceholderContext(playedSummary) && !isRagMetaText(playedSummary)) {
+      keyFacts.unshift(truncateAtSentence(compactWhitespace(playedSummary), 280));
+    }
+  }
   const grokPrecedents = selectPrecedents(
     allResults,
     highRiskTriggers,
@@ -890,7 +935,7 @@ async function runGuardianPreflightInner(
     .filter(Boolean)
     .join(" ");
 
-  const wardrobe = resolveWardrobe(input, liveBeat, { persistWriteback: false });
+  const wardrobe = resolveWardrobe(input, liveBeat, { persistWriteback: true });
   if (wardrobe.changeBeat) {
     console.log(
       `${Date.now()} Wardrobe change-beat: register=${wardrobe.targetRegister ?? "?"} kit=${wardrobe.kit ?? "?"} options=${wardrobe.options.map((o) => o.id).join(",") || "none"}`
@@ -2026,8 +2071,21 @@ export function summarizeCurrentState(
   memories: RagRetrieveResponse[] = [],
   llmAssessment?: GuardianLlmAssessment,
   input?: GuardianPreflightInput,
-  liveBeat?: LiveBeat
+  liveBeat?: LiveBeat,
+  saveLagSuspected?: boolean
 ): string {
+  // When disk LIVE BEAT lags play, prefer the operator/bridge recent_context over a
+  // scene_state_delta that merely restates the stale LIVE BEAT (aviation save-lag).
+  const recent = input?.recent_context?.trim();
+  if (
+    saveLagSuspected &&
+    recent &&
+    !isPlaceholderContext(recent) &&
+    !isRagMetaText(recent)
+  ) {
+    return truncateAtSentence(compactWhitespace(recent), 900);
+  }
+
   if (llmAssessment?.enabled && !llmAssessment.error) {
     if (llmAssessment.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
       return truncateAtSentence(
@@ -2050,7 +2108,6 @@ export function summarizeCurrentState(
   }
 
   // Real session recap only — ignore placeholders like "None yet, establishing scene".
-  const recent = input?.recent_context?.trim();
   if (recent && !isPlaceholderContext(recent) && !isRagMetaText(recent)) {
     return truncateAtSentence(compactWhitespace(recent), 900);
   }

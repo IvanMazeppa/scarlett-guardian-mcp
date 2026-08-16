@@ -11,6 +11,7 @@ export type LocationClusterId =
   | "paddock"
   | "suite_hotel"
   | "drive_road"
+  | "aviation"
   | "unknown";
 
 export type SaveLagResult = {
@@ -35,7 +36,6 @@ const CLUSTERS: ClusterDef[] = [
     id: "car_cabin",
     tokens: [
       "black panther",
-      "cabin",
       "engine off",
       "parked",
       "passenger seat",
@@ -43,6 +43,7 @@ const CLUSTERS: ClusterDef[] = [
       "hand-holding",
       "hands joined",
       "not yet out of the car"
+      // Note: bare "cabin" removed — it false-matched Gulfstream cabin as car_cabin.
     ]
   },
   {
@@ -82,6 +83,25 @@ const CLUSTERS: ClusterDef[] = [
   {
     id: "drive_road",
     tokens: ["night drive", "autobahn", "eifel", "moselle valley road", "winding", "transmission into drive"]
+  },
+  {
+    // Private-aviation terminal / Gulfstream — covers tarmac boarding → airborne cabin lag.
+    id: "aviation",
+    tokens: [
+      "gulfstream",
+      "airstairs",
+      "private aviation",
+      "aviation terminal",
+      "tarmac",
+      "airborne",
+      "wheels leave",
+      "wheels left",
+      "en route to munich",
+      "descent into",
+      "jet cabin",
+      "cabin door",
+      "first leg"
+    ]
   }
 ];
 
@@ -102,6 +122,39 @@ type BeatStageDef = {
   order: number;
   tokens: string[];
 };
+
+/** Ordered micro-beats inside the aviation cluster (tarmac → wheels-up). */
+const AVIATION_BEAT_STAGES: BeatStageDef[] = [
+  {
+    id: "tarmac_boarding",
+    order: 0,
+    tokens: [
+      "tarmac",
+      "airstairs",
+      "aviation terminal",
+      "private aviation",
+      "waiting with airstairs",
+      "about to board",
+      "boarding"
+    ]
+  },
+  {
+    id: "cabin_airborne",
+    order: 1,
+    tokens: [
+      "airborne",
+      "wheels leave",
+      "wheels left",
+      "leave the ground",
+      "en route",
+      "climb",
+      "clouds",
+      "descent into",
+      "jet cabin",
+      "cabin changes"
+    ]
+  }
+];
 
 const SUITE_BEAT_STAGES: BeatStageDef[] = [
   {
@@ -137,10 +190,13 @@ const SUITE_BEAT_STAGES: BeatStageDef[] = [
   }
 ];
 
-function bestBeatStage(text: string): { def: BeatStageDef; score: number } | null {
+function bestBeatStage(
+  text: string,
+  stages: BeatStageDef[] = SUITE_BEAT_STAGES
+): { def: BeatStageDef; score: number } | null {
   const t = text.toLowerCase();
   let best: { def: BeatStageDef; score: number } | null = null;
-  for (const def of SUITE_BEAT_STAGES) {
+  for (const def of stages) {
     let score = 0;
     for (const tok of def.tokens) {
       if (t.includes(tok)) score += 1;
@@ -221,8 +277,8 @@ export function detectSaveLag(input: {
   // Parroting-fix 1.4: same cluster, but play has advanced past the disk micro-beat
   // (sofa -> shower -> dressing -> departure inside suite_hotel).
   if (live.id === "suite_hotel" && played.id === "suite_hotel") {
-    const liveStage = bestBeatStage(liveText);
-    const playedStage = bestBeatStage(playedText);
+    const liveStage = bestBeatStage(liveText, SUITE_BEAT_STAGES);
+    const playedStage = bestBeatStage(playedText, SUITE_BEAT_STAGES);
     if (
       liveStage &&
       playedStage &&
@@ -239,6 +295,30 @@ export function detectSaveLag(input: {
         liveBeatStage: liveStage.def.id,
         playedBeatStage: playedStage.def.id,
         reason: `Intra-suite beat lag: LIVE BEAT still at '${liveStage.def.id}' (score=${liveStage.score}) while played consensus reached '${playedStage.def.id}' (score=${playedStage.score})`
+      };
+    }
+  }
+
+  // Aviation: tarmac/boarding on disk vs airborne Gulfstream cabin in play.
+  if (live.id === "aviation" && played.id === "aviation") {
+    const liveStage = bestBeatStage(liveText, AVIATION_BEAT_STAGES);
+    const playedStage = bestBeatStage(playedText, AVIATION_BEAT_STAGES);
+    if (
+      liveStage &&
+      playedStage &&
+      playedStage.def.order > liveStage.def.order &&
+      liveStage.score >= 1 &&
+      playedStage.score >= 2
+    ) {
+      return {
+        suspected: true,
+        liveCluster: live.id,
+        playedCluster: played.id,
+        liveScore: liveStage.score,
+        playedScore: playedStage.score,
+        liveBeatStage: liveStage.def.id,
+        playedBeatStage: playedStage.def.id,
+        reason: `Intra-aviation beat lag: LIVE BEAT still at '${liveStage.def.id}' (score=${liveStage.score}) while played consensus reached '${playedStage.def.id}' (score=${playedStage.score})`
       };
     }
   }

@@ -212,4 +212,23 @@ const sampleCurrentState = fs.existsSync(fixturePath)
   assert.equal(scoreRecency({ text: "anything" }, parseLiveBeat(""), "hi"), 0);
 }
 
+// Unmarked mood is current atmosphere — not superseded (aviation LIVE BEAT regression)
+{
+  const md = `# Current Story State
+**Last Updated:** Monday morning, 2 November 2026 (Private Aviation Terminal, Tarmac)
+## Where We Are Right Now (High-Level Snapshot)
+- **Location / Setting:** Tarmac, Private Aviation Terminal. Gulfstream G650 airstairs deployed.
+- **Time in Story:** Monday morning, 2 November 2026.
+- **Overall Mood/Atmosphere:** Decompression, intimate, highly charged. The corporate battle is over.
+`;
+  const beat = parseLiveBeat(md);
+  assert.ok(beat.liveCues.some((c) => /intimate|decompression|charged/i.test(c)), `live should keep mood cues, got ${beat.liveCues.join(",")}`);
+  assert.equal(
+    beat.supersededCues.some((c) => /intimate|decompression/i.test(c)),
+    false,
+    `unmarked mood must not become superseded, got ${beat.supersededCues.join(",")}`
+  );
+  console.log("ok unmarked mood stays live (not superseded)");
+}
+
 console.log("recency tests passed");

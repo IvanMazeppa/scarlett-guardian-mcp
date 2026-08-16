@@ -203,33 +203,28 @@ function testLoadActiveFromSibling() {
     console.log("skip loadActive (arc plan file not on disk)");
     return;
   }
-  // Hermetic fix 2026-08-14: the arc lifecycle moved past arc-09 (Status: complete) and
-  // may sit between active plans. Assert the loader CONTRACT, not frozen canon:
-  // an arc-* plan is found, and a non-active result is only legal when no plan on disk
-  // is active (documented first-arc-file fallback).
-  assert.ok(loaded, "should find an arc plan beside guardian via rag-memory-mcp path");
-  assert.match(path.basename(loaded!.sourcePath), /^arc-/i);
-  // Line-anchored: the Status META line only — arc plans mention statuses in
-  // lifecycle prose too (e.g. arc-14: "set this file **Status:** `active`").
+  // Lifecycle: only Status: active plans are eligible. Completed/draft must not
+  // become hot-path momentum (that injected Nürburgring Beat 1 into Monday aviation).
   const statusMetaRe = /^\*\*Status:\*\*\s*`?(\w+)`?/im;
-  const loadedStatus = statusMetaRe.exec(loaded!.markdown)?.[1]?.toLowerCase();
-  if (loadedStatus !== "active") {
-    const dir = path.dirname(arcPlanPath);
-    const anyActiveOnDisk = fs
-      .readdirSync(dir)
-      .filter((f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md")
-      .some(
-        (f) =>
-          statusMetaRe
-            .exec(fs.readFileSync(path.join(dir, f), "utf8"))?.[1]
-            ?.toLowerCase() === "active"
-      );
-    assert.equal(
-      anyActiveOnDisk,
-      false,
-      "loader returned a non-active plan while an active plan exists on disk"
+  const dir = path.dirname(arcPlanPath);
+  const anyActiveOnDisk = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".md") && f.toLowerCase() !== "readme.md")
+    .some(
+      (f) =>
+        statusMetaRe
+          .exec(fs.readFileSync(path.join(dir, f), "utf8"))?.[1]
+          ?.toLowerCase() === "active"
     );
+  if (!anyActiveOnDisk) {
+    assert.equal(loaded, null, "with no active plan, loader must return null (no completed fallback)");
+    console.log("ok loadActiveArcPlan null when no active plan on disk");
+    return;
   }
+  assert.ok(loaded, "should find the active arc plan beside guardian via rag-memory-mcp path");
+  assert.match(path.basename(loaded!.sourcePath), /^arc-/i);
+  const loadedStatus = statusMetaRe.exec(loaded!.markdown)?.[1]?.toLowerCase();
+  assert.equal(loadedStatus, "active", `expected active plan, got status=${loadedStatus}`);
   console.log("ok loadActiveArcPlan", path.basename(loaded!.sourcePath), `status=${loadedStatus}`);
 }
 
@@ -440,6 +435,31 @@ function testNormalizePassRejectsOutcomeMomentum() {
   console.log("ok normalize rejects outcome momentum");
 }
 
+function testUnmatchedPlanStaysDormant() {
+  const plan = parseArcPlan(samplePlan);
+  const liveBeat: LiveBeat = {
+    lastUpdated: "Monday morning aviation terminal",
+    locationLine: "Private Aviation Terminal tarmac, Gulfstream airstairs deployed",
+    timeLine: "Monday morning",
+    liveCues: ["tarmac", "aviation", "gulfstream", "airstairs"],
+    supersededCues: [],
+    antiResetNotes: []
+  };
+  const beats = diffBeatsAgainstLive(plan, liveBeat);
+  assert.equal(
+    beats.every((b) => b.status === "dormant"),
+    true,
+    `expected all dormant, got ${beats.map((b) => b.status).join(",")}`
+  );
+  const snap = buildDramaturgSnapshot(samplePlan, liveBeat);
+  assert.ok(!/Beat 1 of 4.*is live/i.test(snap.momentumLine), snap.momentumLine);
+  assert.ok(
+    snap.planWarnings.some((w) => /no plan beat matches/i.test(w)),
+    snap.planWarnings.join("; ")
+  );
+  console.log("ok unmatched plan stays dormant");
+}
+
 testParseArcPlan();
 testDiffOnTrackIsBeat2();
 testDiffDebriefIsBeat3();
@@ -448,4 +468,5 @@ testLoadActiveFromSibling();
 testShouldRefreshTriggers();
 testHotPathPrefersLlmCache();
 testNormalizePassRejectsOutcomeMomentum();
+testUnmatchedPlanStaysDormant();
 console.log("All WP-5.2/5.3 dramaturg tests passed.");

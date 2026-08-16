@@ -151,16 +151,20 @@ export function extractCues(text: string, max = 24): string[] {
 }
 
 function splitEarlierNow(moodLine: string): { earlier: string; now: string } {
-  // Prefer **Now:** / Now: marker
+  // Prefer **Now:** / Now: marker — only then is the pre-Now text "earlier".
   const nowMatch = moodLine.match(/\*{0,2}Now:\*{0,2}\s*(.+)$/i);
-  const now = nowMatch?.[1]?.trim() ?? "";
-  let earlier = moodLine;
   if (nowMatch) {
-    earlier = moodLine.slice(0, nowMatch.index).trim();
+    let earlier = moodLine.slice(0, nowMatch.index).trim();
+    earlier = earlier.replace(/\*{0,2}Earlier day:\*{0,2}\s*/i, "");
+    return { earlier, now: nowMatch[1].trim() };
   }
-  // Strip "Earlier day:" prefix noise for cue extraction
-  earlier = earlier.replace(/\*{0,2}Earlier day:\*{0,2}\s*/i, "");
-  return { earlier, now };
+  // Unmarked mood is CURRENT atmosphere, not superseded history.
+  // (Bug: treating the whole line as "earlier" made "intimate" look past on tarmac LIVE BEATs.)
+  const earlierOnly = moodLine.match(/^\s*\*{0,2}Earlier day:\*{0,2}\s*(.+)$/i);
+  if (earlierOnly) {
+    return { earlier: earlierOnly[1].trim(), now: "" };
+  }
+  return { earlier: "", now: moodLine.trim() };
 }
 
 /**
