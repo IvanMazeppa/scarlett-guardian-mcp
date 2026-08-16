@@ -2,6 +2,7 @@ import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
+import fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { getConfig } from "./config.js";
@@ -187,17 +188,38 @@ app.get("/health", (_req, res) => {
 });
 
 // Mission Control dashboard — authenticated routes only (no world-readable static leak).
+// React SPA build lives in public/dashboard-app (vite base=/dashboard/).
 const publicDir = path.join(process.cwd(), "public");
+const dashboardDist = path.join(publicDir, "dashboard-app");
+const dashboardIndex = path.join(dashboardDist, "index.html");
+const legacyDashboardHtml = path.join(publicDir, "dashboard.html");
+const legacyDashboardJs = path.join(publicDir, "dashboard.js");
 
-app.get("/dashboard", (req, res) => {
+app.get(["/dashboard", "/dashboard/"], (req, res) => {
   if (!requireGuardianAuth(req, res)) return;
-  res.sendFile(path.join(publicDir, "dashboard.html"));
+  const indexPath = fsSync.existsSync(dashboardIndex) ? dashboardIndex : legacyDashboardHtml;
+  res.sendFile(indexPath);
 });
 
+// Auth-gate hashed Vite assets under /dashboard/assets/*
+app.use("/dashboard", (req, res, next) => {
+  if (!requireGuardianAuth(req, res)) return;
+  express.static(dashboardDist, {
+    index: false,
+    fallthrough: true,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", "no-store");
+      }
+    }
+  })(req, res, next);
+});
+
+// Legacy vanilla bundle (fallback if React build missing).
 app.get("/dashboard.js", (req, res) => {
   if (!requireGuardianAuth(req, res)) return;
   res.type("application/javascript");
-  res.sendFile(path.join(publicDir, "dashboard.js"));
+  res.sendFile(legacyDashboardJs);
 });
 
 app.get("/telemetry/api/health", (req, res) => {

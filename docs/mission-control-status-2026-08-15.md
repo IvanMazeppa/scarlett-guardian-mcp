@@ -57,7 +57,7 @@ Hard constraint (from June incident + Hobbyist design): edge Basic Auth on `/das
 | Eval isolation (hermetic runs ignore live overrides) | Done |
 | Unit tests | Done — `tests/mission-control.test.ts`; `npm test` + `eval:fast` green at ship |
 
-### 2.4 Narrative telemetry + charts
+### 2.4 Narrative telemetry + charts + React UI
 
 | Item | Status |
 |------|--------|
@@ -67,8 +67,9 @@ Hard constraint (from June incident + Hobbyist design): edge Basic Auth on `/das
 | Location streak sidecar + stagnation hard-flag (15 / 25 in slow-burn) | Done |
 | `tools_invoked` + RAG tool pie data | Done |
 | `GET /telemetry/api/narrative` | Done |
-| Chart.js canvases (ratio, pacing, tools, corrections) | Done |
-| Static-file auth leak fixed (`/dashboard` + `/dashboard.js` only via auth) | Done |
+| Dashboard UI | Done — React SPA in `dashboard-ui/` → `public/dashboard-app` (steering, save-lag, parroting, tools, triggers, latency, narrative charts) |
+| Chart.js canvases (ratio, pacing, tools, corrections) | Done (React) |
+| Static-file auth leak fixed (`/dashboard` + assets only via auth) | Done |
 
 ### 2.5 Story time vs wall-clock (critical clarification)
 
@@ -222,7 +223,7 @@ cd scarlett-guardian-mcp && npm run tunnel
 
 | Area | Path |
 |------|------|
-| Dashboard UI | `public/dashboard.html`, `public/dashboard.js` |
+| Dashboard UI | `dashboard-ui/` (source), `public/dashboard-app/` (build), legacy `public/dashboard.html` + `dashboard.js` fallback |
 | HTTP + control + telemetry routes | `src/guardian/server.ts` |
 | Modes / state | `src/guardian/mission-control.ts` |
 | Lore packs | `src/guardian/lore-packs.ts` |

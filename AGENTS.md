@@ -47,6 +47,8 @@ npm run telemetry:backfill -- --force   # once: index docs/guardian-reports into
 npm run tunnel                          # Hobbyist static domain + path-scoped Basic Auth
 ```
 
+Dashboard UI is a Vite + React app in `dashboard-ui/` (tactical Mission Control). Build with `npm run dashboard:build` (also part of `npm run build`); output is served from `public/dashboard-app` at `/dashboard`.
+
 APIs: `GET /telemetry/api/health`, `/telemetry/api/summary?days=7`, `/telemetry/api/recent?limit=20`, `/telemetry/api/narrative?days=7`.  
 Control: `GET|POST /control/state`, `GET /control/lore-packs`.  
 Remote setup: `docs/mission-control-ngrok.md`.

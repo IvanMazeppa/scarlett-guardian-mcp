@@ -4,6 +4,8 @@ Guardian is the **only** public endpoint. RAG stays on `127.0.0.1:8787`.
 
 **Hard rule:** edge Basic Auth applies only to `/dashboard`, `/telemetry`, and `/control`. Never challenge `/mcp`, `/preflight`, `/duplex-cache`, or `/health` — Grok will misread HTML auth as “OAuth Credentials Required” (see `docs/ngrok-oauth-disaster-report.md`).
 
+The React Mission Control SPA is served at `/dashboard` with hashed assets under `/dashboard/assets/*`. The Traffic Policy `startsWith('/dashboard')` expression covers both.
+
 Hobbyist benefits used here:
 
 - Persistent ngrok-branded domain (`*.ngrok.app`)

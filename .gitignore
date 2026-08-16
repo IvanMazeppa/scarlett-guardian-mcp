@@ -11,3 +11,4 @@ evals/runs/
 .guardian/location-progress-state.json
 .guardian/dramaturg-context.json
 ngrok/traffic-policy.local.yml
+public/dashboard-app/**/*.map
