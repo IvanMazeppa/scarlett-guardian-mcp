@@ -37,6 +37,12 @@ npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --catego
 - **RAG owns:** indexer/reindexer, source-priority, manifest, vector store IDs, staging tools.
 - **Human-gated:** `project_source_files/*` canon unless a WP says heading-only.
 
+### Live instructions + canon path (operator)
+
+- **Active instruction set (RAG repo):** Skill `v2.7`, Agent `v6.4`, Project `v6.6` under `../rag-memory-mcp/docs/instructions/` (anti-parrot + LIVE BEAT refresh). Older versions remain on disk.
+- **Live canon disk:** `../rag-memory-mcp/project_source_files/` (esp. `current-state.md`) — not a parent-tree duplicate.
+- **Save-lag remediation:** if LIVE BEAT lags play, prefer duplex/`recent_context` over inventing DO NOT PROCEED from a stale wardrobe card alone; see `docs/current-state-writeback-deadlock-2026-08-16.md`.
+
 ### Telemetry & Mission Control
 
 Live preflights append one NDJSON line under `.guardian/telemetry/events-YYYY-MM-DD.ndjson` (gitignored). Failure to write **must never** fail preflight. Hermetic `eval:fast` disables emit / isolates Mission Control sidecars.
