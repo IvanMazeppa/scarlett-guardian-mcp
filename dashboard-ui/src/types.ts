@@ -1,6 +1,9 @@
 export type SceneModeId =
   | "default"
   | "explicit_slow_burn"
+  | "explicit_domination"
+  | "explicit_vulnerability"
+  | "explicit_feral"
   | "tactical"
   | "banter";
 

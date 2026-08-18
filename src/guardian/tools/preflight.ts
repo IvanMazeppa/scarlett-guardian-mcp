@@ -7,6 +7,7 @@ import {
   type GuardianLlmAssessmentWithNpcState
 } from "../llm-assessment.js";
 import {
+  allowSaveLagRemediationWrite,
   applyNpcStateChangesToRegistryMarkdown,
   decideNpcStateWrite,
   decideMemoryWrite,
@@ -110,6 +111,9 @@ import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 import { planMemoryQueries, warmRecentMemoryQuery } from "../query-planner.js";
 import { resolveWardrobe } from "../wardrobe.js";
+import { resolveCurrentStatePath } from "../live-beat-snapshot.js";
+import { resolveSceneSummaryMaxChars } from "../report/compile-grok-brief.js";
+import fs from "node:fs";
 import {
   resolveMissionControlForPreflight,
   type MissionControlState
@@ -744,13 +748,44 @@ async function runGuardianPreflightInner(
     if (writeDecision.action === "none") {
       memoryWrite = { action: "none", reason: writeDecision.reason };
       console.log(`${Date.now()} Memory write-back skipped: ${writeDecision.reason}`);
-    } else if (sceneConfidence.holdCanonWrites) {
+    } else if (
+      !allowSaveLagRemediationWrite({
+        holdCanonWrites: sceneConfidence.holdCanonWrites,
+        saveLagSuspected: saveLag.suspected,
+        writeAction: writeDecision.action
+      })
+    ) {
       memoryWrite = {
         action: "held_for_review",
         reason: `provisional scene confidence — canon write held (${sceneConfidence.reason}); decision was ${writeDecision.action}`
       };
       console.log(`${Date.now()} Memory write-back held (provisional): ${memoryWrite.reason}`);
     } else if (writeDecision.action === "stage") {
+      if (sceneConfidence.holdCanonWrites && saveLag.suspected) {
+        console.log(
+          `${Date.now()} Memory write-back SAVE-LAG remediation: allowing ${writeDecision.action} despite provisional hold`
+        );
+      }
+      // #region agent log
+      fetch("http://127.0.0.1:7690/ingest/ceeead05-0dc7-4d0c-853f-3a13f1e1683a", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "d7bf1a" },
+        body: JSON.stringify({
+          sessionId: "d7bf1a",
+          runId: "writeback-fix",
+          hypothesisId: "H-deadlock",
+          location: "preflight.ts:memoryWriteBranch",
+          message: "applying stage write",
+          data: {
+            action: writeDecision.action,
+            saveLag: saveLag.suspected,
+            holdCanonWrites: sceneConfidence.holdCanonWrites,
+            autoApprove: config.GUARDIAN_AUTO_APPROVE ?? "beats"
+          },
+          timestamp: Date.now()
+        })
+      }).catch(() => {});
+      // #endregion
       memoryWrite = await applyBeatStageWrite({
         writeDecision,
         candidateRaw: candidateForWrite,
@@ -762,6 +797,32 @@ async function runGuardianPreflightInner(
         autoApprove: config.GUARDIAN_AUTO_APPROVE ?? "beats"
       });
     } else if (writeDecision.action === "stage_transition") {
+      if (sceneConfidence.holdCanonWrites && saveLag.suspected) {
+        console.log(
+          `${Date.now()} Memory write-back SAVE-LAG remediation: allowing stage_transition despite provisional hold (autoApprove=${config.GUARDIAN_AUTO_APPROVE ?? "beats"})`
+        );
+      }
+      // #region agent log
+      fetch("http://127.0.0.1:7690/ingest/ceeead05-0dc7-4d0c-853f-3a13f1e1683a", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "d7bf1a" },
+        body: JSON.stringify({
+          sessionId: "d7bf1a",
+          runId: "writeback-fix",
+          hypothesisId: "H-deadlock",
+          location: "preflight.ts:memoryWriteBranch",
+          message: "applying stage_transition write",
+          data: {
+            action: writeDecision.action,
+            saveLag: saveLag.suspected,
+            holdCanonWrites: sceneConfidence.holdCanonWrites,
+            autoApprove: config.GUARDIAN_AUTO_APPROVE ?? "beats",
+            transitionKind: writeDecision.transition?.kind ?? null
+          },
+          timestamp: Date.now()
+        })
+      }).catch(() => {});
+      // #endregion
       const liveStateText =
         liveState.ok && typeof liveState.response === "string" ? liveState.response : "";
       memoryWrite = await applySceneTransitionWrite({
@@ -775,6 +836,11 @@ async function runGuardianPreflightInner(
         config
       });
     } else if (writeDecision.action === "live_append") {
+      if (sceneConfidence.holdCanonWrites && saveLag.suspected) {
+        console.log(
+          `${Date.now()} Memory write-back SAVE-LAG remediation: allowing live_append despite provisional hold`
+        );
+      }
       const liveResult = await callJson(toolCalls, ragClient, "update_story_state", {
         source_file: "project_source_files/current-state.md",
         content: writeDecision.content,
@@ -794,6 +860,27 @@ async function runGuardianPreflightInner(
         reason: `unhandled write decision: ${(writeDecision as { action: string }).action}`
       };
     }
+
+    // #region agent log
+    fetch("http://127.0.0.1:7690/ingest/ceeead05-0dc7-4d0c-853f-3a13f1e1683a", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "d7bf1a" },
+      body: JSON.stringify({
+        sessionId: "d7bf1a",
+        runId: "writeback-fix",
+        hypothesisId: "H-deadlock",
+        location: "preflight.ts:memoryWriteResult",
+        message: "final memory_write",
+        data: {
+          action: memoryWrite.action,
+          reason: (memoryWrite.reason || "").slice(0, 200),
+          stagedId: memoryWrite.staged_update_id ?? null,
+          saveLag: saveLag.suspected
+        },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion
   } catch (err) {
     memoryWrite = {
       action: "failed",
@@ -942,6 +1029,16 @@ async function runGuardianPreflightInner(
     );
   }
 
+  // Fable-5 Phase 3.1: full current-state.md on re-grounding turns only.
+  const liveStateFull = shouldInjectFullLiveState({
+    duplexSource,
+    recentContext: input.recent_context,
+    sceneTransition: llmAssessment.scene_transition ?? null,
+    memoryWriteAction: memoryWrite.action
+  })
+    ? loadCurrentStateMarkdown()
+    : null;
+
   const report: GuardianReport = {
     retrieval_status: retrievalStatus,
     confidence_score: confidenceScore,
@@ -960,6 +1057,7 @@ async function runGuardianPreflightInner(
     serendipity_nudge: serendipityNudge,
     memory_write: memoryWrite,
     scene_transition: llmAssessment.scene_transition ?? null,
+    live_state_full: liveStateFull,
     // Couple-only private: omit schedule pressure from report so brief stays quiet
     story_momentum: sceneRoster.coupleOnlyPresent
       ? undefined
@@ -2074,6 +2172,7 @@ export function summarizeCurrentState(
   liveBeat?: LiveBeat,
   saveLagSuspected?: boolean
 ): string {
+  const maxChars = resolveSceneSummaryMaxChars();
   // When disk LIVE BEAT lags play, prefer the operator/bridge recent_context over a
   // scene_state_delta that merely restates the stale LIVE BEAT (aviation save-lag).
   const recent = input?.recent_context?.trim();
@@ -2083,20 +2182,20 @@ export function summarizeCurrentState(
     !isPlaceholderContext(recent) &&
     !isRagMetaText(recent)
   ) {
-    return truncateAtSentence(compactWhitespace(recent), 900);
+    return truncateAtSentence(compactWhitespace(recent), maxChars);
   }
 
   if (llmAssessment?.enabled && !llmAssessment.error) {
     if (llmAssessment.scene_state_delta && !isRagMetaText(llmAssessment.scene_state_delta)) {
       return truncateAtSentence(
         stripRagMeta(llmAssessment.scene_state_delta) || llmAssessment.scene_state_delta,
-        900
+        maxChars
       );
     }
     if (llmAssessment.continuity_facts_for_grok && !isRagMetaText(llmAssessment.continuity_facts_for_grok)) {
       return truncateAtSentence(
         stripRagMeta(llmAssessment.continuity_facts_for_grok) || llmAssessment.continuity_facts_for_grok,
-        900
+        maxChars
       );
     }
   }
@@ -2104,12 +2203,12 @@ export function summarizeCurrentState(
   // Prefer structured live beat location/time when available (WP-2.2).
   if (liveBeat?.locationLine && liveBeat.locationLine.length > 20) {
     const stamp = [liveBeat.timeLine, liveBeat.locationLine].filter(Boolean).join(" — ");
-    if (stamp.length > 40) return truncateAtSentence(compactWhitespace(stamp), 900);
+    if (stamp.length > 40) return truncateAtSentence(compactWhitespace(stamp), maxChars);
   }
 
   // Real session recap only — ignore placeholders like "None yet, establishing scene".
   if (recent && !isPlaceholderContext(recent) && !isRagMetaText(recent)) {
-    return truncateAtSentence(compactWhitespace(recent), 900);
+    return truncateAtSentence(compactWhitespace(recent), maxChars);
   }
 
   // Fresh thread / missing recap: Benjamin's turn often *is* the scene beat when it matches live cues
@@ -2126,29 +2225,67 @@ export function summarizeCurrentState(
           user
         ))
   ) {
-    return firstSentences(user, 4, 900);
+    return firstSentences(user, 4, maxChars);
   }
 
   const results = collectAllResults(preflight, memories);
   const preferred = pickPreferredSceneResults(results, "scene", liveBeat);
 
   for (const result of preferred) {
-    const cleaned = cleanResultText(result.text, 900);
+    const cleaned = cleanResultText(result.text, maxChars);
     if (cleaned && cleaned.length > 40) {
       return cleaned;
     }
   }
 
   if (user && user.length > 40) {
-    return firstSentences(user, 3, 700);
+    return firstSentences(user, 3, Math.min(700, maxChars));
   }
 
   if (preflight?.summary) {
     const cleaned = stripRagMeta(preflight.summary);
-    if (cleaned && cleaned.length > 40) return truncateAtSentence(cleaned, 700);
+    if (cleaned && cleaned.length > 40) return truncateAtSentence(cleaned, Math.min(700, maxChars));
   }
 
   return "Live-scene context was retrieved; ground response in key facts and precedents.";
+}
+
+/** Fable-5 Phase 3.1: full notebook on session start / transition / write-back. */
+export function shouldInjectFullLiveState(input: {
+  duplexSource: DuplexSource;
+  recentContext?: string;
+  sceneTransition: { occurred?: boolean; kind?: string | null } | null | undefined;
+  memoryWriteAction: string;
+}): boolean {
+  // True session start: no prior Scarlett turn AND no played recap yet.
+  // Duplex-absent mid-session (bridge miss) must NOT dump full state every turn.
+  const recent = input.recentContext?.trim() ?? "";
+  const coldStart =
+    input.duplexSource === "absent" &&
+    (!recent || isPlaceholderContext(recent));
+  if (coldStart) return true;
+
+  // Only after a successful write-back / staged transition — not held/failed.
+  // Save-lag often sets scene_transition.occurred while disk is still stale;
+  // injecting verbatim current-state.md then amplifies the lag (spec warning).
+  const writeLanded =
+    input.memoryWriteAction === "staged" ||
+    input.memoryWriteAction === "stage_transition" ||
+    input.memoryWriteAction === "live_append";
+  if (writeLanded) return true;
+
+  return false;
+}
+
+export function loadCurrentStateMarkdown(cwd: string = process.cwd()): string | null {
+  const p = resolveCurrentStatePath(cwd);
+  if (!p) return null;
+  try {
+    const text = fs.readFileSync(p, "utf8").trim();
+    return text || null;
+  } catch {
+    return null;
+  }
 }
 
 function pickPreferredSceneResults(

@@ -173,6 +173,11 @@ export type GuardianReport = {
   grok_key_facts?: string[];
   grok_precedents?: CriticalPrecedent[];
   grok_emotional_context?: string;
+  /**
+   * Fable-5 Phase 3.1: verbatim current-state.md on full-fidelity turns
+   * (session start / scene_transition / time_jump / memory write-back).
+   */
+  live_state_full?: string | null;
   /** P1 write-back decision surface (also mirrored under llm_assessment.memory_write). */
   memory_write?: {
     action:

@@ -211,7 +211,7 @@ function skeletonExpectations(report: PreflightReportLike): GoldenCase["expectat
     precedents_must_not_match: [],
     correction_expected,
     write_action_expected,
-    brief_chars: { min: 500, max: 8000 }
+    brief_chars: { min: 500, max: 10000 }
   };
 }
 

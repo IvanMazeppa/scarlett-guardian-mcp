@@ -24,6 +24,9 @@ export type WardrobeRegister =
 
 export type KitId = "panther" | "suite-drawer" | "london";
 
+/** Dressed dimension — orthogonal to register/kit. */
+export type BodyState = "dressed" | "partial" | "undressed";
+
 export type NamedLook = {
   id: string;
   name: string;
@@ -42,6 +45,10 @@ export type LiveOutfitCard = {
   register: WardrobeRegister | undefined;
   kit: KitId | undefined;
   kitNotes: string;
+  /** dressed | partial | undressed — defaults to dressed when absent. */
+  bodyState: BodyState;
+  /** Free-text body-state line (skin, towel, shirt-off, etc.). */
+  bodyStateDetail: string;
   hardware: string[];
   nextLegalChange: string;
   raw: string;
@@ -188,6 +195,18 @@ const VENUE_CLASS_CHANGE =
 const USER_LOCKED_OUTFIT =
   /\b(wear(?:ing|s)?|put(?:s|ting)?\s+on|change(?:s|d)?\s+into|dressed\s+in)\b.{0,80}\b(cashmere|jeans|blazer|camisole|trousers|pencil\s+skirt|emerald|latex|catsuit|nomex|robe|yoga|trainers|peep-?toes?)\b/i;
 
+/** Full undress — overrides LIVE dressed state for this turn. */
+const UNDRESS_BEAT =
+  /\b(undress(?:ed|ing)?|naked|nude|strip(?:ped|ping)?(?:\s+(?:off|down|bare))?|take(?:s|n|ing)?\s+off\s+(?:all\s+)?(?:her\s+|his\s+|the\s+)?clothes|completely\s+(?:naked|nude|bare)|nothing\s+on|skin[- ]to[- ]skin|bare\s+(?:skin|body|against)|fully\s+(?:naked|nude))\b/i;
+
+/** Partial undress — shirt off, robe open, etc. */
+const PARTIAL_UNDRESS_BEAT =
+  /\b(shirt\s+off|bra\s+off|topless|half[- ]dressed|unbuttoned|robe\s+(?:open|slipping|falling)|camisole\s+off|trousers?\s+(?:around|pooled|off)|jeans\s+(?:around|pooled|off)|towel\s+only|wearing\s+only\s+a\s+towel)\b/i;
+
+/** Redress — restores dressed when play re-clothes her. */
+const REDRESS_BEAT =
+  /\b(get(?:ting)?\s+dressed|put(?:ting)?\s+(?:her\s+|the\s+)?(?:clothes|outfit|armour)\s+on|dress(?:ed|ing)\s+(?:herself|again)|fully\s+dressed|back\s+(?:into|in)\s+(?:clothes|the\s+armour|trousers))\b/i;
+
 function splitH2(markdown: string): Map<string, string> {
   const map = new Map<string, string>();
   const text = markdown.replace(/\r\n/g, "\n");
@@ -222,6 +241,7 @@ export function parseLiveOutfitMarkdown(markdown: string): LiveOutfitCard {
   const wearingBody = findSection(sections, "Wearing");
   const hairBody = findSection(sections, "Hair");
   const registerBody = findSection(sections, "Register");
+  const bodyStateBody = findSection(sections, "Body state", "Body State");
   const hardwareBody = findSection(sections, "Body hardware", "hardware");
   const nextBody = findSection(sections, "Next legal");
 
@@ -247,6 +267,21 @@ export function parseLiveOutfitMarkdown(markdown: string): LiveOutfitCard {
     kit = kitMatch[1] as KitId;
   }
 
+  let bodyState: BodyState = "dressed";
+  let bodyStateDetail = "";
+  const stateMatch = bodyStateBody.match(/\*\*State:\*\*\s*`([^`]+)`/i);
+  const detailMatch = bodyStateBody.match(/\*\*Detail:\*\*\s*(.+)/i);
+  if (stateMatch) {
+    const s = stateMatch[1].trim().toLowerCase();
+    if (s === "dressed" || s === "partial" || s === "undressed") bodyState = s;
+  }
+  if (detailMatch) {
+    bodyStateDetail = detailMatch[1].trim();
+  } else {
+    const detailBullet = bullets(bodyStateBody).find((l) => !/\*\*State:\*\*/i.test(l));
+    if (detailBullet) bodyStateDetail = detailBullet.replace(/^\*\*Detail:\*\*\s*/i, "").trim();
+  }
+
   return {
     wearing: bullets(wearingBody),
     hair,
@@ -255,6 +290,8 @@ export function parseLiveOutfitMarkdown(markdown: string): LiveOutfitCard {
     register,
     kit,
     kitNotes,
+    bodyState,
+    bodyStateDetail,
     hardware: bullets(hardwareBody),
     nextLegalChange: bullets(nextBody).join(" ") || nextBody.trim(),
     raw: markdown
@@ -302,6 +339,64 @@ export function userSpecifiedOutfit(text: string): boolean {
   return USER_LOCKED_OUTFIT.test(text.replace(/\s+/g, " "));
 }
 
+export type BodyStateOverride = {
+  bodyState: BodyState;
+  detail: string;
+  /** True when turn prose overrode the card's dressed state. */
+  overridden: boolean;
+};
+
+/**
+ * Detect undress / partial / redress beats from duplex + user turns.
+ * Undress beats override a dressed LIVE card for the current turn.
+ */
+export function detectBodyStateOverride(
+  texts: Array<string | undefined>,
+  cardState: BodyState = "dressed",
+  cardDetail = ""
+): BodyStateOverride {
+  const blob = texts.filter(Boolean).join("\n").replace(/\s+/g, " ");
+  if (!blob.trim()) {
+    return { bodyState: cardState, detail: cardDetail, overridden: false };
+  }
+  // Redress wins when both appear (e.g. shower then get dressed).
+  if (REDRESS_BEAT.test(blob) && !UNDRESS_BEAT.test(blob.slice(-200))) {
+    return {
+      bodyState: "dressed",
+      detail: cardDetail || "Fully dressed again.",
+      overridden: cardState !== "dressed"
+    };
+  }
+  if (UNDRESS_BEAT.test(blob)) {
+    return {
+      bodyState: "undressed",
+      detail: extractBodyStateDetail(blob, "undressed") || "Undressed — no garments on.",
+      overridden: cardState !== "undressed"
+    };
+  }
+  if (PARTIAL_UNDRESS_BEAT.test(blob)) {
+    return {
+      bodyState: "partial",
+      detail: extractBodyStateDetail(blob, "partial") || "Partially undressed.",
+      overridden: cardState !== "partial"
+    };
+  }
+  return { bodyState: cardState, detail: cardDetail, overridden: false };
+}
+
+function extractBodyStateDetail(blob: string, kind: BodyState): string {
+  const sentences = blob.split(/(?<=[.!?])\s+/);
+  const hit = sentences.find((s) =>
+    kind === "undressed"
+      ? UNDRESS_BEAT.test(s)
+      : kind === "partial"
+        ? PARTIAL_UNDRESS_BEAT.test(s)
+        : REDRESS_BEAT.test(s)
+  );
+  if (!hit) return "";
+  return hit.trim().slice(0, 160);
+}
+
 export function inferTargetRegister(
   text: string,
   live: LiveOutfitCard | undefined,
@@ -347,7 +442,20 @@ export function defaultExcludes(live: LiveOutfitCard | undefined, kit: KitId | u
 
 function liveLines(live: LiveOutfitCard): string[] {
   const lines: string[] = [];
-  if (live.wearing.length) lines.push(`LIVE wearing: ${live.wearing.join("; ")}`);
+  // Authoritative body-state line — one home for dressed/undressed continuity.
+  if (live.bodyState === "undressed") {
+    lines.push(`Body state: undressed — ${live.bodyStateDetail || "No garments on."}`);
+  } else if (live.bodyState === "partial") {
+    lines.push(`Body state: partial — ${live.bodyStateDetail || "Partially undressed."}`);
+  } else {
+    const outfit = live.wearing.length ? live.wearing.join("; ") : "LIVE outfit on card";
+    lines.push(`Body state: dressed — ${live.bodyStateDetail || outfit}`);
+  }
+  if (live.bodyState !== "undressed" && live.wearing.length) {
+    lines.push(`LIVE wearing: ${live.wearing.join("; ")}`);
+  } else if (live.bodyState === "undressed" && live.wearing.length) {
+    lines.push(`LIVE outfit card (not currently worn): ${live.wearing.join("; ")}`);
+  }
   const hairMakeup = [...live.hair, ...live.makeup, ...live.nails];
   if (hairMakeup.length) lines.push(`Hair/makeup: ${hairMakeup.join("; ")}`);
   if (live.register || live.kit) {
@@ -421,6 +529,8 @@ export function cardFromLook(look: NamedLook, previous: LiveOutfitCard | undefin
     register: look.register,
     kit: previous?.kit,
     kitNotes: previous?.kitNotes ?? "",
+    bodyState: "dressed",
+    bodyStateDetail: look.summary,
     hardware: previous?.hardware ?? [],
     nextLegalChange: "",
     raw: ""
@@ -435,6 +545,8 @@ export function renderLiveOutfitMarkdown(card: LiveOutfitCard): string {
   const hardware = card.hardware.map((l) => `- ${l}`).join("\n") || "- (see prior card)";
   const kit = card.kit ? `\`${card.kit}\`` : "unknown";
   const register = card.register ? `\`${card.register}\`` : "unknown";
+  const bodyState = card.bodyState ?? "dressed";
+  const bodyDetail = card.bodyStateDetail || (bodyState === "dressed" ? "Fully clothed." : "");
   return `# Live Outfit — Scarlett
 
 **Authority:** What she is wearing *right now*. Do not invent over this.
@@ -453,6 +565,11 @@ ${hairMakeup}
 
 - **Register:** ${register}
 - **Kit:** ${kit}${card.kitNotes ? ` ${card.kitNotes}` : ""}
+
+## Body state
+
+- **State:** \`${bodyState}\`
+- **Detail:** ${bodyDetail}
 
 ## Body hardware (always-on)
 
@@ -484,18 +601,29 @@ export function resolveWardrobe(
 ): WardrobeResolution {
   const cwd = options.cwd ?? process.cwd();
   const liveMd = options.liveMarkdown ?? loadLiveOutfitMarkdown(cwd);
-  const live = liveMd.trim() ? parseLiveOutfitMarkdown(liveMd) : undefined;
+  const parsed = liveMd.trim() ? parseLiveOutfitMarkdown(liveMd) : undefined;
 
-  const corpus = [input.user_message, input.recent_context, input.scarlett_previous_message]
-    .filter(Boolean)
-    .join("\n");
   const userAndContext = `${input.user_message ?? ""}\n${input.recent_context ?? ""}`;
   const changeBeat = isWardrobeChangeBeat(userAndContext);
   const locked = userSpecifiedOutfit(input.user_message ?? "");
-  const kit = live?.kit;
-  const targetRegister = changeBeat ? inferTargetRegister(userAndContext, live, liveBeat) : live?.register;
+  const kit = parsed?.kit;
+  const targetRegister = changeBeat ? inferTargetRegister(userAndContext, parsed, liveBeat) : parsed?.register;
   const optionsLooks = changeBeat ? looksFor(targetRegister, kit) : [];
-  const excludes = defaultExcludes(live, kit);
+  const excludes = defaultExcludes(parsed, kit);
+
+  // Undress beats from duplex + user can override dressed card for this turn.
+  const bodyOverride = detectBodyStateOverride(
+    [input.scarlett_previous_message, input.user_message],
+    parsed?.bodyState ?? "dressed",
+    parsed?.bodyStateDetail ?? ""
+  );
+  const live: LiveOutfitCard | undefined = parsed
+    ? {
+        ...parsed,
+        bodyState: bodyOverride.bodyState,
+        bodyStateDetail: bodyOverride.detail || parsed.bodyStateDetail
+      }
+    : undefined;
 
   const base = {
     live,
@@ -514,10 +642,20 @@ export function resolveWardrobe(
     const look = CURATED_LOOKS.find((l) => l.id === wornId);
     if (look && live) {
       writebackCandidate = cardFromLook(look, live);
-      if (options.persistWriteback) {
-        persistLiveOutfitCard(writebackCandidate, cwd);
-      }
     }
+  }
+  // Persist body-state override even when no named look was detected.
+  if (bodyOverride.overridden && live) {
+    writebackCandidate = {
+      ...(writebackCandidate ?? live),
+      bodyState: bodyOverride.bodyState,
+      bodyStateDetail: bodyOverride.detail || live.bodyStateDetail,
+      // Keep garment list for redress; when undressed, garments stay as "last worn".
+      wearing: writebackCandidate?.wearing ?? live.wearing
+    };
+  }
+  if (writebackCandidate && options.persistWriteback) {
+    persistLiveOutfitCard(writebackCandidate, cwd);
   }
 
   return {

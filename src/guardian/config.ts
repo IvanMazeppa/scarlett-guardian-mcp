@@ -26,6 +26,10 @@ const EnvSchema = z.object({
   GUARDIAN_LLM_VERBOSITY: z.enum(["low", "medium", "high"]).default("medium"),
   // Auditor should see most retrieved evidence (~2 searches × results); 12k starved weave (Fable audit).
   GUARDIAN_LLM_MAX_EVIDENCE_CHARS: z.coerce.number().int().positive().default(32000),
+  /** Fable-5 Phase 3.1: Scene Summary / summarizeCurrentState soft cap (chars). */
+  GUARDIAN_SCENE_SUMMARY_MAX_CHARS: z.coerce.number().int().positive().default(1600),
+  /** Fable-5 Phase 3.1: compileGrokBrief soft cap (chars). */
+  GUARDIAN_BRIEF_MAX_CHARS: z.coerce.number().int().positive().default(9000),
   /** INTEL-3 explicit budgets (ms). */
   GUARDIAN_BUDGET_INITIAL_RETRIEVAL_MS: z.coerce.number().int().positive().default(14000),
   GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS: z.coerce.number().int().positive().default(5000),

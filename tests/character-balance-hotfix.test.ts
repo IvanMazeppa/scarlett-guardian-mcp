@@ -71,6 +71,7 @@ function testAuditorPromptNoHarshAndProtectsReceptivity() {
   assert.match(sys, /Absence of support is never risky/i);
   assert.match(sys, /Re-narrating the user's completed sequence/i);
   assert.match(sys, /Receiving, following, and yielding remain protected/i);
+  assert.match(sys, /Emotional echo is also mechanical parroting/i);
   // Schema field still required in JSON schema path — instruction still names it
   assert.match(sys, /scarlett_next_intention/i);
   console.log("ok auditor prompt character-balance hotfix");

@@ -15,8 +15,25 @@ import {
 import type { CriticalPrecedent, GuardianReport } from "./models.js";
 import { isRagMetaText, stripRagMeta, truncate, truncateAtSentence } from "./text-clean.js";
 
-/** Soft cap for the streamlined markdown Grok receives. Cost is fine to grow for quality. */
-export const GROK_BRIEF_MAX_CHARS = 6500;
+/** Soft cap default for the streamlined markdown Grok receives. Env: GUARDIAN_BRIEF_MAX_CHARS. */
+export const GROK_BRIEF_MAX_CHARS = 9000;
+
+/** Soft cap default for Scene Summary. Env: GUARDIAN_SCENE_SUMMARY_MAX_CHARS. */
+export const SCENE_SUMMARY_MAX_CHARS = 1600;
+
+export function resolveBriefMaxChars(): number {
+  const raw = process.env.GUARDIAN_BRIEF_MAX_CHARS;
+  if (raw == null || raw === "") return GROK_BRIEF_MAX_CHARS;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : GROK_BRIEF_MAX_CHARS;
+}
+
+export function resolveSceneSummaryMaxChars(): number {
+  const raw = process.env.GUARDIAN_SCENE_SUMMARY_MAX_CHARS;
+  if (raw == null || raw === "") return SCENE_SUMMARY_MAX_CHARS;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : SCENE_SUMMARY_MAX_CHARS;
+}
 
 /** WP-5.8 design budget for Scene Cast block. */
 export const SCENE_CAST_MAX_WORDS = 90;
@@ -24,7 +41,7 @@ export const SCENE_CAST_MAX_WORDS = 90;
 /**
  * Thread-10 solution (2026-07-23): do NOT re-emit the full Character Balance essay
  * in the brief (that + Agent + Project + Skill caused hollow passivity).
- * One-line pointer only — full essay lives in Skill v2.5.
+ * One-line pointer only — full essay lives in Skill v3.0.
  * scarlett_next_intention remains on the report for diagnostics only.
  */
 
@@ -202,8 +219,18 @@ export function compileGrokBrief(report: GuardianReport): string {
     essentialParts.push("");
   }
 
-  essentialParts.push(`**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), 900)}`);
+  essentialParts.push(
+    `**Scene Summary:** ${truncateAtSentence(pickSceneSummary(report), resolveSceneSummaryMaxChars())}`
+  );
   essentialParts.push("");
+
+  // Fable-5 Phase 3.1: full current-state.md on session start / transition / write-back turns.
+  const fullState = report.live_state_full?.trim();
+  if (fullState) {
+    essentialParts.push("**LIVE STATE (full):**");
+    essentialParts.push(fullState);
+    essentialParts.push("");
+  }
 
   const wardrobeBlock = report.wardrobe?.brief_markdown?.trim();
   if (wardrobeBlock) {
@@ -304,9 +331,10 @@ export function compileGrokBrief(report: GuardianReport): string {
 
   const essentialText = essentialParts.join("\n").trim();
   let optionalText = optionalParts.join("\n").trim();
+  const briefMax = resolveBriefMaxChars();
   
-  if (essentialText.length + optionalText.length + 2 > GROK_BRIEF_MAX_CHARS) {
-      const budgetForOptional = Math.max(0, GROK_BRIEF_MAX_CHARS - essentialText.length - 20);
+  if (essentialText.length + optionalText.length + 2 > briefMax) {
+      const budgetForOptional = Math.max(0, briefMax - essentialText.length - 20);
       if (budgetForOptional > 0) {
           optionalText = `${optionalText.slice(0, budgetForOptional).trim()}\n\n…(brief truncated)`;
       } else {

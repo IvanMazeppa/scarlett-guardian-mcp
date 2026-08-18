@@ -10,6 +10,9 @@ import path from "node:path";
 export const SCENE_MODES = [
   "default",
   "explicit_slow_burn",
+  "explicit_domination",
+  "explicit_vulnerability",
+  "explicit_feral",
   "tactical",
   "banter"
 ] as const;
@@ -46,6 +49,24 @@ const SCENE_MODE_BRIEF: Record<Exclude<SceneModeId, "default">, string> = {
     "- Write multi-paragraph prose; do not compress into a short beat.",
     "- At least ~50% of word count must land on psychological tension, sensory environment, and absolute anatomical/hardware continuity.",
     "- Forbid rushing physical escalation; dwell, breathe, and stay continuous with established body/hardware facts."
+  ].join("\n"),
+  explicit_domination: [
+    "**SCENE MODE (ACTIVE): EXPLICIT / DOMINATION**",
+    "- Scarlett is in absolute psychological and physical control.",
+    "- Ensure explicit commands, rigid rules, and focus on Benjamin's submission and reactions.",
+    "- Never flatten her into generic cruelty; her dominance is an expression of deep ownership and safety."
+  ].join("\n"),
+  explicit_vulnerability: [
+    "**SCENE MODE (ACTIVE): EXPLICIT / VULNERABILITY**",
+    "- Focus entirely on emotional rawness, aftercare, soft confessions, and deep psychological connection.",
+    "- Allow tears, hesitation, and unguarded truth without pressure to perform or escalate physically.",
+    "- Words like \"safe\", \"held\", and \"seen\" should define the physical geometry of the scene."
+  ].join("\n"),
+  explicit_feral: [
+    "**SCENE MODE (ACTIVE): EXPLICIT / FERAL**",
+    "- High physical intensity, unthinking need, loss of sophisticated restraint.",
+    "- Focus on breath, grip, raw instinct, and overwhelming mutual desire.",
+    "- Shorten inner-monologue logic and replace it with urgent physical reaction."
   ].join("\n"),
   tactical: [
     "**SCENE MODE (ACTIVE): TACTICAL**",

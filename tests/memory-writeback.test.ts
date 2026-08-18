@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  allowSaveLagRemediationWrite,
   applyNpcStateChangesToRegistryMarkdown,
   decideNpcStateWrite,
   decideMemoryWrite,
@@ -420,5 +421,41 @@ assert.deepEqual(
     "approve_staged_story_update"
   ]
 );
+
+// SAVE-LAG deadlock break: provisional hold must not block remediation writes
+assert.equal(
+  allowSaveLagRemediationWrite({
+    holdCanonWrites: true,
+    saveLagSuspected: true,
+    writeAction: "stage_transition"
+  }),
+  true
+);
+assert.equal(
+  allowSaveLagRemediationWrite({
+    holdCanonWrites: true,
+    saveLagSuspected: true,
+    writeAction: "stage"
+  }),
+  true
+);
+assert.equal(
+  allowSaveLagRemediationWrite({
+    holdCanonWrites: true,
+    saveLagSuspected: false,
+    writeAction: "stage_transition"
+  }),
+  false,
+  "non-lag provisional holds still block"
+);
+assert.equal(
+  allowSaveLagRemediationWrite({
+    holdCanonWrites: false,
+    saveLagSuspected: true,
+    writeAction: "stage_transition"
+  }),
+  true
+);
+console.log("ok save-lag remediation write gate");
 
 console.log("memory-writeback tests passed");

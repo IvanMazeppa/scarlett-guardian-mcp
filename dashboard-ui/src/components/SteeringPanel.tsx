@@ -4,6 +4,9 @@ import { formatOpsTs } from "../api";
 const MODE_OPTIONS: Array<{ id: SceneModeId; label: string; hint: string }> = [
   { id: "default", label: "Default", hint: "No mode override" },
   { id: "explicit_slow_burn", label: "Explicit / Slow-burn", hint: "Long-form tension" },
+  { id: "explicit_domination", label: "Explicit / Domination", hint: "Absolute control" },
+  { id: "explicit_vulnerability", label: "Explicit / Vulnerability", hint: "Raw aftercare" },
+  { id: "explicit_feral", label: "Explicit / Feral", hint: "Unthinking instinct" },
   { id: "tactical", label: "Tactical", hint: "Threat read first" },
   { id: "banter", label: "Banter", hint: "Punchy, short beats" }
 ];

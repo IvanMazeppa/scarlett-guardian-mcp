@@ -43,8 +43,7 @@ export function ParrotingRatio({ events }: Props) {
         </span>
       </div>
       <p className="card-hint">
-        Duplex chars (user/Scarlett prior) vs LLM facts — high facts on thin duplex can signal
-        parroting risk.
+        Tracks generation volume. Parroting occurs when the LLM repeats your actions/dialogue in more descriptive prose instead of taking initiative and advancing the narrative.
       </p>
       <div className="chart-box">
         {recent.length === 0 ? (

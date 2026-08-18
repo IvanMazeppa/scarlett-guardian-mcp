@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   CURATED_LOOKS,
   defaultExcludes,
+  detectBodyStateOverride,
   detectWornLookId,
   formatWardrobeBrief,
   inferTargetRegister,
@@ -37,6 +38,11 @@ const LIVE_ARMOUR = `# Live Outfit — Scarlett
 - **Register:** \`armour\`
 - **Kit:** \`panther\` (travel wardrobe from the car).
 
+## Body state
+
+- **State:** \`dressed\`
+- **Detail:** Corporate armour on — trousers, camisole, blazer.
+
 ## Body hardware (always-on)
 
 - Rose-gold gemstone anklet, **left ankle** (currently **hidden under trousers**)
@@ -51,6 +57,7 @@ function testParseLiveCard() {
   const card = parseLiveOutfitMarkdown(LIVE_ARMOUR);
   assert.equal(card.register, "armour");
   assert.equal(card.kit, "panther");
+  assert.equal(card.bodyState, "dressed");
   assert.ok(card.wearing.some((l) => /trousers/i.test(l)));
   assert.ok(card.wearing.some((l) => /blazer/i.test(l)));
   assert.ok(!card.wearing.some((l) => /pencil/i.test(l)));
@@ -189,6 +196,37 @@ function testCuratedLooksHaveKits() {
   console.log("ok curated looks are tagged");
 }
 
+function testBodyStateUndressOverride() {
+  const res = resolveWardrobe(
+    {
+      user_message: "I pull you closer against me, skin to skin.",
+      scarlett_previous_message:
+        "I undress completely and leave the armour on the chair, naked in the suite light."
+    },
+    undefined,
+    { liveMarkdown: LIVE_ARMOUR, persistWriteback: false }
+  );
+  assert.equal(res.live?.bodyState, "undressed");
+  assert.match(res.briefMarkdown, /Body state: undressed/);
+  assert.equal(res.writebackCandidate?.bodyState, "undressed");
+  assert.equal(res.changeBeat, false); // undress ≠ outfit-change menu
+  console.log("ok undress overrides dressed LIVE for this turn");
+}
+
+function testBodyStateDetectHelper() {
+  const o = detectBodyStateOverride(
+    ["she is completely naked now, nothing on"],
+    "dressed",
+    "armour"
+  );
+  assert.equal(o.bodyState, "undressed");
+  assert.equal(o.overridden, true);
+  const dressed = detectBodyStateOverride(["Good morning, älskling."], "dressed", "armour");
+  assert.equal(dressed.bodyState, "dressed");
+  assert.equal(dressed.overridden, false);
+  console.log("ok body-state detector");
+}
+
 testParseLiveCard();
 testChangeBeatTight();
 testG650Menu();
@@ -199,4 +237,6 @@ testInferRegister();
 testExcludes();
 testBriefCompileIncludesWardrobe();
 testCuratedLooksHaveKits();
+testBodyStateUndressOverride();
+testBodyStateDetectHelper();
 console.log("wardrobe tests passed");

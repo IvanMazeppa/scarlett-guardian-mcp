@@ -39,7 +39,7 @@ npm run curate:golden -- docs/guardian-reports/preflight-full-<ts>.json --catego
 
 ### Live instructions + canon path (operator)
 
-- **Active instruction set (RAG repo):** Skill `v2.7`, Agent `v6.4`, Project `v6.6` under `../rag-memory-mcp/docs/instructions/` (anti-parrot + LIVE BEAT refresh). Older versions remain on disk.
+- **Active instruction set (RAG repo):** Skill `v3.0`, Agent `v7`, Project `v7` under `../rag-memory-mcp/docs/instructions/` (Fable-5 architecture). Older versions remain on disk.
 - **Live canon disk:** `../rag-memory-mcp/project_source_files/` (esp. `current-state.md`) — not a parent-tree duplicate.
 - **Save-lag remediation:** if LIVE BEAT lags play, prefer duplex/`recent_context` over inventing DO NOT PROCEED from a stale wardrobe card alone; see `docs/current-state-writeback-deadlock-2026-08-16.md`.
 

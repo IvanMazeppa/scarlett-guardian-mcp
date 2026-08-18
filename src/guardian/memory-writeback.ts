@@ -540,6 +540,24 @@ export function formatLiveAppendContent(
 }
 
 /**
+ * SAVE-LAG DEADLOCK BREAK: provisional holdCanonWrites must not block the location
+ * remediation write that clears the lag. Speculative NPC / other holds still apply.
+ */
+export function allowSaveLagRemediationWrite(input: {
+  holdCanonWrites: boolean;
+  saveLagSuspected: boolean;
+  writeAction: MemoryWriteDecision["action"];
+}): boolean {
+  if (!input.holdCanonWrites) return true;
+  if (!input.saveLagSuspected) return false;
+  return (
+    input.writeAction === "stage_transition" ||
+    input.writeAction === "stage" ||
+    input.writeAction === "live_append"
+  );
+}
+
+/**
  * Decide whether/how to persist a candidate memory update.
  * Default mode is "stage" so autonomous proposals never touch live canon without review.
  */
