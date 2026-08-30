@@ -13,6 +13,7 @@ import {
   looksFor,
   parseLiveOutfitMarkdown,
   resolveWardrobe,
+  sanitizeBodyStateDetail,
   userSpecifiedOutfit
 } from "../src/guardian/wardrobe.js";
 import { compileGrokBrief } from "../src/guardian/report/compile-grok-brief.js";
@@ -227,6 +228,17 @@ function testBodyStateDetectHelper() {
   console.log("ok body-state detector");
 }
 
+function testSanitizeBodyStateDetail() {
+  const dump =
+    "i get out of bed naked and fish around for some clothes while you find sohmewhere on your phone.";
+  assert.equal(sanitizeBodyStateDetail(dump, "undressed"), "Morning bed — undressed.");
+  assert.equal(
+    sanitizeBodyStateDetail("Morning bed — undressed under the sheet.", "undressed"),
+    "Morning bed — undressed under the sheet."
+  );
+  console.log("ok body-state detail sanitizer");
+}
+
 testParseLiveCard();
 testChangeBeatTight();
 testG650Menu();
@@ -239,4 +251,5 @@ testBriefCompileIncludesWardrobe();
 testCuratedLooksHaveKits();
 testBodyStateUndressOverride();
 testBodyStateDetectHelper();
+testSanitizeBodyStateDetail();
 console.log("wardrobe tests passed");

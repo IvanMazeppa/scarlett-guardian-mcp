@@ -281,6 +281,7 @@ export function parseLiveOutfitMarkdown(markdown: string): LiveOutfitCard {
     const detailBullet = bullets(bodyStateBody).find((l) => !/\*\*State:\*\*/i.test(l));
     if (detailBullet) bodyStateDetail = detailBullet.replace(/^\*\*Detail:\*\*\s*/i, "").trim();
   }
+  bodyStateDetail = sanitizeBodyStateDetail(bodyStateDetail, bodyState);
 
   return {
     wearing: bullets(wearingBody),
@@ -357,31 +358,45 @@ export function detectBodyStateOverride(
 ): BodyStateOverride {
   const blob = texts.filter(Boolean).join("\n").replace(/\s+/g, " ");
   if (!blob.trim()) {
-    return { bodyState: cardState, detail: cardDetail, overridden: false };
+    return {
+      bodyState: cardState,
+      detail: sanitizeBodyStateDetail(cardDetail, cardState),
+      overridden: false
+    };
   }
   // Redress wins when both appear (e.g. shower then get dressed).
   if (REDRESS_BEAT.test(blob) && !UNDRESS_BEAT.test(blob.slice(-200))) {
     return {
       bodyState: "dressed",
-      detail: cardDetail || "Fully dressed again.",
+      detail: sanitizeBodyStateDetail(cardDetail || "Fully dressed again.", "dressed"),
       overridden: cardState !== "dressed"
     };
   }
   if (UNDRESS_BEAT.test(blob)) {
     return {
       bodyState: "undressed",
-      detail: extractBodyStateDetail(blob, "undressed") || "Undressed — no garments on.",
+      detail: sanitizeBodyStateDetail(
+        extractBodyStateDetail(blob, "undressed") || "Undressed — no garments on.",
+        "undressed"
+      ),
       overridden: cardState !== "undressed"
     };
   }
   if (PARTIAL_UNDRESS_BEAT.test(blob)) {
     return {
       bodyState: "partial",
-      detail: extractBodyStateDetail(blob, "partial") || "Partially undressed.",
+      detail: sanitizeBodyStateDetail(
+        extractBodyStateDetail(blob, "partial") || "Partially undressed.",
+        "partial"
+      ),
       overridden: cardState !== "partial"
     };
   }
-  return { bodyState: cardState, detail: cardDetail, overridden: false };
+  return {
+    bodyState: cardState,
+    detail: sanitizeBodyStateDetail(cardDetail, cardState),
+    overridden: false
+  };
 }
 
 function extractBodyStateDetail(blob: string, kind: BodyState): string {
@@ -395,6 +410,36 @@ function extractBodyStateDetail(blob: string, kind: BodyState): string {
   );
   if (!hit) return "";
   return hit.trim().slice(0, 160);
+}
+
+/**
+ * Keep body-state free-text as a short operator line.
+ * Never paste raw first-person play dumps into the LIVE card / brief.
+ */
+export function sanitizeBodyStateDetail(detail: string, kind: BodyState): string {
+  const t = detail.replace(/\s+/g, " ").trim();
+  const fallback =
+    kind === "undressed"
+      ? "Undressed — no garments on."
+      : kind === "partial"
+        ? "Partially undressed."
+        : "Fully clothed.";
+  if (!t) return fallback;
+
+  const looksLikePlayDump =
+    t.length > 90 ||
+    /^(i |you |we )\b/i.test(t) ||
+    /\b(fish around|sohmewhere|britches|mooning|find sohmewhere)\b/i.test(t) ||
+    ((t.match(/[,;]/g) || []).length >= 2 && t.length > 60);
+
+  if (looksLikePlayDump) {
+    return kind === "undressed"
+      ? "Morning bed — undressed."
+      : kind === "partial"
+        ? "Partially undressed."
+        : "Fully dressed.";
+  }
+  return t.slice(0, 120);
 }
 
 export function inferTargetRegister(

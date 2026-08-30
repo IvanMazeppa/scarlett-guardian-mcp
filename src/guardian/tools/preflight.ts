@@ -1030,13 +1030,14 @@ async function runGuardianPreflightInner(
   }
 
   // Fable-5 Phase 3.1: full current-state.md on re-grounding turns only.
+  // Soft-reentry / aged recovery: compress guilt coaching before the brief sees it.
   const liveStateFull = shouldInjectFullLiveState({
     duplexSource,
     recentContext: input.recent_context,
     sceneTransition: llmAssessment.scene_transition ?? null,
     memoryWriteAction: memoryWrite.action
   })
-    ? loadCurrentStateMarkdown()
+    ? prepareLiveStateFullForBrief(loadCurrentStateMarkdown(), input.recent_context)
     : null;
 
   const report: GuardianReport = {
@@ -2272,9 +2273,65 @@ export function shouldInjectFullLiveState(input: {
     input.memoryWriteAction === "staged" ||
     input.memoryWriteAction === "stage_transition" ||
     input.memoryWriteAction === "live_append";
-  if (writeLanded) return true;
+  if (!writeLanded) return false;
 
-  return false;
+  // Age out full dump once soft re-entry is already underway mid-session
+  // (duplex + real recap). Summary path is enough; avoids re-amplifying recovery weather.
+  if (
+    input.duplexSource !== "absent" &&
+    recent &&
+    !isPlaceholderContext(recent) &&
+    isSoftReentryUnderway(recent)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+/** Play has left the first recovery hour — breakfast / dressing / city hooks live. */
+export function isSoftReentryUnderway(text: string): boolean {
+  return /\b(soft re-entry|breakfast|pretzels?|münchner|munchner frühstück|three (jet )?places|travel-soft|city soft-walk|micro-adventure|tattoo studio)\b/i.test(
+    text
+  );
+}
+
+/**
+ * When soft re-entry Notes (or live recap) are active, compress guilt/horror bullets
+ * in the Scarlett emotional section so LIVE STATE (full) does not re-coach tragedy weather.
+ */
+export function prepareLiveStateFullForBrief(
+  md: string | null | undefined,
+  recentContext?: string
+): string | null {
+  if (!md?.trim()) return null;
+  const soft =
+    /soft re-entry|playful competence|adventure planning|travel-soft dressing/i.test(md) ||
+    isSoftReentryUnderway(recentContext ?? "");
+  if (!soft) return md.trim();
+
+  return md
+    .replace(
+      /(## Scarlett's Current Emotional & Relational State\r?\n)([\s\S]*?)(?=\r?\n## )/,
+      (_all, header: string, body: string) => {
+        const bullets = body
+          .split(/\r?\n/)
+          .map((l) => l.trimEnd())
+          .filter((l) => /^\s*-\s+/.test(l));
+        const kept = bullets.filter((b) => {
+          const guiltHeavy =
+            /\b(horror|guilt|flashback|trauma memory|coercive abuse|exploitative intelligence-service)\b/i.test(
+              b
+            );
+          const settling =
+            /\b(post-flashback|settling|safe|humour|vivid|readiness|optional)\b/i.test(b);
+          return !guiltHeavy || settling;
+        });
+        const out = (kept.length > 0 ? kept : bullets.slice(0, 2)).slice(0, 4);
+        return `${header}\n${out.join("\n")}\n`;
+      }
+    )
+    .trim();
 }
 
 export function loadCurrentStateMarkdown(cwd: string = process.cwd()): string | null {
@@ -2425,6 +2482,17 @@ function buildThingsToAvoid(highRiskTriggers: string[], retrievalStatus: string)
 }
 
 /**
+ * Drop Thread-01 archive contradictions that pollute couple-only Munich briefs.
+ */
+export function isStaleArchiveOpenThread(line: string, sourceFile?: string | null): boolean {
+  const hay = `${sourceFile ?? ""} ${line}`.toLowerCase();
+  if (/thread-01.*open-threads|open-threads-and-uncertainties/.test(hay)) return true;
+  return /cold dominant|real me\s*=|disappearance\/return pattern|ponytail\/latex switch|i appear \/ i vanish/i.test(
+    line
+  );
+}
+
+/**
  * Real story open threads only — never RAG next_action / follow-up tool queries.
  */
 export function collectOpenThreads(
@@ -2452,6 +2520,9 @@ export function collectOpenThreads(
     for (const bullet of bullets) {
       // Skip section headers and authority notes.
       if (/^#+\s|status:|authority:|historical archive|open story threads/i.test(bullet)) continue;
+      // Skip Thread-01 archive contradictions (cold-dominant / disappearance pattern)
+      // when they pollute couple-only live briefs.
+      if (isStaleArchiveOpenThread(bullet, result.source_file)) continue;
       threads.push(truncateAtSentence(compactWhitespace(bullet), 420));
       if (threads.length >= 3) break;
     }

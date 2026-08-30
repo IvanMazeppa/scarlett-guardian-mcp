@@ -12,7 +12,11 @@ import {
   buildKeyFacts,
   buildPreflightQuery,
   detectHighRiskTriggers,
-  selectPrecedents
+  isSoftReentryUnderway,
+  isStaleArchiveOpenThread,
+  prepareLiveStateFullForBrief,
+  selectPrecedents,
+  shouldInjectFullLiveState
 } from "../src/guardian/tools/preflight.js";
 
 const foodTurn = "I watch you take the best bite of ribeye and notice you bristled when the waiter kept staring.";
@@ -229,6 +233,64 @@ assert.ok(cut.endsWith(".") || cut.endsWith("…") || cut.length <= 90);
   assert.ok(!/I button my shirt/i.test(past[0]), "present-tense play clause must be stripped");
   assert.ok(past[0].length < 280, `one-clause cap: ${past[0].length}`);
   console.log("ok buildFactCheckQuestions: past-canon only, one clause");
+}
+
+// Munich soft-reentry hygiene (2026-08-18)
+{
+  assert.equal(isSoftReentryUnderway("Benjamin returns with pretzels and coffee"), true);
+  assert.equal(isSoftReentryUnderway("quiet bedbound recovery only"), false);
+
+  assert.equal(
+    isStaleArchiveOpenThread(
+      "“Real me = cold dominant” claim vs later warm Scarlett",
+      "historical/thread-01/thread-01-open-threads-and-uncertainties.md"
+    ),
+    true
+  );
+  assert.equal(
+    isStaleArchiveOpenThread("Munich Arc: shopping conditional on readiness", "current-state.md"),
+    false
+  );
+
+  const sample = `# Current Story State
+
+## Scarlett's Current Emotional & Relational State
+
+- She is still carrying horror and residual guilt over coercive abuse from her intelligence-service past.
+- Night rest has eased the chest-weight. She is post-flashback and settling, not mid-flashback.
+- Humour and light erotic threat are already returning.
+
+## Notes for Next Response
+
+- **Tone/energy:** Playful competence and soft re-entry — adventure planning welcome.
+`;
+  const prepared = prepareLiveStateFullForBrief(sample, "breakfast return with pretzels");
+  assert.ok(prepared);
+  assert.ok(!/residual guilt over coercive/i.test(prepared!), "guilt bullet compressed out");
+  assert.match(prepared!, /post-flashback and settling/);
+  assert.match(prepared!, /Playful competence/);
+
+  assert.equal(
+    shouldInjectFullLiveState({
+      duplexSource: "caller",
+      recentContext: "Breakfast return — pretzels in bed; three places pending",
+      sceneTransition: null,
+      memoryWriteAction: "staged"
+    }),
+    false,
+    "age out full dump mid soft-reentry"
+  );
+  assert.equal(
+    shouldInjectFullLiveState({
+      duplexSource: "absent",
+      recentContext: "",
+      sceneTransition: null,
+      memoryWriteAction: "none"
+    }),
+    true,
+    "cold start still injects"
+  );
+  console.log("ok soft-reentry live-state + open-thread hygiene");
 }
 
 console.log("preflight tests passed");
