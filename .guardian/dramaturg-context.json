@@ -1,31 +1,28 @@
 {
   "version": 1,
-  "turnCounter": 247,
+  "turnCounter": 252,
   "context": {
     "arcSlug": "arc-18-soglio-retreat",
     "beats": [
       {
         "index": 1,
-        "name": "Soglio Evening and Dinner",
+        "name": "Wednesday Dinner and Fire",
         "kind": "fixed",
         "status": "live",
-        "pressure": "Low",
+        "pressure": "Low. The focus is on playful intimacy during dinner and the walk back to the stone holiday house.",
         "cues": [
           "intimacy",
-          "soglio",
           "dinner",
-          "november",
+          "fogged-window",
           "restaurant",
-          "modest",
-          "holiday",
-          "mountain",
-          "playful",
-          "finished",
-          "fought",
-          "toe-ring",
+          "soglio",
           "walking",
-          "relaxed",
-          "comfortable"
+          "intimate",
+          "playful",
+          "dictates",
+          "retreat",
+          "during",
+          "holiday"
         ]
       },
       {
@@ -33,17 +30,22 @@
         "name": "The Neon Ski Trip",
         "kind": "fixed",
         "status": "next",
-        "pressure": "Low",
+        "pressure": "Low / Comedic. Benjamin wears a hideous neon-green ski suit.",
         "cues": [
-          "engadine",
-          "moritz",
-          "slopes",
           "soglio",
-          "comedic",
-          "neon-green",
+          "moritz",
+          "engadine",
+          "comedy",
+          "teaching",
           "playful",
           "frustration",
-          "teaches"
+          "leaning",
+          "ridiculousness",
+          "luxury",
+          "tourism",
+          "comedic",
+          "hideous",
+          "neon-green"
         ]
       },
       {
@@ -51,14 +53,18 @@
         "name": "The Sunday Coupon",
         "kind": "fixed",
         "status": "dormant",
-        "pressure": "High",
+        "pressure": "Intimate. Scarlett cashes in her paper coupon for one hour of absolutely anything, no questions.",
         "cues": [
           "intimacy",
           "coupon",
-          "inside",
+          "modest",
           "soglio",
-          "high-stakes",
-          "redeems",
+          "high-trust",
+          "paying",
+          "dinner-table",
+          "bargain",
+          "intimate",
+          "cashes",
           "absolutely",
           "anything",
           "questions"
@@ -69,33 +75,35 @@
         "name": "The Service Looms",
         "kind": "fixed",
         "status": "dormant",
-        "pressure": "High",
+        "pressure": "High. Benjamin discovers the intelligence tracking ping on the Albion network.",
         "cues": [
           "service",
-          "soglio",
           "departure",
-          "handlers",
-          "remote",
-          "discovers",
-          "intelligence",
-          "tracking",
           "albion",
-          "network",
-          "shifts",
-          "violently",
+          "intelligence",
+          "peripheral",
+          "peaceful",
+          "retreat",
+          "shattered",
+          "switches",
           "tactical",
-          "protector",
-          "secure"
+          "secure",
+          "position",
+          "counter-offensive",
+          "lethally",
+          "discovers",
+          "tracking",
+          "network"
         ]
       }
     ],
-    "momentumLine": "Soglio Evening and Dinner is live on Wednesday evening; the ski trip remains ahead later in the retreat, with the Saturday/Sunday coupon and Sunday departure still on the schedule.",
+    "momentumLine": "Wednesday evening’s Dinner and Fire beat remains live at the stone house; the ski trip is the next scheduled beat, with the Sunday coupon and departure still later.",
     "npcIntersections": [],
     "planWarnings": [],
-    "generatedAtTurn": 246,
+    "generatedAtTurn": 252,
     "source": "llm",
-    "planHash": "abfb3be952aa75a1",
-    "refreshedAt": "2026-08-29T11:26:34.737Z",
-    "liveSceneFingerprint": "6c1d4bbc569392fd"
+    "planHash": "ee4577b4894e7ceb",
+    "refreshedAt": "2026-08-31T23:57:15.861Z",
+    "liveSceneFingerprint": "468dcf3b5db8f606"
   }
 }
