@@ -187,10 +187,10 @@ export const CURATED_LOOKS: NamedLook[] = [
 ];
 
 const CHANGE_BEAT =
-  /\b(get(?:ting)?\s+(?:dressed|changed|comfortable)|chang(?:e|ing)\s+(?:clothes|into|out)|undress|put(?:ting)?\s+on|take(?:s|n|ing)?\s+off|outfit|wardrobe|blazer\s+off|armour\s+on|put\s+the\s+armour|dress(?:ing)?\s+(?:herself|for)|into\s+(?:jeans|cashmere|a\s+dress|the\s+jet)|shower.{0,40}(?:dress|clothes|out))\b/i;
+  /\b(get(?:ting)?\s+(?:dressed|changed|comfortable)|chang(?:e|ing)\s+(?:clothes|into|out)|undress|put(?:ting)?\s+on|take(?:s|n|ing)?\s+off|blazer\s+off|armour\s+on|put\s+the\s+armour|dress(?:ing)?\s+(?:herself|for)|into\s+(?:jeans|cashmere|a\s+dress)|shower.{0,40}(?:dress|clothes|out))\b/i;
 
 const VENUE_CLASS_CHANGE =
-  /\b(gulfstream|g650|airstrip|wheels-?up|private\s+jet|leaving\s+(?:hq|the\s+(?:boardroom|office|building))|out\s+of\s+affalterbach|onto\s+the\s+(?:jet|plane)|cabin\s+(?:of\s+the\s+)?(?:jet|gulfstream))\b/i;
+  /\b(boarding\s+(?:the\s+)?(?:gulfstream|g650|jet)|wheels-?up|leaving\s+(?:hq|the\s+(?:boardroom|office|building))|out\s+of\s+affalterbach|onto\s+the\s+(?:jet|plane)|stepping\s+(?:onto|into)\s+(?:the\s+)?(?:jet|gulfstream|cabin))\b/i;
 
 const USER_LOCKED_OUTFIT =
   /\b(wear(?:ing|s)?|put(?:s|ting)?\s+on|change(?:s|d)?\s+into|dressed\s+in)\b.{0,80}\b(cashmere|jeans|blazer|camisole|trousers|pencil\s+skirt|emerald|latex|catsuit|nomex|robe|yoga|trainers|peep-?toes?)\b/i;
@@ -648,12 +648,17 @@ export function resolveWardrobe(
   const liveMd = options.liveMarkdown ?? loadLiveOutfitMarkdown(cwd);
   const parsed = liveMd.trim() ? parseLiveOutfitMarkdown(liveMd) : undefined;
 
-  const userAndContext = `${input.user_message ?? ""}\n${input.recent_context ?? ""}`;
-  const changeBeat = isWardrobeChangeBeat(userAndContext);
-  const locked = userSpecifiedOutfit(input.user_message ?? "");
+  const userMessage = input.user_message ?? "";
+  const changeBeat = isWardrobeChangeBeat(userMessage);
+  const locked = userSpecifiedOutfit(userMessage);
   const kit = parsed?.kit;
-  const targetRegister = changeBeat ? inferTargetRegister(userAndContext, parsed, liveBeat) : parsed?.register;
-  const optionsLooks = changeBeat ? looksFor(targetRegister, kit) : [];
+  const targetRegister = changeBeat ? inferTargetRegister(userMessage, parsed, liveBeat) : parsed?.register;
+  
+  let optionsLooks = changeBeat ? looksFor(targetRegister, kit) : [];
+  // State-aware idempotency: suppress options if already in target register and no explicitly locked look
+  if (changeBeat && !locked && targetRegister && parsed?.register === targetRegister) {
+    optionsLooks = [];
+  }
   const excludes = defaultExcludes(parsed, kit);
 
   // Undress beats from duplex + user can override dressed card for this turn.
