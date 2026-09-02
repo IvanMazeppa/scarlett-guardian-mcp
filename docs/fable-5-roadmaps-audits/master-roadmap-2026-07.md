@@ -314,7 +314,7 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 | **R2** | **done** | Needle-aware `findSection` (unique leaf/suffix; refuse ambiguity) + expand/canExpand/neighbors use it. Guardian logs NPC expand misses on `retrieval_notes`. Tests: `rag-memory-mcp/tests/find-section.test.ts` + live bible smoke. Evidence: `wp-r2-exact-section-repair-evidence-2026-07-21.md`. |
 | **R3** | **done** | Telemetry `source: live\|eval\|backfill`; summary API defaults live-only (`?sources=all` override). Hermetic preflight: `persist:false` serendipity, `bumpTurn:false` dramaturg; no memoryCache write when unpersisted. Evidence: `wp-r3-live-eval-isolation-evidence-2026-07-21.md`. |
 | **R4** | **done** | Categories `ensemble` + `negative-space`; goldens gt-050..052 + gt-060..061; hermetic injects frozen assessments for those categories. `eval:fast` 36/36. Evidence: `wp-r4-ensemble-negative-space-goldens-evidence-2026-07-21.md`. |
-| 5.10 | pending | Affalterbach live ensemble stress. **Amended acceptance (Sol):** + one played NPC disposition change through staging → later live brief; + false-correction side of dilution pair verified live; + R2 registry evidence visibly in auditor payload. Runs after R1–R4 |
+| 5.10 | **done** | Affalterbach live ensemble stress. **Amended acceptance (Sol):** + one played NPC disposition change through staging → later live brief; + false-correction side of dilution pair verified live; + R2 registry evidence visibly in auditor payload. Runs after R1–R4 |
 | 6.1–6.8 | pending | 6.x additions: Canon Promotion Receipts formalized in staged-update JSON (Sol #6) |
 | **6.5 (new phase)** | pending | Character-first offline layer: Agency Observatory (turn classification vs archive, baseline before any prompt change) → Choice-Respecting Thread Ledger design (extends serendipity deferral state; declined never advances; resurfacing changes form) → Open-Fork Validator (advisory judge, calibrated before gating) → GM-0 seed pack + O-1 cold read. Source: Sol review §"Character-first" + `fable5-response-sol-review-2026-07-20.md` §3 |
 | 7.1–7.7 | pending | |
@@ -324,3 +324,17 @@ Operator/executor: mark WPs here as they land (this table is the cross-session m
 ## 14. One-line summary
 
 **Stabilize a tagged baseline, then build the safety rails first (eval harness + telemetry), fix the foundations everything imports (session chunking, `parseLiveBeat`, staging, rotation), automate duplex invisibly, complete the write lifecycle and living world, seat the dramaturg and the ensemble, and converge at the story's own joints — the Affalterbach ensemble test and the Germany arc-close ceremony — executing the whole thing as small, sequential, verified, contract-owned tickets because that is how the executor actually delivers quality.**
+
+---
+
+## 15. Phase 8 — The Agency & Intelligence Extension (INTEL-5+)
+
+This phase tracks the immediate upgrades designed to give Scarlett proactive agency, automated lore extraction, and a dynamic wardrobe system. 
+
+| WP | Ticket | Files | Acceptance |
+|----|--------|-------|-----------|
+| 8.1 | **The Hidden Director** (Proactive Agency Module) | `preflight.ts`, `dramaturg.ts` | Guardian parses active Arc Plan pressure and silently injects `[DIRECTOR'S NOTE]` at the end of the system prompt to force proactive scene advancement. |
+| 8.2 | **The Live Listener** (Dynamic Lore/Dossier Extraction) | NEW `scripts/live-listener.ts` (background node daemon) | Daemon constantly tails the chat logs, fires to OpenAI API, extracts new lore (tattoos, NPC status), writes to `current-state.md`, and caches RAG dossiers for mentioned unavailable NPCs. |
+| 8.3 | **Dynamic Wardrobe Engine** | `wardrobe.ts`, `rag-memory-mcp/project_source_files/scarlett_master_wardrobe.md` | `wardrobe.ts` rewritten to parse the massive markdown catalog at runtime, picking designer outfits automatically based on `targetRegister` (Casual, Formal, Armour). |
+
+| 8.4 | **Mobile Guardian Bridge** (Android Connectivity) | `scripts/guardian-browser-bridge.user.js`, `docs/mobile-setup.md` | Configure userscript for Kiwi Browser (Android) with network tunneling (Local IP / ngrok) to allow full duplex Guardian syncing while roleplaying from a mobile device. |

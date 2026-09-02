@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 258,
+  "turnCounter": 264,
   "context": {
     "arcSlug": "arc-18-soglio-retreat",
     "beats": [
@@ -97,14 +97,13 @@
         ]
       }
     ],
-    "momentumLine": "Wednesday evening’s Dinner and Fire beat remains live at the stone house; the ski trip is the next scheduled beat, with the Sunday coupon and departure still later.",
+    "momentumLine": "Wednesday Dinner and Fire is live on Wednesday evening; the ski trip remains next, with the coupon and Sunday departure pressures still later in the schedule.",
     "npcIntersections": [],
     "planWarnings": [],
-    "generatedAtTurn": 252,
+    "generatedAtTurn": 264,
     "source": "llm",
     "planHash": "ee4577b4894e7ceb",
-    "refreshedAt": "2026-08-31T23:57:15.861Z",
-    "liveSceneFingerprint": "468dcf3b5db8f606",
-    "lastInvalidationReason": "live_scene_changed"
+    "refreshedAt": "2026-09-02T16:01:54.973Z",
+    "liveSceneFingerprint": "468dcf3b5db8f606"
   }
 }
