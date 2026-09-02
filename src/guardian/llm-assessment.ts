@@ -62,6 +62,10 @@ const assessmentSchema = {
       type: ["string", "null"],
       description: "One short prose scene summary for Grok: location, time, physical state, immediate situation."
     },
+    immediate_physical_situation: {
+      type: ["string", "null"],
+      description: "Extract the exact immediate situation / physical proximity of the characters from the LIVE BEAT or scene delta. E.g. 'Currently sitting together on the small sofa by the fire.' Used for frequent seamless updates to current-state."
+    },
     continuity_facts_for_grok: {
       type: ["string", "null"],
       description: "Optional multi-bullet continuity card in plain language; no retrieval meta."
@@ -147,6 +151,7 @@ const assessmentSchema = {
     "continuity_risk_level",
     "supported_facts",
     "scene_state_delta",
+    "immediate_physical_situation",
     "continuity_facts_for_grok",
     "unsupported_or_risky_claims",
     "needs_more_retrieval",

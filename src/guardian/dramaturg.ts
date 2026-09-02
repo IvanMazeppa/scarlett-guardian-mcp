@@ -152,10 +152,6 @@ function parseKind(raw: string): BeatKind {
   return "fixed";
 }
 
-/**
- * Parse an arc-plan markdown document (heading-anchored, like parseLiveBeat).
- * Expects `## Beat N — Name` sections with kind/setting/cast/pressure bullets.
- */
 export function parseArcPlan(markdown: string, sourcePath?: string): ParsedArcPlan {
   const md = (markdown ?? "").replace(/\r\n/g, "\n");
   const title =
@@ -170,16 +166,38 @@ export function parseArcPlan(markdown: string, sourcePath?: string): ParsedArcPl
   const arcWindow = extractMetaField(md, "Arc window") || extractMetaField(md, "Arc Window") || "";
 
   const beats: ParsedBeat[] = [];
-  // Split on ## Beat headings
-  const beatRe = /^##\s+Beat\s+(\d+)\s*[—–-]\s*(.+)$/gim;
-  const matches = [...md.matchAll(beatRe)];
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    const start = m.index! + m[0].length;
-    const end = i + 1 < matches.length ? matches[i + 1].index! : md.length;
-    const body = md.slice(start, end);
-    const index = Number(m[1]);
-    const name = m[2].trim();
+  
+  const lines = md.split("\n");
+  const beatBlocks: { index: number; name: string; body: string }[] = [];
+  let currentBeat: { index: number; name: string; bodyLines: string[] } | null = null;
+  
+  // Highly resilient matcher for Beat headings (e.g. "## Beat 1 - Intro", "### Beat 2: Tension", "#Beat 3")
+  const beatHeaderRe = /^#{1,6}\s*Beat\s*(\d+)[\s:—–-]*([^\n]*)$/i;
+  
+  for (const line of lines) {
+    const match = line.match(beatHeaderRe);
+    if (match) {
+      if (currentBeat) {
+        beatBlocks.push({ index: currentBeat.index, name: currentBeat.name, body: currentBeat.bodyLines.join("\n") });
+      }
+      currentBeat = {
+        index: Number(match[1]),
+        name: match[2].trim(),
+        bodyLines: []
+      };
+    } else if (currentBeat) {
+      currentBeat.bodyLines.push(line);
+    }
+  }
+  if (currentBeat) {
+    beatBlocks.push({ index: currentBeat.index, name: currentBeat.name, body: currentBeat.bodyLines.join("\n") });
+  }
+
+  for (let i = 0; i < beatBlocks.length; i++) {
+    const block = beatBlocks[i];
+    const body = block.body;
+    const index = block.index;
+    const name = block.name;
     const kind = parseKind(extractBoldField(body, "kind") || "fixed");
     const setting = extractBoldField(body, "setting");
     const cast = extractBoldField(body, "cast");

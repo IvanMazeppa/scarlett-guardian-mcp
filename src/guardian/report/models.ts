@@ -104,6 +104,7 @@ export type GuardianLlmAssessment = {
   supported_facts?: string[];
   unsupported_or_risky_claims?: string[];
   scene_state_delta?: string;
+  immediate_physical_situation?: string | null;
   continuity_facts_for_grok?: string;
   needs_more_retrieval?: boolean;
   should_block_prose?: boolean;

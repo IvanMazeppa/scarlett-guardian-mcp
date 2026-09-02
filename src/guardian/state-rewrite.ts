@@ -63,6 +63,54 @@ export function extractMarkdownHeadings(md: string): string[] {
 }
 
 /**
+ * WP-6.0 — Seamlessly patch volatile fields in current-state.md bypassing full rewrite.
+ */
+export function updateVolatileStateInCurrentState(
+  currentStatePath: string | null,
+  wardrobeText?: string | null,
+  situationText?: string | null
+): boolean {
+  if (!currentStatePath || !fs.existsSync(currentStatePath)) return false;
+
+  let content = fs.readFileSync(currentStatePath, "utf8");
+  let modified = false;
+
+  if (wardrobeText && wardrobeText.trim()) {
+    const wRegex = /-\s*\*\*Wardrobe:\*\*\s*[^\n]*/i;
+    if (wRegex.test(content)) {
+      content = content.replace(wRegex, `- **Wardrobe:** ${wardrobeText.trim()}`);
+      modified = true;
+    } else {
+      const notesRegex = /(## Notes for Next Response\n+)/i;
+      if (notesRegex.test(content)) {
+        content = content.replace(notesRegex, `$1- **Wardrobe:** ${wardrobeText.trim()}\n`);
+        modified = true;
+      }
+    }
+  }
+
+  if (situationText && situationText.trim()) {
+    const sRegex = /-\s*\*\*Immediate situation:\*\*\s*[^\n]*/i;
+    if (sRegex.test(content)) {
+      content = content.replace(sRegex, `- **Immediate situation:** ${situationText.trim()}`);
+      modified = true;
+    } else {
+      const snapshotRegex = /(## Where We Are Right Now \(High-Level Snapshot\)[\s\S]*?)(?=\n## |$)/i;
+      if (snapshotRegex.test(content)) {
+        content = content.replace(snapshotRegex, `$1\n- **Immediate situation:** ${situationText.trim()}\n`);
+        modified = true;
+      }
+    }
+  }
+
+  if (modified) {
+    fs.writeFileSync(currentStatePath, content, "utf8");
+    return true;
+  }
+  return false;
+}
+
+/**
  * Extract Last Updated line value (bold field under title).
  */
 export function extractLastUpdated(md: string): string {

@@ -15,7 +15,7 @@ import {
   type NpcStateWriteDecision
 } from "../memory-writeback.js";
 import { loadSecondaryCharactersBible } from "../npc-registry.js";
-import { generateStateRewrite, validateStateRewrite } from "../state-rewrite.js";
+import { generateStateRewrite, validateStateRewrite, updateVolatileStateInCurrentState } from "../state-rewrite.js";
 import type { RagToolCaller } from "../rag-client.js";
 import type {
   CriticalPrecedent,
@@ -1027,6 +1027,18 @@ async function runGuardianPreflightInner(
     console.log(
       `${Date.now()} Wardrobe change-beat: register=${wardrobe.targetRegister ?? "?"} kit=${wardrobe.kit ?? "?"} options=${wardrobe.options.map((o) => o.id).join(",") || "none"}`
     );
+  }
+
+  // WP-6.0: Seamlessly patch volatile fields in current-state.md on a per-turn basis
+  if (!isolateSidecars) {
+    const currentWardrobeText = (wardrobe.writebackCandidate ?? wardrobe.live)?.wearing?.join(", ") || null;
+    const situationText = llmAssessment.immediate_physical_situation ?? null;
+    if (currentWardrobeText || situationText) {
+      const patched = updateVolatileStateInCurrentState(resolveCurrentStatePath(), currentWardrobeText, situationText);
+      if (patched) {
+        console.log(`${Date.now()} Patched volatile fields in current-state.md (wardrobe/situation)`);
+      }
+    }
   }
 
   // Fable-5 Phase 3.1: full current-state.md on re-grounding turns only.

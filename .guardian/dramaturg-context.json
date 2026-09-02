@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 252,
+  "turnCounter": 258,
   "context": {
     "arcSlug": "arc-18-soglio-retreat",
     "beats": [
@@ -104,6 +104,7 @@
     "source": "llm",
     "planHash": "ee4577b4894e7ceb",
     "refreshedAt": "2026-08-31T23:57:15.861Z",
-    "liveSceneFingerprint": "468dcf3b5db8f606"
+    "liveSceneFingerprint": "468dcf3b5db8f606",
+    "lastInvalidationReason": "live_scene_changed"
   }
 }
