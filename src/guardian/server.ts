@@ -31,6 +31,7 @@ import {
   isSubstantialDuplexMessage,
   storeDuplexMessage
 } from "./duplex-cache.js";
+import { scheduleLiveListenerResearch } from "./live-listener.js";
 
 const config = getConfig();
 const ragClient = new RagMcpClient(config);
@@ -473,6 +474,16 @@ app.post("/duplex-cache", (req, res) => {
     console.log(
       `${Date.now()} Duplex cache set: thread=${entry.threadKey} chars=${entry.scarlettMessage.length} hash=${entry.contentHash.slice(0, 12)}`
     );
+    try {
+      scheduleLiveListenerResearch({
+        threadKey: entry.threadKey,
+        scarlettMessage: entry.scarlettMessage,
+        sourceHash: entry.contentHash,
+        config
+      });
+    } catch {
+      /* Live Listener must never fail duplex */
+    }
     res.json({
       ok: true,
       thread_key: entry.threadKey,

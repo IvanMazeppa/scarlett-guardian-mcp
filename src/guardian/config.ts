@@ -94,7 +94,27 @@ const EnvSchema = z.object({
     if (value === "false" || value === false || value === "0") return false;
     if (value === "true" || value === true || value === "1") return true;
     return true;
-  }, z.boolean().default(true))
+  }, z.boolean().default(true)),
+  /**
+   * Live Listener: fire-and-forget NER + RAG dossier prefetch after POST /duplex-cache.
+   * Off by default — never burns the auditor model; uses GUARDIAN_LISTENER_MODEL.
+   */
+  GUARDIAN_LISTENER_ENABLED: z.preprocess(
+    (value) => value === "true" || value === true || value === "1",
+    z.boolean().default(false)
+  ),
+  /** Cheap model for NER + 3-bullet dossier summaries (not GUARDIAN_MODEL / terra). */
+  GUARDIAN_LISTENER_MODEL: z.string().default("gpt-4o-mini"),
+  /** Per-thread Active Roster TTL. Default 30 minutes. */
+  GUARDIAN_LISTENER_TTL_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(30 * 60 * 1000),
+  /** Soft deadline for a single background research pass. Default 20s. */
+  GUARDIAN_LISTENER_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
+  /** Minimum NER confidence (0–1) to prefetch a dossier. */
+  GUARDIAN_LISTENER_MIN_CONFIDENCE: z.coerce.number().min(0).max(1).default(0.6)
 });
 
 export type GuardianConfig = z.infer<typeof EnvSchema>;

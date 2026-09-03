@@ -45,6 +45,10 @@ import {
 } from "../recency.js";
 import { applySaveLagSoftening } from "../save-lag.js";
 import {
+  DEFAULT_LISTENER_TTL_MS,
+  resolveActiveRosterForPreflight
+} from "../active-roster.js";
+import {
   applyDramaturgNeutralPolicy,
   resolveSceneConfidence,
   type ResolvedSceneConfidence
@@ -238,6 +242,7 @@ export async function runGuardianPreflight(
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
     GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
+    GUARDIAN_LISTENER_TTL_MS?: number;
   },
   options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
@@ -278,6 +283,7 @@ async function runGuardianPreflightInner(
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
     GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
+    GUARDIAN_LISTENER_TTL_MS?: number;
   },
   options: GuardianPreflightOptions | undefined,
   collector: PreflightTelemetryCollector
@@ -302,6 +308,13 @@ async function runGuardianPreflightInner(
     Boolean(options?.frozenLlmAssessment);
   const missionControl: MissionControlState = resolveMissionControlForPreflight({
     isolateSidecars
+  });
+
+  // Live Listener: O(1) Map lookup only — never RAG/LLM on the hot path.
+  const activeRoster = resolveActiveRosterForPreflight({
+    threadKey: rawInput.thread_key,
+    ttlMs: config.GUARDIAN_LISTENER_TTL_MS ?? DEFAULT_LISTENER_TTL_MS,
+    isolate: isolateSidecars
   });
 
   const preflightQuery = buildPreflightQuery(input);
@@ -1097,6 +1110,7 @@ async function runGuardianPreflightInner(
     },
     scene_mode: missionControl.sceneMode,
     lore_pack: missionControl.lorePack,
+    ...(activeRoster?.length ? { active_roster: activeRoster } : {}),
     retrieval_plan: {
       preflight_query: preflightQuery,
       memory_queries: [

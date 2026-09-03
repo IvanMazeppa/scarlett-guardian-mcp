@@ -3,6 +3,7 @@
  * Full JSON (with tool_calls) remains for debug; this is what the novelist sees.
  */
 
+import { formatActiveRosterBlock } from "../active-roster.js";
 import { enforceResonanceEchoBudget } from "../llm-assessment.js";
 import {
   formatSceneModeBriefBlock,
@@ -249,6 +250,12 @@ export function compileGrokBrief(report: GuardianReport): string {
   const castBlock = quietPrivate ? undefined : pickSceneCastBlock(report);
   if (castBlock) {
     optionalParts.push(castBlock);
+    optionalParts.push("");
+  }
+
+  const activeRosterBlock = formatActiveRosterBlock(report.active_roster);
+  if (activeRosterBlock) {
+    optionalParts.push(activeRosterBlock);
     optionalParts.push("");
   }
 

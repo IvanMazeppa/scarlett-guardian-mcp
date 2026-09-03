@@ -190,7 +190,7 @@ const CHANGE_BEAT =
   /\b(get(?:ting)?\s+(?:dressed|changed|comfortable)|chang(?:e|ing)\s+(?:clothes|into|out)|undress|put(?:ting)?\s+on|take(?:s|n|ing)?\s+off|blazer\s+off|armour\s+on|put\s+the\s+armour|dress(?:ing)?\s+(?:herself|for)|into\s+(?:jeans|cashmere|a\s+dress)|shower.{0,40}(?:dress|clothes|out))\b/i;
 
 const VENUE_CLASS_CHANGE =
-  /\b(boarding\s+(?:the\s+)?(?:gulfstream|g650|jet)|wheels-?up|leaving\s+(?:hq|the\s+(?:boardroom|office|building))|out\s+of\s+affalterbach|onto\s+the\s+(?:jet|plane)|stepping\s+(?:onto|into)\s+(?:the\s+)?(?:jet|gulfstream|cabin))\b/i;
+  /\b(board(?:ing)?\s+(?:the\s+)?(?:gulfstream|g650|jet)|wheels-?up|leaving\s+(?:hq|the\s+(?:boardroom|office|building))|out\s+of\s+affalterbach|onto\s+the\s+(?:jet|plane)|stepping\s+(?:onto|into)\s+(?:the\s+)?(?:jet|gulfstream|cabin))\b/i;
 
 const USER_LOCKED_OUTFIT =
   /\b(wear(?:ing|s)?|put(?:s|ting)?\s+on|change(?:s|d)?\s+into|dressed\s+in)\b.{0,80}\b(cashmere|jeans|blazer|camisole|trousers|pencil\s+skirt|emerald|latex|catsuit|nomex|robe|yoga|trainers|peep-?toes?)\b/i;

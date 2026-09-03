@@ -227,7 +227,9 @@ export function loadTelemetryEvents(options?: {
     for (const line of text.split("\n")) {
       if (!line.trim()) continue;
       try {
-        events.push(JSON.parse(line) as PreflightTelemetryEvent);
+        const parsed = JSON.parse(line) as { kind?: string };
+        if (parsed?.kind === "live_listener") continue;
+        events.push(parsed as PreflightTelemetryEvent);
       } catch {
         /* skip bad lines */
       }

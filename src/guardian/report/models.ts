@@ -1,3 +1,5 @@
+import type { ActiveRosterDossier } from "../active-roster.js";
+
 export type RetrievalStatus = "success" | "partial" | "failed";
 export type ProceedRecommendation = "proceed" | "proceed_with_caution" | "do_not_proceed";
 export type RagConfidence = "high" | "medium" | "low";
@@ -229,6 +231,11 @@ export type GuardianReport = {
    */
   scene_mode?: string;
   lore_pack?: string;
+  /**
+   * Live Listener background dossiers (mentioned entities, prefetched off the hot path).
+   * Omitted on cache miss so eval:fast briefs stay byte-identical.
+   */
+  active_roster?: ActiveRosterDossier[];
   retrieval_plan: {
     preflight_query: string;
     memory_queries: string[];

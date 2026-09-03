@@ -112,6 +112,36 @@ export type PreflightTelemetryEvent = {
   triggers: string[];
 };
 
+/** Background Live Listener event — distinct from preflight; dashboard loaders skip `kind`. */
+export type LiveListenerTelemetryEvent = {
+  v: typeof TELEMETRY_SCHEMA_VERSION;
+  kind: "live_listener";
+  ts: string;
+  thread_key: string;
+  entities_extracted: number;
+  dossiers_written: number;
+  skipped_memo: number;
+  skipped_low_confidence: number;
+  skipped_protagonist: number;
+  latency_ms: {
+    total: number;
+    ner?: number;
+    rag?: number;
+    summarize?: number;
+  };
+  model: string;
+  ok: boolean;
+  error?: string;
+};
+
+export function isLiveListenerTelemetryEvent(value: unknown): value is LiveListenerTelemetryEvent {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      (value as { kind?: unknown }).kind === "live_listener"
+  );
+}
+
 /** Classify scarlett_next_intention for Serendipity / Parroting charts. */
 export function classifyIntention(raw: string | null | undefined): IntentionKind {
   if (typeof raw !== "string") return "unknown";
@@ -234,7 +264,7 @@ export function createNdjsonTelemetrySink(options?: {
   };
 }
 
-export async function appendEventLine(dir: string, event: PreflightTelemetryEvent): Promise<void> {
+export async function appendEventLine(dir: string, event: { ts?: string }): Promise<void> {
   await fsp.mkdir(dir, { recursive: true });
   const day = (event.ts || new Date().toISOString()).slice(0, 10);
   const file = path.join(dir, `events-${day}.ndjson`);
@@ -243,7 +273,7 @@ export async function appendEventLine(dir: string, event: PreflightTelemetryEven
 }
 
 /** Synchronous append for bulk backfill (caller owns error handling). */
-export function appendEventLineSync(dir: string, event: PreflightTelemetryEvent): void {
+export function appendEventLineSync(dir: string, event: { ts?: string }): void {
   fs.mkdirSync(dir, { recursive: true });
   const day = (event.ts || new Date().toISOString()).slice(0, 10);
   const file = path.join(dir, `events-${day}.ndjson`);
@@ -520,6 +550,30 @@ export function recordPreflightTelemetry(
 ): void {
   try {
     sink.record(event);
+  } catch {
+    /* never surface */
+  }
+}
+
+/**
+ * Best-effort Live Listener NDJSON emit. Never throws.
+ * Writes to the same daily events file; aggregators skip `kind: live_listener`.
+ */
+export function recordLiveListenerTelemetry(
+  event: LiveListenerTelemetryEvent,
+  options?: {
+    dir?: string;
+    onEvent?: (event: LiveListenerTelemetryEvent) => void;
+  }
+): void {
+  try {
+    options?.onEvent?.(event);
+    const dir = options?.dir ?? defaultTelemetryDir();
+    setImmediate(() => {
+      void appendEventLine(dir, event).catch(() => {
+        /* swallow — observability only */
+      });
+    });
   } catch {
     /* never surface */
   }
