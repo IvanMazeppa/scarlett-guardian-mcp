@@ -9,6 +9,7 @@ import { StatusStrip } from "./components/StatusStrip";
 import { SteeringPanel } from "./components/SteeringPanel";
 import { ToolUtilization } from "./components/ToolUtilization";
 import { TriggerFeed } from "./components/TriggerFeed";
+import { WardrobePanel } from "./components/WardrobePanel";
 import type {
   ControlState,
   LorePackId,
@@ -154,6 +155,7 @@ export default function App() {
 
           <div className="metrics-grid">
             <ParrotingRatio events={events} />
+            <WardrobePanel />
             <ToolUtilization latest={latest} windowCounts={narrative?.tools?.counts} />
             <TriggerFeed latest={latest} recent={events} />
             <LatencyBreakdown latest={latest} />

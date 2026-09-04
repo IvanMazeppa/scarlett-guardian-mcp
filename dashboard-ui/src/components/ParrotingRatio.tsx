@@ -2,14 +2,15 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Tooltip,
   Legend
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import type { TelemetryEvent } from "../types";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 type Props = {
   events: TelemetryEvent[];
@@ -25,8 +26,14 @@ export function ParrotingRatio({ events }: Props) {
     const t = (e.ts || "").slice(11, 16);
     return t || `#${i + 1}`;
   });
-  const userChars = recent.map((e) => e.duplex?.previous_message_chars ?? 0);
-  const facts = recent.map((e) => e.quality?.llm_facts_count ?? 0);
+  
+  // Calculate Chars per Fact instead of raw values
+  const charsPerFact = recent.map((e) => {
+    const chars = e.duplex?.previous_message_chars ?? 0;
+    const facts = e.quality?.llm_facts_count ?? 0;
+    if (facts === 0) return 0;
+    return Math.round(chars / facts);
+  });
 
   const latest = events[events.length - 1];
   const latestChars = latest?.duplex?.previous_message_chars ?? 0;
@@ -43,27 +50,24 @@ export function ParrotingRatio({ events }: Props) {
         </span>
       </div>
       <p className="card-hint">
-        Tracks generation volume. Parroting occurs when the LLM repeats your actions/dialogue in more descriptive prose instead of taking initiative and advancing the narrative.
+        Tracks generation volume. Parroting occurs when the LLM repeats your actions/dialogue in more descriptive prose instead of taking initiative and advancing the narrative. High "chars per fact" implies stalling.
       </p>
       <div className="chart-box">
         {recent.length === 0 ? (
           <div className="empty">No recent events</div>
         ) : (
-          <Bar
+          <Line
             data={{
               labels,
               datasets: [
                 {
-                  label: "Duplex chars",
-                  data: userChars,
-                  backgroundColor: "rgba(201, 162, 39, 0.75)",
-                  borderRadius: 2
-                },
-                {
-                  label: "LLM facts",
-                  data: facts,
-                  backgroundColor: "rgba(91, 159, 212, 0.85)",
-                  borderRadius: 2
+                  label: "Chars per Fact",
+                  data: charsPerFact,
+                  borderColor: "rgba(201, 162, 39, 0.9)",
+                  backgroundColor: "rgba(201, 162, 39, 0.2)",
+                  tension: 0.3,
+                  fill: true,
+                  pointRadius: 4
                 }
               ]
             }}
@@ -77,13 +81,18 @@ export function ParrotingRatio({ events }: Props) {
               },
               scales: {
                 x: {
-                  ticks: { color: "#8b9bb4", maxRotation: 0 },
+                  ticks: { color: "#8b9bb4", maxRotation: 45 },
                   grid: { color: "rgba(42, 53, 72, 0.6)" }
                 },
                 y: {
                   beginAtZero: true,
                   ticks: { color: "#8b9bb4" },
-                  grid: { color: "rgba(42, 53, 72, 0.6)" }
+                  grid: { color: "rgba(42, 53, 72, 0.6)" },
+                  title: {
+                    display: true,
+                    text: 'Characters per Fact',
+                    color: "#8b9bb4"
+                  }
                 }
               }
             }}

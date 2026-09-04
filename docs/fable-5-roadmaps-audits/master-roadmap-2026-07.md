@@ -338,3 +338,7 @@ This phase tracks the immediate upgrades designed to give Scarlett proactive age
 | 8.3 | **Dynamic Wardrobe Engine** | `wardrobe.ts`, `rag-memory-mcp/project_source_files/scarlett_master_wardrobe.md` | `wardrobe.ts` rewritten to parse the massive markdown catalog at runtime, picking designer outfits automatically based on `targetRegister` (Casual, Formal, Armour). |
 
 | 8.4 | **Mobile Guardian Bridge** (Android Connectivity) | `scripts/guardian-browser-bridge.user.js`, `docs/mobile-setup.md` | Configure userscript for Kiwi Browser (Android) with network tunneling (Local IP / ngrok) to allow full duplex Guardian syncing while roleplaying from a mobile device. |
+
+## INTEL-7: Mission Control Enhancements
+- **Status:** Backlog (Requested 2026-09-03)
+- **Goal:** Improve the Mission Control dashboard/website to make it more useful for monitoring, preflight injection visualization, and managing active sessions. Specific improvements TBD based on operator feedback.
