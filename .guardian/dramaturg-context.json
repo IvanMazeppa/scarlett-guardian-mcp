@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "turnCounter": 283,
+  "turnCounter": 291,
   "context": {
     "arcSlug": "arc-18-soglio-retreat",
     "beats": [
@@ -97,13 +97,15 @@
         ]
       }
     ],
-    "momentumLine": "Wednesday Dinner and Fire is live on Wednesday evening; the ski trip is next, with the coupon and Sunday departure pressure still ahead on the schedule.",
+    "momentumLine": "Wednesday evening’s Dinner and Fire is live; the ski trip is next, with the later weekend and Sunday departure beats still ahead.",
     "npcIntersections": [],
-    "planWarnings": [],
-    "generatedAtTurn": 276,
+    "planWarnings": [
+      "The deterministic diff conflicts with the LIVE BEAT snapshot: the snapshot places the scene on Wednesday evening in Soglio by the fire, matching Beat 1 rather than Beat 3."
+    ],
+    "generatedAtTurn": 285,
     "source": "llm",
     "planHash": "ee4577b4894e7ceb",
-    "refreshedAt": "2026-09-03T07:37:31.533Z",
-    "liveSceneFingerprint": "468dcf3b5db8f606"
+    "refreshedAt": "2026-09-04T06:18:24.248Z",
+    "liveSceneFingerprint": "2a3ded6f1afe8705"
   }
 }

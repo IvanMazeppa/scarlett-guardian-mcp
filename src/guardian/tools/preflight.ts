@@ -15,7 +15,7 @@ import {
   type NpcStateWriteDecision
 } from "../memory-writeback.js";
 import { loadSecondaryCharactersBible } from "../npc-registry.js";
-import { generateStateRewrite, validateStateRewrite, updateVolatileStateInCurrentState } from "../state-rewrite.js";
+import { generateStateRewrite, validateStateRewrite } from "../state-rewrite.js";
 import type { RagToolCaller } from "../rag-client.js";
 import type {
   CriticalPrecedent,
@@ -44,10 +44,6 @@ import {
   type LiveBeat
 } from "../recency.js";
 import { applySaveLagSoftening } from "../save-lag.js";
-import {
-  DEFAULT_LISTENER_TTL_MS,
-  resolveActiveRosterForPreflight
-} from "../active-roster.js";
 import {
   applyDramaturgNeutralPolicy,
   resolveSceneConfidence,
@@ -242,7 +238,6 @@ export async function runGuardianPreflight(
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
     GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
-    GUARDIAN_LISTENER_TTL_MS?: number;
   },
   options?: GuardianPreflightOptions
 ): Promise<GuardianReport> {
@@ -283,7 +278,6 @@ async function runGuardianPreflightInner(
     GUARDIAN_LLM_ENABLED?: boolean;
     GUARDIAN_MODEL?: string;
     GUARDIAN_LLM_VERBOSITY?: "low" | "medium" | "high";
-    GUARDIAN_LISTENER_TTL_MS?: number;
   },
   options: GuardianPreflightOptions | undefined,
   collector: PreflightTelemetryCollector
@@ -308,13 +302,6 @@ async function runGuardianPreflightInner(
     Boolean(options?.frozenLlmAssessment);
   const missionControl: MissionControlState = resolveMissionControlForPreflight({
     isolateSidecars
-  });
-
-  // Live Listener: O(1) Map lookup only — never RAG/LLM on the hot path.
-  const activeRoster = resolveActiveRosterForPreflight({
-    threadKey: rawInput.thread_key,
-    ttlMs: config.GUARDIAN_LISTENER_TTL_MS ?? DEFAULT_LISTENER_TTL_MS,
-    isolate: isolateSidecars
   });
 
   const preflightQuery = buildPreflightQuery(input);
@@ -1042,18 +1029,6 @@ async function runGuardianPreflightInner(
     );
   }
 
-  // WP-6.0: Seamlessly patch volatile fields in current-state.md on a per-turn basis
-  if (!isolateSidecars) {
-    const currentWardrobeText = (wardrobe.writebackCandidate ?? wardrobe.live)?.wearing?.join(", ") || null;
-    const situationText = llmAssessment.immediate_physical_situation ?? null;
-    if (currentWardrobeText || situationText) {
-      const patched = updateVolatileStateInCurrentState(resolveCurrentStatePath(), currentWardrobeText, situationText);
-      if (patched) {
-        console.log(`${Date.now()} Patched volatile fields in current-state.md (wardrobe/situation)`);
-      }
-    }
-  }
-
   // Fable-5 Phase 3.1: full current-state.md on re-grounding turns only.
   // Soft-reentry / aged recovery: compress guilt coaching before the brief sees it.
   const liveStateFull = shouldInjectFullLiveState({
@@ -1110,7 +1085,6 @@ async function runGuardianPreflightInner(
     },
     scene_mode: missionControl.sceneMode,
     lore_pack: missionControl.lorePack,
-    ...(activeRoster?.length ? { active_roster: activeRoster } : {}),
     retrieval_plan: {
       preflight_query: preflightQuery,
       memory_queries: [
