@@ -1,16 +1,15 @@
 import '../styles.css';
 
 const ROOM_COORDINATES: Record<string, { x: number; y: number }> = {
-  'Kitchen': { x: 20, y: 30 },
-  'Living Room': { x: 60, y: 70 },
-  'Bedroom': { x: 80, y: 30 },
-  'Bathroom': { x: 40, y: 80 },
-  'Hallway': { x: 50, y: 50 },
-  'Study': { x: 20, y: 70 },
-  'Balcony': { x: 80, y: 70 },
-  'Dining Room': { x: 40, y: 30 },
-  'Garage': { x: 10, y: 90 },
-  'Basement': { x: 90, y: 90 },
+  // Soglio House Layout (Vertical 3-story map mapping)
+  'Entryway': { x: 50, y: 85 },
+  'Mudroom': { x: 50, y: 85 },
+  'Living Room': { x: 50, y: 50 },
+  'Observatory': { x: 70, y: 50 },
+  'Hearth': { x: 50, y: 50 },
+  'Bedroom': { x: 50, y: 15 },
+  'Master Bedroom': { x: 50, y: 15 },
+  'Bathroom': { x: 70, y: 15 },
 };
 
 interface FloorPlanPanelProps {
@@ -19,8 +18,9 @@ interface FloorPlanPanelProps {
 }
 
 export function FloorPlanPanel({ scarlettLocation, benjaminLocation }: FloorPlanPanelProps) {
-  const scarlettCoords = scarlettLocation ? ROOM_COORDINATES[scarlettLocation] : null;
-  const benjaminCoords = benjaminLocation ? ROOM_COORDINATES[benjaminLocation] : null;
+  // Fallback to Hearth if location not found
+  const scarlettCoords = ROOM_COORDINATES[scarlettLocation || ''] || ROOM_COORDINATES['Hearth'];
+  const benjaminCoords = ROOM_COORDINATES[benjaminLocation || ''] || ROOM_COORDINATES['Hearth'];
 
   return (
     <div className="card floor-plan-panel">
@@ -29,17 +29,16 @@ export function FloorPlanPanel({ scarlettLocation, benjaminLocation }: FloorPlan
         style={{
           position: 'relative',
           width: '100%',
-          height: '250px',
+          height: '400px',
           backgroundColor: '#2a2a2a',
+          backgroundImage: 'url(/location-photos/soglio-stone-house/image_5bc944.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           borderRadius: '8px',
           marginTop: '12px',
           overflow: 'hidden'
         }}
       >
-        {/* Placeholder text for map */}
-        <div style={{ position: 'absolute', top: '10px', left: '10px', color: '#666', fontSize: '12px' }}>
-          Map Placeholder
-        </div>
 
         {scarlettCoords && (
           <div
