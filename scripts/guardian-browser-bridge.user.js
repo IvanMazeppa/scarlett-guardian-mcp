@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Scarlett Guardian Bridge v2.5.0 (Shadow Duplex)
+// @name         Scarlett Guardian Bridge v2.5.1 (Shadow Duplex)
 // @namespace    http://tampermonkey.net/
-// @version      2.5.0
+// @version      2.5.1
 // @description  Shadow sidecar: scrape Scarlett's last IC reply → POST Guardian /duplex-cache. WP-R1 + Mission Control static domain menu.
 // @author       Grok Build (WP-3.2 / WP-R1)
 // @match        *://grok.com/*
@@ -1140,6 +1140,16 @@
         "Expand it into vivid, beautifully written RP prose. Add sensory details, emotional depth, and " +
         "environment context (e.g. the fire, the rain, the wine). Output ONLY the final polished prose. " +
         "No conversational filler."
+    },
+    {
+      id: "draft-expander",
+      label: "Draft Expander (Brain-Dump)",
+      system:
+        "You are a literary assistant for a high-quality roleplay. The user will provide a rough 'brain-dump' of bullet points and fragments. " +
+        "Expand this into a cohesive, flowing, well-structured multi-paragraph response written in the third-person limited perspective of 'Benjamin' (he/him) acting towards his female partner, Scarlett (she/her). " +
+        "CRITICAL RULE: You MUST use 'she/her' pronouns for Scarlett. Never use gender-neutral 'they/them' pronouns. " +
+        "Do not invent new actions; simply take the raw ideas and weave them into high-quality literary prose with descriptive sensory details. " +
+        "Output ONLY the final polished prose. No conversational filler."
     }
   ];
 
