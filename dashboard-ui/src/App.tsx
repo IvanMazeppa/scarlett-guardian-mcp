@@ -31,6 +31,7 @@ export default function App() {
   const [summary, setSummary] = useState<TelemetrySummary | null>(null);
   const [narrative, setNarrative] = useState<NarrativeSummary | null>(null);
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
+  const [locations, setLocations] = useState<{scarlett?: string, benjamin?: string} | null>(null);
   const [health, setHealth] = useState<TelemetryHealth | null>(null);
   const [status, setStatus] = useState("Loading…");
   const [error, setError] = useState<string | null>(null);
@@ -43,18 +44,20 @@ export default function App() {
     setStatus("Loading…");
     const t0 = performance.now();
     try {
-      const [h, s, recent, narr, ctrl] = await Promise.all([
+      const [h, s, recent, narr, ctrl, locs] = await Promise.all([
         getJson<TelemetryHealth>("/telemetry/api/health"),
         getJson<TelemetrySummary>(`/telemetry/api/summary?days=${days}`),
         getJson<RecentResponse>(`/telemetry/api/recent?limit=20&days=${days}`),
         getJson<NarrativeSummary>(`/telemetry/api/narrative?days=${days}`),
-        getJson<ControlState>("/control/state")
+        getJson<ControlState>("/control/state"),
+        getJson<{scarlett?: string, benjamin?: string}>("/telemetry/api/locations").catch(() => null)
       ]);
       setHealth(h);
       setSummary(s);
       setEvents(recent.events || []);
       setNarrative(narr);
       setControl(ctrl);
+      setLocations(locs);
       const ms = Math.round(performance.now() - t0);
       setStatus(
         `ok · ${s.event_count} events · load ${ms} ms · last ops event ${formatOpsTs(h.last_event_ts)}`
@@ -160,7 +163,10 @@ export default function App() {
             <ToolUtilization latest={latest} windowCounts={narrative?.tools?.counts} />
             <TriggerFeed latest={latest} recent={events} />
             <LatencyBreakdown latest={latest} />
-            <FloorPlanPanel scarlettLocation="Living Room" benjaminLocation="Kitchen" />
+            <FloorPlanPanel 
+              scarlettLocation={locations?.scarlett || "Living Room"} 
+              benjaminLocation={locations?.benjamin || "Kitchen"} 
+            />
           </div>
 
           <section className="band">
