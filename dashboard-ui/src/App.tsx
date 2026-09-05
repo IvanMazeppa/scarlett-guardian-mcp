@@ -8,6 +8,7 @@ import { SaveLagBanner } from "./components/SaveLagBanner";
 import { StatusStrip } from "./components/StatusStrip";
 import { SteeringPanel } from "./components/SteeringPanel";
 import { ToolUtilization } from "./components/ToolUtilization";
+import { FloorPlanPanel } from "./components/FloorPlanPanel";
 import { TriggerFeed } from "./components/TriggerFeed";
 import { WardrobePanel } from "./components/WardrobePanel";
 import type {
@@ -159,6 +160,7 @@ export default function App() {
             <ToolUtilization latest={latest} windowCounts={narrative?.tools?.counts} />
             <TriggerFeed latest={latest} recent={events} />
             <LatencyBreakdown latest={latest} />
+            <FloorPlanPanel scarlettLocation="Living Room" benjaminLocation="Kitchen" />
           </div>
 
           <section className="band">
