@@ -55,9 +55,9 @@ Recent context: ${recentContext}
 
 Output a JSON object with key "queries" containing an array of 1-3 strings.
 Queries should cover:
-1. Current scene continuity and emotional tone (live beat).
-2. Specific relationship precedents or character triggers mentioned in the user message.
-3. When the turn depends on the last ~48 hours of travel/intimacy (Germany trip, Luxembourg, Nordschleife, Schloss Lieser, Stuttgart), include one query aimed at recent europe-arm / warm chronicle continuity — not deep UK archive threads.`;
+1. Current scene continuity and emotional tone (live beat) — facts of the room only.
+2. An EMOTIONAL ANALOGUE, not a noun restatement. Map the gesture to a psychological job (e.g. too-small sofa → "closeness that does not fit and she makes room"; a pushed boundary → "last time play was how she stayed in control"). Search emotional-milestones and relationship history for that job. Do not search current-state.md.
+3. When the turn depends on the last ~48 hours of travel/intimacy (Germany trip, Luxembourg, Nordschleife, Schloss Lieser, Stuttgart, Soglio), include one query aimed at recent europe-arm / warm chronicle continuity — not deep UK archive threads.`;
 
   try {
     const response = await client.chat.completions.create({

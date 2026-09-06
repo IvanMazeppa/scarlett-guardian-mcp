@@ -23,6 +23,7 @@ import {
 import { listLorePacks } from "./lore-packs.js";
 import { readLocationProgress } from "./location-progress.js";
 import { readLiveBeatFromDisk } from "./live-beat-snapshot.js";
+import { characterLocationsResponse } from "./character-locations.js";
 import { runGuardianOocConsult } from "./tools/ooc-consult.js";
 import { runGuardianPreflight } from "./tools/preflight.js";
 import {
@@ -301,6 +302,19 @@ app.get("/telemetry/api/recent", (req, res) => {
     res.json({ days, limit, events });
   } catch (error) {
     res.status(500).json({
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
+app.get("/telemetry/api/locations", (req, res) => {
+  if (!requireGuardianAuth(req, res)) return;
+  try {
+    res.json(characterLocationsResponse());
+  } catch (error) {
+    res.status(500).json({
+      scarlett: null,
+      benjamin: null,
       error: error instanceof Error ? error.message : String(error)
     });
   }

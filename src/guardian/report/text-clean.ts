@@ -172,7 +172,8 @@ export function sourceRoleBoost(sourceFile?: string, sourceRole?: string, sectio
   // Warm recent narrative (europe-arm / arc_chronicle) — above cool history, below event-log.
   if (isWarmChronicle(sourceFile, sourceRole)) return 28;
   if (/character-bible|character_bible/.test(hay)) return 20;
-  if (/chronological-summary|emotional-milestones/.test(hay)) return 15;
+  if (/emotional-milestones|motif-index/.test(hay)) return 42;
+  if (/chronological-summary/.test(hay)) return 15;
   if (/historical\/thread-0|\/thread-0|index_ready|index-ready/.test(hay)) return -35;
   if (/supporting_backstory|historical_narrative/.test(hay)) return -10;
   return 0;

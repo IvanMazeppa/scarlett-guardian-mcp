@@ -177,6 +177,24 @@ export type GuardianReport = {
   grok_precedents?: CriticalPrecedent[];
   grok_emotional_context?: string;
   /**
+   * Lane 1: unspent Chekhov items parsed from live current-state Open Story Threads.
+   * Always pin — do not treat as a prompt to spend.
+   */
+  chekhov_guns?: string[];
+  /**
+   * Lane 3: one optional sensory rhyme. Omit when no motif is in the room.
+   */
+  madeleine_flash?: string | null;
+  /**
+   * Lane 4: distilled analogue (situation / did / cost / pattern).
+   */
+  felt_analogue?: {
+    situation: string;
+    whatSheDid: string;
+    whatItCost: string;
+    patternToRepeat: string;
+  } | null;
+  /**
    * Fable-5 Phase 3.1: verbatim current-state.md on full-fidelity turns
    * (session start / scene_transition / time_jump / memory write-back).
    */

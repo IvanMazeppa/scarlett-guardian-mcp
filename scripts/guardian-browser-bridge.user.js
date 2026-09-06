@@ -1149,7 +1149,7 @@
         "Expand this into a cohesive, flowing, well-structured multi-paragraph response written in the third-person limited perspective of 'Benjamin' (he/him) acting towards his female partner, Scarlett (she/her). " +
         "CRITICAL RULE: You MUST use 'she/her' pronouns for Scarlett. Never use gender-neutral 'they/them' pronouns. " +
         "Do not invent new actions; simply take the raw ideas and weave them into high-quality literary prose with descriptive sensory details. " +
-        "Output ONLY the final polished prose. No conversational filler."
+        "Add natural internal monologue and sensory texture to expand the word count and create a longer, immersive response. Output ONLY the final polished prose."
     }
   ];
 

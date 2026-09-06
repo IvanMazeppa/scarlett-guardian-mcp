@@ -485,6 +485,28 @@ export function defaultExcludes(live: LiveOutfitCard | undefined, kit: KitId | u
   return out;
 }
 
+const CLOTHES_ON_CARD =
+  /\b(jeans|cashmere|trousers|blazer|camisole|dress|shirt|sweater|jumper|hoodie|yoga|robe|suit|nomex|latex|catsuit|oxford)\b/i;
+
+/**
+ * If the garment list still names clothes, do not tell the novelist she is undressed.
+ * Fixes the "morning bed / half-naked" card fighting cashmere-and-jeans play.
+ */
+export function reconcileLiveOutfitCard(card: LiveOutfitCard): LiveOutfitCard {
+  const wearingText = card.wearing.join(" ");
+  const wearingNamesClothes = CLOTHES_ON_CARD.test(wearingText);
+  const wearingSaysBare = /\b(naked|nude|undressed)\b/i.test(wearingText);
+  const staleDetail = /\b(undressed|naked|nude|half-naked|morning bed)\b/i.test(card.bodyStateDetail);
+  if (card.bodyState === "undressed" && wearingNamesClothes && !wearingSaysBare) {
+    return {
+      ...card,
+      bodyState: "dressed",
+      bodyStateDetail: staleDetail || !card.bodyStateDetail.trim() ? wearingText : card.bodyStateDetail
+    };
+  }
+  return card;
+}
+
 function liveLines(live: LiveOutfitCard): string[] {
   const lines: string[] = [];
   // Authoritative body-state line — one home for dressed/undressed continuity.
@@ -646,7 +668,8 @@ export function resolveWardrobe(
 ): WardrobeResolution {
   const cwd = options.cwd ?? process.cwd();
   const liveMd = options.liveMarkdown ?? loadLiveOutfitMarkdown(cwd);
-  const parsed = liveMd.trim() ? parseLiveOutfitMarkdown(liveMd) : undefined;
+  const parsedRaw = liveMd.trim() ? parseLiveOutfitMarkdown(liveMd) : undefined;
+  const parsed = parsedRaw ? reconcileLiveOutfitCard(parsedRaw) : undefined;
 
   const userMessage = input.user_message ?? "";
   const changeBeat = isWardrobeChangeBeat(userMessage);
@@ -703,6 +726,15 @@ export function resolveWardrobe(
       // Keep garment list for redress; when undressed, garments stay as "last worn".
       wearing: writebackCandidate?.wearing ?? live.wearing
     };
+  }
+  if (
+    options.persistWriteback &&
+    parsedRaw &&
+    parsed &&
+    parsed.bodyState !== parsedRaw.bodyState &&
+    !bodyOverride.overridden
+  ) {
+    persistLiveOutfitCard(parsed, cwd);
   }
   if (writebackCandidate && options.persistWriteback) {
     persistLiveOutfitCard(writebackCandidate, cwd);

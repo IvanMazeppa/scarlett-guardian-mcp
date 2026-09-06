@@ -15,6 +15,12 @@ import {
 } from "../npc-registry.js";
 import type { CriticalPrecedent, GuardianReport } from "./models.js";
 import { isRagMetaText, stripRagMeta, truncate, truncateAtSentence } from "./text-clean.js";
+import {
+  formatFeltAnalogueBlock,
+  formatFlashLine,
+  formatHoldBlock,
+  sanitizeEmotionalContext
+} from "../memory-lanes.js";
 
 /** Soft cap default for the streamlined markdown Grok receives. Env: GUARDIAN_BRIEF_MAX_CHARS. */
 export const GROK_BRIEF_MAX_CHARS = 9000;
@@ -82,10 +88,10 @@ function pickSceneSummary(report: GuardianReport): string {
 
 function pickEmotionalContext(report: GuardianReport): string {
   if (report.grok_emotional_context && !isRagMetaText(report.grok_emotional_context)) {
-    return report.grok_emotional_context.trim();
+    return sanitizeEmotionalContext(report.grok_emotional_context.trim());
   }
   const cleaned = stripRagMeta(report.emotional_tone_guidance ?? "");
-  return cleaned || "Match the scene's established emotional baseline; stay present and specific.";
+  return sanitizeEmotionalContext(cleaned || "Match the scene's established emotional baseline; stay present and specific.");
 }
 
 function pickKeyFacts(report: GuardianReport): string[] {
@@ -239,6 +245,23 @@ export function compileGrokBrief(report: GuardianReport): string {
     essentialParts.push("");
   }
 
+  const holdBlock = formatHoldBlock(report.chekhov_guns ?? []);
+  if (holdBlock) {
+    essentialParts.push(holdBlock);
+    essentialParts.push("");
+  }
+
+  const analogueBlock =
+    report.felt_analogue &&
+    report.felt_analogue.situation.trim() &&
+    report.felt_analogue.whatSheDid.trim()
+      ? formatFeltAnalogueBlock(report.felt_analogue)
+      : undefined;
+  if (analogueBlock) {
+    essentialParts.push(analogueBlock);
+    essentialParts.push("");
+  }
+
   const quietPrivate = isQuietPrivateCoupleScene(report);
 
   const momentum = typeof report.story_momentum === "string" ? report.story_momentum.trim() : "";
@@ -270,9 +293,9 @@ export function compileGrokBrief(report: GuardianReport): string {
   essentialParts.push("");
 
   optionalParts.push("**Relevant Precedents:**");
-  const precedents = pickPrecedents(report);
+  const precedents = analogueBlock ? [] : pickPrecedents(report);
   if (precedents.length === 0) {
-    optionalParts.push("None flagged for this turn.");
+    optionalParts.push(analogueBlock ? "Covered by Analogue above." : "None flagged for this turn.");
   } else {
     precedents.forEach((p, i) => {
       optionalParts.push(`${i + 1}. **${p.topic}:** ${p.details}`);
@@ -287,9 +310,9 @@ export function compileGrokBrief(report: GuardianReport): string {
   optionalParts.push("");
 
   optionalParts.push("**Open Threads / Notes:**");
-  const threads = pickOpenThreads(report);
+  const threads = holdBlock ? [] : pickOpenThreads(report);
   if (threads.length === 0) {
-    optionalParts.push("- None flagged.");
+    optionalParts.push(holdBlock ? "- Unspent items are in Hold above." : "- None flagged.");
   } else {
     for (const t of threads) {
       optionalParts.push(`- ${truncateAtSentence(t, 420)}`);
@@ -326,6 +349,12 @@ export function compileGrokBrief(report: GuardianReport): string {
   if (echo) {
     optionalParts.push("**Echo (optional texture):**");
     optionalParts.push(`- ${truncateAtSentence(echo, 220)}`);
+    optionalParts.push("");
+  }
+
+  const flash = report.madeleine_flash?.trim();
+  if (flash && !isRagMetaText(flash)) {
+    optionalParts.push(formatFlashLine(flash, "motif"));
     optionalParts.push("");
   }
 

@@ -12,3 +12,11 @@ evals/runs/
 .guardian/dramaturg-context.json
 ngrok/traffic-policy.local.yml
 public/dashboard-app/**/*.map
+
+# Exclude images
+public/dashboard-app/location-photos/
+tmp/*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif

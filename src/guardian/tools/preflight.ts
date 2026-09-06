@@ -110,6 +110,18 @@ import {
 import { resolveDuplexInput } from "../duplex-cache.js";
 import type { DuplexSource } from "../report/models.js";
 import { planMemoryQueries, warmRecentMemoryQuery } from "../query-planner.js";
+import {
+  ANALOGUE_SOURCE_FILES,
+  MADELEINE_SOURCE_FILES,
+  analogueMemoryQuery,
+  distillExpandedContext,
+  isAnalogueSource,
+  isLiveSnapshotSource,
+  madeleinePlan,
+  parseChekhovGuns,
+  pickMadeleineFlash,
+  sanitizeEmotionalContext
+} from "../memory-lanes.js";
 import { resolveWardrobe } from "../wardrobe.js";
 import { resolveCurrentStatePath } from "../live-beat-snapshot.js";
 import { resolveSceneSummaryMaxChars } from "../report/compile-grok-brief.js";
@@ -382,6 +394,20 @@ async function runGuardianPreflightInner(
   // Dedicated warm lane: europe-arm / arc_chronicle (Recency upgrade 2026-08).
   // Soft-optional on cassette miss so frozen goldens don't PLAN_DRIFT-warn.
   const warmMemoryPromise = callWarmStoryMemory(toolCalls, limitedRagClient, input, totalController.signal);
+  const analogueQuery = analogueMemoryQuery(input, highRiskTriggers);
+  const analogueMemoryPromise = callLaneStoryMemory(
+    toolCalls,
+    limitedRagClient,
+    {
+      query: analogueQuery,
+      source_files: ANALOGUE_SOURCE_FILES,
+      max_results: 6,
+      rewrite_query: true,
+      max_chars_per_result: 3000
+    },
+    "analogue emotional-milestones lane",
+    totalController.signal
+  );
   const lorePackPromise = callLorePackMemory(
     toolCalls,
     limitedRagClient,
@@ -399,12 +425,14 @@ async function runGuardianPreflightInner(
   console.log(`${Date.now()} Awaiting memoryResults...`);
   const memoryCallResults = await Promise.all(memoryPromises);
   const warmMemoryCall = await warmMemoryPromise;
+  const analogueMemoryCall = await analogueMemoryPromise;
   const lorePackCall = await lorePackPromise;
   const memoryResponses = [
     ...memoryCallResults
       .filter((call) => call.ok && call.response)
       .map((call) => call.response as RagRetrieveResponse),
     ...(warmMemoryCall ? [warmMemoryCall] : []),
+    ...(analogueMemoryCall ? [analogueMemoryCall] : []),
     ...(lorePackCall ? [lorePackCall] : [])
   ];
   collector.mark("rag_batch");
@@ -412,6 +440,9 @@ async function runGuardianPreflightInner(
   const liveBeat = parseLiveBeat(
     liveState.ok && typeof liveState.response === "string" ? liveState.response : ""
   );
+  const liveStateText =
+    liveState.ok && typeof liveState.response === "string" ? liveState.response : "";
+  const chekhovGuns = parseChekhovGuns(liveStateText);
   if (liveBeat.liveCues.length) {
     console.log(
       `${Date.now()} Live beat cues: live=[${liveBeat.liveCues.slice(0, 8).join(", ")}] superseded=[${liveBeat.supersededCues.slice(0, 8).join(", ")}]`
@@ -497,9 +528,19 @@ async function runGuardianPreflightInner(
     callTextTool: (name, args, signal) => optionalLimit(() => ragClient.callTextTool(name, args, signal))
   };
 
+  const analogueHits = analogueMemoryCall?.results ?? [];
   const expandedContexts =
     (await raceBudget(
-      (signal) => expandBestContext(toolCalls, optionalRagClient, preflight.response, memoryResponses, highRiskTriggers, signal),
+      (signal) =>
+        expandBestContext(
+          toolCalls,
+          optionalRagClient,
+          preflight.response,
+          memoryResponses,
+          highRiskTriggers,
+          analogueHits,
+          signal
+        ),
       config.GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS ?? 5000,
       [] as ExpandedContext[],
       "expand_context_around_chunk"
@@ -526,6 +567,35 @@ async function runGuardianPreflightInner(
     `${Date.now()} Expand/verify done: expanded=${expandedContexts.length}, fact_checks=${factChecks.length}, npc_sections=${npcExpandResult.contexts.length}`
   );
   collector.mark("expand_verify");
+
+  const madeleine = madeleinePlan(input, liveBeat);
+  let madeleineFlash: string | undefined;
+  if (madeleine) {
+    const madeleineCall =
+      (await raceBudget(
+        (signal) =>
+          callLaneStoryMemory(
+            toolCalls,
+            optionalRagClient,
+            {
+              query: madeleine.query,
+              source_files: MADELEINE_SOURCE_FILES,
+              max_results: 4,
+              rewrite_query: true,
+              max_chars_per_result: 1800
+            },
+            "madeleine motif lane",
+            signal
+          ),
+        Math.min(config.GUARDIAN_BUDGET_OPTIONAL_DEPTH_MS ?? 5000, 4000),
+        undefined,
+        "madeleine_search"
+      )) ?? undefined;
+    if (madeleineCall?.results?.length) {
+      memoryResponses.push(madeleineCall);
+      madeleineFlash = pickMadeleineFlash(madeleineCall.results, madeleine.motif);
+    }
+  }
 
   const confidenceScore = scoreConfidence(preflight.response, memoryResponses, highRiskTriggers, toolCalls);
   const retrievalStatus = determineRetrievalStatus(preflight, memoryResponses, toolCalls);
@@ -983,7 +1053,10 @@ async function runGuardianPreflightInner(
     input,
     liveBeat
   );
-  const openThreads = collectOpenThreads(preflight.response, memoryResponses, llmAssessment);
+  const openThreads = uniqueQueries([
+    ...chekhovGuns,
+    ...collectOpenThreads(preflight.response, memoryResponses, llmAssessment)
+  ]).slice(0, 3);
   const keyFacts = buildKeyFacts(allResults, llmAssessment, hardFlags, highRiskTriggers, input);
   if (saveLag.suspected) {
     const playedSummary = (input.recent_context || "").trim();
@@ -996,7 +1069,11 @@ async function runGuardianPreflightInner(
     highRiskTriggers,
     input.user_message,
     2,
-    liveBeat
+    liveBeat,
+    { excludeLiveSnapshot: true }
+  );
+  const feltAnalogue = distillExpandedContext(
+    expandedContexts.find((ctx) => ctx.anchor && !isLiveSnapshotSource(ctx.anchor))
   );
 
   const duplexNote =
@@ -1075,7 +1152,10 @@ async function runGuardianPreflightInner(
     grok_scene_summary: currentStateSummary,
     grok_key_facts: keyFacts,
     grok_precedents: grokPrecedents,
-    grok_emotional_context: emotionalTone,
+    grok_emotional_context: sanitizeEmotionalContext(emotionalTone, liveBeat),
+    chekhov_guns: chekhovGuns,
+    madeleine_flash: madeleineFlash ?? null,
+    felt_analogue: feltAnalogue,
     wardrobe: {
       change_beat: wardrobe.changeBeat,
       brief_markdown: wardrobe.briefMarkdown,
@@ -1089,7 +1169,9 @@ async function runGuardianPreflightInner(
       preflight_query: preflightQuery,
       memory_queries: [
         ...memoryQueries,
+        analogueQuery,
         warmRecentMemoryQuery(input),
+        ...(madeleine ? [madeleine.query] : []),
         ...(missionControl.lorePack !== "none"
           ? [lorePackSearchQuery(missionControl.lorePack, input.user_message)]
           : [])
@@ -1779,10 +1861,12 @@ async function expandBestContext(
   preflight: RagRetrieveResponse | undefined,
   memories: RagRetrieveResponse[],
   highRiskTriggers: string[],
+  preferredHits: RagContextResult[] = [],
   signal?: AbortSignal
 ): Promise<ExpandedContext[]> {
   const shouldExpand =
     highRiskTriggers.length > 0 ||
+    preferredHits.length > 0 ||
     preflight?.should_answer_now === false ||
     preflight?.confidence !== "high" ||
     memories.some((memory) => memory.confidence !== "high");
@@ -1792,15 +1876,25 @@ async function expandBestContext(
   }
 
   // Prefer live-state / event-log expand targets over historical dumps.
+  // When analogue lane returned hits, prefer those over the snapshot.
   const pool = [
+    ...preferredHits,
     ...(preflight?.results ?? []),
     ...memories.flatMap((memory) => memory.results ?? [])
   ].filter((result) => result.can_expand !== false && (result.result_id || (result.source_file && result.section)));
 
+  const preferredKeys = new Set(
+    preferredHits.map((hit) => `${hit.source_file ?? ""}::${hit.section ?? ""}`)
+  );
+
   const scoreCandidate = (result: (typeof pool)[number]): number => {
     const hay = `${result.source_file ?? ""} ${result.section ?? ""} ${result.source_role ?? ""}`.toLowerCase();
     let score = (result.rank_score ?? result.relevance_score ?? 0) * 20;
-    if (/current-state|current_state/.test(hay)) score += 50;
+    if (preferredKeys.size > 0 && preferredKeys.has(`${result.source_file ?? ""}::${result.section ?? ""}`)) {
+      score += 80;
+    }
+    if (preferredKeys.size > 0 && isAnalogueSource(result)) score += 40;
+    if (/current-state|current_state/.test(hay)) score += preferredKeys.size > 0 ? -20 : 50;
     if (/event-log|event_log/.test(hay)) score += 40;
     if (isWarmChronicle(result.source_file, result.source_role)) score += 35;
     if (/where we are|recent key|notes for next|emotional/.test(hay)) score += 20;
@@ -1959,6 +2053,43 @@ async function callWarmStoryMemory(
 }
 
 /**
+ * Extra analogue / Madeleine search. Soft-skip on hermetic cassette miss so
+ * frozen goldens do not PLAN_DRIFT when a new lane is added.
+ */
+async function callLaneStoryMemory(
+  toolCalls: RagToolCall[],
+  ragClient: RagToolCaller,
+  args: {
+    query: string;
+    source_files?: string[];
+    source_roles?: string[];
+    max_results: number;
+    rewrite_query: boolean;
+    max_chars_per_result: number;
+  },
+  label: string,
+  signal?: AbortSignal
+): Promise<RagRetrieveResponse | undefined> {
+  try {
+    const response = await ragClient.callJsonTool<RagRetrieveResponse>(
+      "search_story_memory",
+      args,
+      signal
+    );
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: true, response });
+    return response;
+  } catch (error) {
+    const msg = stringifyError(error);
+    if (/PLAN_DRIFT|CassetteMissError/i.test(msg)) {
+      console.warn(`${Date.now()} ${label} skipped (cassette miss)`);
+      return undefined;
+    }
+    toolCalls.push({ tool: "search_story_memory", arguments: args, ok: false, error: msg });
+    return undefined;
+  }
+}
+
+/**
  * Mission Control targeted lore pack — prioritizes exact source_files; never
  * replaces unfiltered live-state retrieve. Soft-skip on cassette miss.
  */
@@ -2086,7 +2217,8 @@ export function selectPrecedents(
   highRiskTriggers: string[],
   userMessage: string,
   limit = 2,
-  liveBeat?: LiveBeat
+  liveBeat?: LiveBeat,
+  options?: { excludeLiveSnapshot?: boolean }
 ): CriticalPrecedent[] {
   // History unlock: family/trauma OR intimacy/aftercare (warmth restore 2026-07-23).
   // Intimate scenes need relationship precedents; flat -40 on historical/* was starving erotic/emotional memory.
@@ -2107,6 +2239,10 @@ export function selectPrecedents(
       keywords
     );
     score += keywordOverlapScore(`${result.section ?? ""} ${result.text ?? ""}`, extractKeywords(triggerText, 12));
+
+    if (options?.excludeLiveSnapshot && isAnalogueSource(result)) {
+      score += 36;
+    }
 
     if (isHistoricalThread(result.source_file, result.section)) {
       if (historyAllowed) score += intimacyLive ? 12 : 5;
@@ -2140,6 +2276,7 @@ export function selectPrecedents(
   const selected: CriticalPrecedent[] = [];
 
   for (const { result } of scored) {
+    if (options?.excludeLiveSnapshot && isLiveSnapshotSource(result)) continue;
     const key = `${result.source_file ?? ""}::${result.section ?? ""}`;
     if (seen.has(key)) continue;
     seen.add(key);
