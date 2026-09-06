@@ -1280,18 +1280,15 @@
 
         GM_xmlhttpRequest({
           method: "POST",
-          url: gmGet("guardian_ghostwriter_base_url", "https://api.openai.com/v1/chat/completions"),
+          url: gmGet("guardian_ghostwriter_base_url", "https://api.openai.com/v1/responses"),
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${apiKey}`
           },
           data: JSON.stringify({
             model: model,
-            messages: [
-              {
-                role: "system",
-                content: preset.system
-              },
+            instructions: preset.system,
+            input: [
               {
                 role: "user",
                 content: `Draft (${words} words). Stay within ${maxWords} words.\n\n${text}`
@@ -1304,7 +1301,7 @@
             if (res.status === 200) {
               try {
                 const data = JSON.parse(res.responseText);
-                const polished = data.choices[0].message.content.trim();
+                const polished = data.output[0].content[0].text.trim();
                 const target = findComposerEditor() || activeEditor;
                 if (setComposerText(target, polished)) {
                   showPill(`✨ Ghostwriter success (${preset.label})`, "ok");
