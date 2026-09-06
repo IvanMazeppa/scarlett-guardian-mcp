@@ -773,6 +773,15 @@
         showPill("✨ Ghostwriter model saved (reload)", "info");
       }
     });
+    GM_registerMenuCommand("Ghostwriter: set API Base URL…", () => {
+      const current = gmGet("guardian_ghostwriter_base_url", "https://api.openai.com/v1/chat/completions");
+      const next = prompt("Ghostwriter API URL (OpenAI compatible format):", current);
+      if (next !== null) {
+        gmSet("guardian_ghostwriter_base_url", next.trim());
+        alert("Ghostwriter API URL updated.\nReload page to apply.");
+      }
+    });
+
     GM_registerMenuCommand("Ghostwriter: dump composer (debug)", () => {
       const editor = findComposerEditor();
       const textareas = Array.from(document.querySelectorAll("textarea")).map((ta) => ({
@@ -1271,7 +1280,7 @@
 
         GM_xmlhttpRequest({
           method: "POST",
-          url: "https://api.openai.com/v1/chat/completions",
+          url: gmGet("guardian_ghostwriter_base_url", "https://api.openai.com/v1/chat/completions"),
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${apiKey}`
